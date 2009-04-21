@@ -1,7 +1,7 @@
 #labels Featured,Phase-Requirements
 =Feature List=
 
-  * bencoding/unencoding
+  * bencoding/unencoding (use a library)
   * communication with tracker (tracker request/response)
   * loading/reading a torrent file
   * peer communication
