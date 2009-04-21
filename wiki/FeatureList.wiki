@@ -3,6 +3,6 @@
 
   * bencoding/unencoding
   * communication with tracker (tracker request/response)
-  * creating a torrent file
+  * loading/reading a torrent file
   * peer communication
     * handshake
