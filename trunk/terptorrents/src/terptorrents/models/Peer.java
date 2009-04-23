@@ -1,16 +1,28 @@
 package terptorrents.models;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class Peer {
-	InetSocketAddress address;
+	private final byte[] id;
+	private final InetAddress address;
+	private final int port;
 
-	/**
-	 * Set the address of this peer using the hostname (or IP address) and port
-	 * @param hostname - hostname or IP address
-	 * @param port
-	 */
-	public void setAddress(String hostname, int port) {
-		address = new InetSocketAddress(hostname, port);
+	private boolean am_choking;
+	private boolean am_interested;
+	private boolean peer_choking;
+	private boolean peer_interested;
+
+	public Peer(byte[] id, String address, int port) 
+	throws UnknownHostException{
+		this.id = id;
+		this.port = port;
+		this.address = InetAddress.getByName(address);
+
+		am_choking = true;
+		am_interested = false;
+		peer_choking = true;
+		peer_interested = false;
 	}
+
 }
