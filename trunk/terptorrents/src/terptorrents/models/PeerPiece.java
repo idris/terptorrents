@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.BitSet;
 import java.util.HashSet;
 
+import terptorrents.exceptions.BlockIndexOutOfBound;
+import terptorrents.exceptions.PieceNotWritable;
+
 public class PeerPiece extends Piece {
 	private HashSet<Peer> peerSet;
 	private BitSet bitMap;
@@ -28,15 +31,16 @@ public class PeerPiece extends Piece {
 		return (bitMap.nextClearBit(0) == -1) ? true : false;
 	}
 
-	public boolean receiveBlock(int begin, int length, byte [] data){
-		if(begin < 0 || begin + length > getSize())
-			return false;
-		bitMap.set(begin, begin+length);
-		this.data.write(data, begin, length);
-		return true;
-	}
-
 	public HashSet<Peer> getPeer(){
 		return peerSet;
+	}
+
+	@Override
+	public void update_piece(int begin, int length, byte [] data) 
+	throws PieceNotWritable, BlockIndexOutOfBound {
+		if(begin < 0 || begin + length > getSize())
+			throw new BlockIndexOutOfBound();
+		bitMap.set(begin, begin+length);
+		this.data.write(data, begin, length);
 	}
 }
