@@ -6,10 +6,10 @@ package terptorrents.models;
 import java.util.BitSet;
 import java.util.HashSet;
 
-import terptorrents.exceptions.BlockIndexOutOfBound;
-import terptorrents.exceptions.PieceIndexOutOfBound;
-import terptorrents.exceptions.PieceNotReadable;
-import terptorrents.exceptions.PieceNotWritable;
+import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
+import terptorrents.exceptions.TerptorrentsModelsPieceIndexOutOfBound;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
 import terptorrents.io.IOBitSet;
 import terptorrents.io.IO;
 
@@ -37,13 +37,13 @@ public class PieceManager {
 	}
 
 	public BlockRange getBlockRangeToRequest(int pieceIndex)	
-	throws PieceNotWritable, PieceIndexOutOfBound{
+	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
-			throw new PieceIndexOutOfBound();
+			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
 			return ((PeerPiece)(pieces[pieceIndex])).getBlockRangeToRequest();
 		else
-			throw new PieceNotWritable();
+			throw new TerptorrentsModelsPieceNotWritable();
 	}
 	
 	public BlockRange [] getAllBlockRangeToRequest() {
@@ -76,26 +76,26 @@ public class PieceManager {
 				((PeerPiece)(pieces[i])).removePeer(peer);			
 	}
 	
-	public HashSet<Peer> GetPeerSet(int pieceIndex) throws PieceNotWritable, PieceIndexOutOfBound{
+	public HashSet<Peer> GetPeerSet(int pieceIndex) throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
-			throw new PieceIndexOutOfBound();
+			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
 			return ((PeerPiece)(pieces[pieceIndex])).getPeerSet();
 		else
-			throw new PieceNotWritable();
+			throw new TerptorrentsModelsPieceNotWritable();
 	}
 	
 	public byte [] requestBlock(int pieceIndex, int blockBegin, int blockLength)	
-	throws PieceNotReadable, BlockIndexOutOfBound, PieceIndexOutOfBound{
+	throws TerptorrentsModelsPieceNotReadable, TerptorrentsModelsBlockIndexOutOfBound, TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
-			throw new PieceIndexOutOfBound();
+			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		return pieces[pieceIndex].requestBlock(io, pieceIndex, blockBegin, blockLength);
 	}
 	
 	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, byte [] data)
-	throws PieceNotWritable, BlockIndexOutOfBound, PieceIndexOutOfBound{
+	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsBlockIndexOutOfBound, TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
-			throw new PieceIndexOutOfBound();
+			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex].updateBlock(io, pieceIndex, blockBegin, blockLength, data))
 			pieces[pieceIndex] = new LocalPiece((pieceIndex == pieces.length - 1));
 	}

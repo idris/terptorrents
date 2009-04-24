@@ -5,8 +5,8 @@ package terptorrents.models;
 
 import java.io.ByteArrayInputStream;
 
-import terptorrents.exceptions.BlockIndexOutOfBound;
-import terptorrents.exceptions.PieceNotWritable;
+import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
 import terptorrents.io.IO;
 
 /**
@@ -24,9 +24,9 @@ public class LocalPiece extends Piece {
 	
 	@Override
 	public byte [] requestBlock(IO io, int pieceIndex, int blockBegin, 
-			int blockLength) throws BlockIndexOutOfBound{
+			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound{
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
-			throw new BlockIndexOutOfBound();
+			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){
 			data = new ByteArrayInputStream(io.getPiece(pieceIndex));
 		}
@@ -37,7 +37,7 @@ public class LocalPiece extends Piece {
 
 	@Override
 	public boolean updateBlock(IO io, int pieceIndex,
-			int begin, int length, byte [] data) throws PieceNotWritable {
-		throw new PieceNotWritable();
+			int begin, int length, byte [] data) throws TerptorrentsModelsPieceNotWritable {
+		throw new TerptorrentsModelsPieceNotWritable();
 	}
 }
