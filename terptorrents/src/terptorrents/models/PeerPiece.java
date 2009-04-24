@@ -5,42 +5,59 @@ import java.util.BitSet;
 import java.util.HashSet;
 
 import terptorrents.exceptions.BlockIndexOutOfBound;
-import terptorrents.exceptions.PieceNotWritable;
+import terptorrents.exceptions.PieceNotReadable;
+import terptorrents.io.IO;
 
 public class PeerPiece extends Piece {
 	private HashSet<Peer> peerSet;
-	private BitSet bitMap;
+	private BitSet blockBitSet;
 	private ByteArrayOutputStream data;
 	
 	public PeerPiece(boolean isLastPiece){
 		super(isLastPiece);
 		peerSet = new HashSet<Peer>();
 		data = new ByteArrayOutputStream(getSize());
-		this.bitMap = new BitSet(getSize());
+		this.blockBitSet = new BitSet(getSize());
 	}
 	
 	public void addPeer(Peer newPeer){
 		peerSet.add(newPeer);
 	}
 
-	public void removePeer(Peer newPeer){
-		peerSet.remove(newPeer);
-	}
-	
-	public boolean Have_Piece(){
-		return (bitMap.nextClearBit(0) == -1) ? true : false;
+	public void removePeer(Peer peer){
+		peerSet.remove(peer);
 	}
 
-	public HashSet<Peer> getPeer(){
+	public HashSet<Peer> getPeerSet(){
 		return peerSet;
 	}
 
 	@Override
-	public void update_piece(int begin, int length, byte [] data) 
-	throws PieceNotWritable, BlockIndexOutOfBound {
-		if(begin < 0 || begin + length > getSize())
+	public byte [] requestBlock(IO io, int pieceIndex, int blockBegin, 
+			int blockLength) throws PieceNotReadable{
+		throw new PieceNotReadable();
+	}
+
+	@Override
+	public boolean updateBlock(IO io, int pieceIndex,
+			int blockBegin, int blockLength, byte [] data) 
+	throws BlockIndexOutOfBound {
+		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new BlockIndexOutOfBound();
-		bitMap.set(begin, begin+length);
-		this.data.write(data, begin, length);
+		blockBitSet.set(blockBegin, blockBegin + blockLength);
+		this.data.write(data, blockBegin, blockLength);
+		if(Have_Piece()){
+			if(io.writePiece(pieceIndex, this.data.toByteArray()))
+				return true;
+			else{
+				blockBitSet.clear();
+				return false;
+			}
+		}else
+			return false;
+	}	
+	
+	private boolean Have_Piece(){
+		return (blockBitSet.nextClearBit(0) == -1) ? true : false;
 	}
 }

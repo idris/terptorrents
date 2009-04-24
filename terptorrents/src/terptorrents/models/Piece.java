@@ -1,7 +1,9 @@
 package terptorrents.models;
 
 import terptorrents.exceptions.BlockIndexOutOfBound;
+import terptorrents.exceptions.PieceNotReadable;
 import terptorrents.exceptions.PieceNotWritable;
+import terptorrents.io.IO;
 
 abstract public class Piece {
 	private static int size;
@@ -35,6 +37,11 @@ abstract public class Piece {
 		return (isLastPiece)? lastPieceSize : size;
 	}
 	
-	public abstract void update_piece(int begin, int lengh, byte [] data) 
+	public abstract byte [] requestBlock(IO io, int pieceIndex, 
+			int blockBegin, int blockLength)	
+	throws PieceNotReadable, BlockIndexOutOfBound;
+	
+	public abstract boolean updateBlock(IO io, int pieceIndex,
+			int blockBegin, int blockLength, byte [] data)
 	throws PieceNotWritable, BlockIndexOutOfBound;
 }
