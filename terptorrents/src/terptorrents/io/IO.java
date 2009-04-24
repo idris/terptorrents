@@ -16,8 +16,8 @@ public class IO {
 		return false;
 	}
 	
-	/* returns a bitmask of pieces that are available fro upload */
-	public BitSet getBitMask() {
+	/* returns a bitmask of pieces that are available for upload */
+	public BitSet getBitSet() {
 		return null;
 	}
 	
