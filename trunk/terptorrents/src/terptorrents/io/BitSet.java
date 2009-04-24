@@ -1,7 +1,7 @@
 package terptorrents.io;
 import java.util.*;
 
-public interface BitMask {
+public interface BitSet {
 	
 	/* returns true if piece is available (downloaded) */
 	public boolean havePiece(int index);
