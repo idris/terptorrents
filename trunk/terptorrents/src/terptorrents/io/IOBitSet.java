@@ -1,7 +1,7 @@
 package terptorrents.io;
 import java.util.*;
 
-public interface BitSet {
+public interface IOBitSet {
 	
 	/* returns true if piece is available (downloaded) */
 	public boolean havePiece(int index);
@@ -19,4 +19,7 @@ public interface BitSet {
 	 */ 
 	public Set<Integer> getEmptyPiecesSet();
 	
+	/* retu*/
+	public BitSet getUnsyncBitSet();
+
 }
