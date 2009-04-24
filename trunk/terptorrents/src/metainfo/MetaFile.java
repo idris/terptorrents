@@ -18,6 +18,7 @@ public class MetaFile {
 	private List<Piece> pieces;
 	private List<String> filenames;
 	private Map<String,Long> fileLengths;
+	private Map<Integer,byte[]> SHAHashes;
 	public String getAnnounce() {
 		return announce;
 	}
@@ -45,6 +46,10 @@ public class MetaFile {
 		return fileLengths;
 	} 
 	
+	/* Returns a map from piece numbers to SHA Hash values */
+	public Map<Integer,byte[]> getSHAHashes(){
+		return SHAHashes;
+	}
 	
 	
 }
