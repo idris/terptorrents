@@ -19,7 +19,10 @@ public interface IOBitSet {
 	 */ 
 	public Set<Integer> getEmptyPiecesSet();
 	
-	/* retu*/
+	/* retuns java BitSet representing pieces IO has. Returned class
+	 * is not syncronized and should be only used for building some
+	 * messages
+	 */
 	public BitSet getUnsyncBitSet();
 
 }
