@@ -7,7 +7,7 @@ package terptorrents.exceptions;
  * @author jonli
  *
  */
-public class PieceIndexOutofBound extends Exception {
+public class PieceIndexOutOfBound extends Exception {
 
 	/**
 	 * 
