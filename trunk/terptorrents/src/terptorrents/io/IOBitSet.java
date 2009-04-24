@@ -12,15 +12,13 @@ public interface IOBitSet {
 	/* returns number of pieces that needs to be downloaded/empty */
 	public int getNumEmptyPieces();
 	
-	/* returns a set of indexes of empty pieces (that need to be downloaded)
-	 * Set represents the current snapshot of the file.
-	 * havePiece() method should be called prior to downloading a piece
-	 * to make sure that piece have not been downloaded yet
+	/* returns an Iterator over the empty pieces that needs to be downloaded
+	 * call to remove() method will have no effect
 	 */ 
-	public Set<Integer> getEmptyPiecesSet();
+	public Iterator<Integer> getEmptyPiecesIterator();
 	
-	/* retuns java BitSet representing pieces IO has. Returned class
-	 * is not syncronized and should be only used for building some
+	/* returns java BitSet representing pieces that IO has. Returned class
+	 * is not synchronized and should be only used for building some
 	 * messages
 	 */
 	public BitSet getUnsyncBitSet();
