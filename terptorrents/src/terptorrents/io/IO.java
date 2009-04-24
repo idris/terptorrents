@@ -17,12 +17,24 @@ public class IO {
 	}
 	
 	/* returns a bitmask of pieces that are available for upload */
-	public BitSet getBitSet() {
+	public IOBitSet getBitSet() {
 		return null;
 	}
 	
 	/* return true is all pieces are available in a file */
 	public boolean isComplete() {
 		return false;
+	}
+	
+	/* returns size of all pieces except the last one, which might
+	 * be irregular
+	 */
+	public int getPieceSize() {
+		return 0;
+	}
+	
+	/* returns irregular piece size */
+	public int getLastPieceSize() {
+		return 0;
 	}
 }
