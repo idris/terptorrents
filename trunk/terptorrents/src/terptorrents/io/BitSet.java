@@ -10,7 +10,7 @@ public interface BitSet {
 	public int totalNumOfPieces();
 	
 	/* returns number of pieces that needs to be downloaded/empty */
-	public int emptyPieces();
+	public int getNumEmptyPieces();
 	
 	/* returns a set of indexes of empty pieces (that need to be downloaded)
 	 * Set represents the current snapshot of the file.
