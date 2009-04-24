@@ -7,7 +7,7 @@ package terptorrents.exceptions;
  * @author jonli
  *
  */
-public class BlockIndexOutOfBound extends Exception {
+public class TerptorrentsModelsBlockIndexOutOfBound extends Exception {
 
 	/**
 	 * 

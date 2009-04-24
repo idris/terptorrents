@@ -1,8 +1,8 @@
 package terptorrents.models;
 
-import terptorrents.exceptions.BlockIndexOutOfBound;
-import terptorrents.exceptions.PieceNotReadable;
-import terptorrents.exceptions.PieceNotWritable;
+import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
 import terptorrents.io.IO;
 
 abstract public class Piece {
@@ -39,9 +39,9 @@ abstract public class Piece {
 	
 	public abstract byte [] requestBlock(IO io, int pieceIndex, 
 			int blockBegin, int blockLength)	
-	throws PieceNotReadable, BlockIndexOutOfBound;
+	throws TerptorrentsModelsPieceNotReadable, TerptorrentsModelsBlockIndexOutOfBound;
 	
 	public abstract boolean updateBlock(IO io, int pieceIndex,
 			int blockBegin, int blockLength, byte [] data)
-	throws PieceNotWritable, BlockIndexOutOfBound;
+	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsBlockIndexOutOfBound;
 }

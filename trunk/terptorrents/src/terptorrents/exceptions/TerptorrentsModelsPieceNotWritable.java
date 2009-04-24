@@ -7,7 +7,7 @@ package terptorrents.exceptions;
  * @author jonli
  *
  */
-public class PieceNotWritable extends Exception {
+public class TerptorrentsModelsPieceNotWritable extends Exception {
 
 	/**
 	 * 

@@ -4,8 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.BitSet;
 import java.util.HashSet;
 
-import terptorrents.exceptions.BlockIndexOutOfBound;
-import terptorrents.exceptions.PieceNotReadable;
+import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
+import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
 import terptorrents.io.IO;
 
 public class PeerPiece extends Piece {
@@ -53,16 +53,16 @@ public class PeerPiece extends Piece {
 
 	@Override
 	public byte [] requestBlock(IO io, int pieceIndex, int blockBegin, 
-			int blockLength) throws PieceNotReadable{
-		throw new PieceNotReadable();
+			int blockLength) throws TerptorrentsModelsPieceNotReadable{
+		throw new TerptorrentsModelsPieceNotReadable();
 	}
 
 	@Override
 	public boolean updateBlock(IO io, int pieceIndex,
 			int blockBegin, int blockLength, byte [] data) 
-	throws BlockIndexOutOfBound {
+	throws TerptorrentsModelsBlockIndexOutOfBound {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
-			throw new BlockIndexOutOfBound();
+			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		blockBitFeild.set(blockBegin, blockBegin + blockLength);
 		this.data.write(data, blockBegin, blockLength);
 		if(Have_Piece()){
