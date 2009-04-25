@@ -4,6 +4,7 @@
 package terptorrents.models;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
@@ -36,6 +37,12 @@ public class LocalPiece extends Piece {
 	}
 	
 	public void clearBuffer(){
+		try {
+			data.close();
+		} catch (IOException e) {
+			if(terptorrents.Main.DEBUG)
+				e.printStackTrace();
+		}
 		data = null;
 	}
 	
