@@ -1,6 +1,7 @@
 package terptorrents.models;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashSet;
 
@@ -86,9 +87,15 @@ public class PeerPiece extends Piece {
 		blockBitFeild.set(blockBegin, blockBegin + blockLength);
 		this.data.write(data, blockBegin, blockLength);
 		if(Have_Piece()){
-			if(io.writePiece(pieceIndex, this.data.toByteArray()))
+			if(io.writePiece(pieceIndex, this.data.toByteArray())){
+				try {
+					this.data.close();
+				} catch (IOException e) {
+					if(terptorrents.Main.DEBUG)
+						e.printStackTrace();
+				}
 				return true;
-			else{
+			}else{
 				blockBitFeild.clear();
 				return false;
 			}
