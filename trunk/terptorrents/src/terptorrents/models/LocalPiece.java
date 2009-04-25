@@ -14,11 +14,28 @@ import terptorrents.io.IO;
  *
  */
 public class LocalPiece extends Piece {
-	
 	private ByteArrayInputStream data;
+	private int numRequest;
 	
-	public LocalPiece(boolean isLastPiece){
-		super(isLastPiece);
+	public LocalPiece(boolean isLastPiece, int index){
+		super(isLastPiece, index);
+		numRequest = 0;
+		data = null;
+	}
+	
+	public int getNumRequest(){
+		return numRequest;
+	}
+	
+	public void resetNumRequest(){
+		numRequest = 0;
+	}
+	
+	public boolean isBufferInRAM(){
+		return !(data == null);
+	}
+	
+	public void clearBuffer(){
 		data = null;
 	}
 	
@@ -30,6 +47,7 @@ public class LocalPiece extends Piece {
 		if(data == null){
 			data = new ByteArrayInputStream(io.getPiece(pieceIndex));
 		}
+		numRequest++;
 		byte [] res = new byte[blockLength];
 		this.data.read(res, blockBegin, blockLength);
 		return res;

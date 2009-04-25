@@ -9,9 +9,10 @@ abstract public class Piece {
 	private static int size;
 	private static int lastPieceSize;
 	private boolean isLastPiece;
-
+	private int index;
 	
-	public Piece(boolean isLastPiece){
+	public Piece(boolean isLastPiece, int index){
+		this.index = index;
 		this.isLastPiece = isLastPiece;
 	}
 
@@ -31,6 +32,10 @@ abstract public class Piece {
 	
 	public boolean isLastPiece(){
 		return isLastPiece;
+	}
+	
+	public int getIndex(){
+		return index;
 	}
 	
 	public int getSize(){
