@@ -13,21 +13,41 @@ public class PeerPiece extends Piece {
 	private BitSet blockBitFeild;
 	private ByteArrayOutputStream data;
 	
-	public PeerPiece(boolean isLastPiece){
-		super(isLastPiece);
+	public PeerPiece(boolean isLastPiece, int index){
+		super(isLastPiece, index);
 		peerSet = new HashSet<Peer>();
 		data = new ByteArrayOutputStream(getSize());
 		this.blockBitFeild = new BitSet(getSize());
 	}
 
+	public int getNumPeer(){
+		return peerSet.size();
+	}
+	
+	/**
+	 * This function returns the the biggest undownloaded block range.
+	 * 
+	 * TODO this function is currently doing a linear search. This call can be
+	 * very expensive.
+	 * 
+	 * @return
+	 */
 	public BlockRange getBlockRangeToRequest(){
 		int max_begin = 0;
 		int pieceLength = blockBitFeild.length();
 		int max_length = 0;
 		
+		if(getNumPeer() == 0)
+			return null;
+		
 		for(int i = 0; i < pieceLength; i++){
 			if(!blockBitFeild.get(i)){
 				int currentLength = blockBitFeild.nextSetBit(i) - i;
+				if(currentLength >= terptorrents.Main.MAX_REQUEST_BLOCK_SIZE){
+					max_length = terptorrents.Main.MAX_REQUEST_BLOCK_SIZE;
+					max_begin = i;
+					break;
+				}
 				if(currentLength > max_length){
 					max_length = currentLength;
 					max_begin = i;
@@ -35,7 +55,7 @@ public class PeerPiece extends Piece {
 				i = currentLength + i - 1;
 			}
 		}
-		return new BlockRange(max_begin, max_length);
+		return new BlockRange(max_begin, max_length, getIndex());
 	}
 	
 	public void addPeer(Peer newPeer){

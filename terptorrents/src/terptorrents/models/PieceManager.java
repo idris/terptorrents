@@ -3,7 +3,9 @@
  */
 package terptorrents.models;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
@@ -19,6 +21,9 @@ import terptorrents.io.IO;
  */
 public class PieceManager {
 	private Piece [] pieces;
+	private ArrayList<PeerPiece> peerPieceList;
+	private ArrayList<LocalPiece> localPieceList;
+	private int currentRequestBufferSize;
 	private IO io;
 
 	public PieceManager(IO io){
@@ -29,16 +34,32 @@ public class PieceManager {
 		Piece.setLastPieceSize(io.getPieceSize());
 		Piece.setSize(io.getLastPieceSize());
 		
+		peerPieceList = new ArrayList<PeerPiece>();
+		localPieceList = new ArrayList<LocalPiece>();
+		currentRequestBufferSize = 0;
+		
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
-			pieces[i] = (bitMap.havePiece(i)) ? new LocalPiece((i == numPieces - 1)) : 
-				new PeerPiece(i == numPieces - 1);
+			pieces[i] = (bitMap.havePiece(i)) ? 
+					new LocalPiece((i == numPieces - 1), i) : 
+				new PeerPiece((i == numPieces - 1), i);
 		}
 	}
-
+	
+	/**
+	 * This method returns a block range to request for a specified piece. 
+	 * Null be will be returned for an index if the piece is a local piece or 
+	 * no peer has this piece
+	 * 
+	 * @param pieceIndex
+	 * @return
+	 * @throws TerptorrentsModelsPieceNotWritable
+	 * @throws TerptorrentsModelsPieceIndexOutOfBound
+	 */
 	public BlockRange getBlockRangeToRequest(int pieceIndex)	
-	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsPieceIndexOutOfBound{
-		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
+	throws TerptorrentsModelsPieceNotWritable, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
 			return ((PeerPiece)(pieces[pieceIndex])).getBlockRangeToRequest();
@@ -46,13 +67,45 @@ public class PieceManager {
 			throw new TerptorrentsModelsPieceNotWritable();
 	}
 	
+	/**
+	 * This method returns an array that contains the block range to request
+	 * for N rarest pieces. 
+	 * 
+	 * @param numBlockRangeToRequest
+	 * @return
+	 * @throws TerptorrentsModelsPieceNotWritable
+	 * @throws TerptorrentsModelsPieceIndexOutOfBound
+	 */
+	public BlockRange [] getNBlockRangeToRequest(int numBlockRangeToRequest)	
+	throws TerptorrentsModelsPieceNotWritable, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
+		while(peerPieceList.get(0).getNumPeer() == 0)
+			peerPieceList.remove(0);
+		
+		int numRes = Math.min(numBlockRangeToRequest, peerPieceList.size());
+		BlockRange [] res = new BlockRange[numRes];
+		
+		for(int i = 0; i < numRes; i++){
+			res[i] = getBlockRangeToRequest(peerPieceList.get(i).getIndex()); 
+		}
+		return res;
+	}
+	
+	
+	/**
+	 * This method returns an array that contains the block range to request
+	 * for all of the pieces. Null be will be returned for an index if the 
+	 * piece is a local piece or no peer has this piece.
+	 * The array index corresponds to the piece index.
+	 * 
+	 * @return BlockRange []
+	 */
 	public BlockRange [] getAllBlockRangeToRequest() {
-		int numPieces = pieces.length;
-		BlockRange [] res = new BlockRange[numPieces];
-		for(int i = 0; i < numPieces; i++){
+		BlockRange [] res = new BlockRange[pieces.length];
+		for(int i = 0; i < pieces.length; i++){
 			try {
-				res[i] = (pieces[i] instanceof PeerPiece) ? 
-						getBlockRangeToRequest(i) : null;
+				res[i] = getBlockRangeToRequest(i);
 			} catch (Exception e) {
 				res[i] = null;
 			}
@@ -61,23 +114,25 @@ public class PieceManager {
 	}
 	
 	public void addPeer(BitSet peerBitField, Peer peer) {
-		int numPieces = pieces.length;
-		assert peerBitField.length() == numPieces;
-		for(int i = 0; i < numPieces; i++){
-			if(pieces[i] instanceof PeerPiece && peerBitField.get(i))
+		assert peerBitField.length() == pieces.length;
+		for(int i = 0; i < pieces.length; i++){
+			if(pieces[i] instanceof PeerPiece && peerBitField.get(i)){
 				((PeerPiece)(pieces[i])).addPeer(peer);	
+				peerPieceList.add((PeerPiece)pieces[i]);
+			}
 		}
 	}
 	
 	public void removePeer(Peer peer){
-		int numPieces = pieces.length;
-		for(int i = 0; i < numPieces; i++)
+		for(int i = 0; i < pieces.length; i++)
 			if(pieces[i] instanceof PeerPiece)
-				((PeerPiece)(pieces[i])).removePeer(peer);			
+				((PeerPiece)(pieces[i])).removePeer(peer);
 	}
 	
-	public HashSet<Peer> GetPeerSet(int pieceIndex) throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsPieceIndexOutOfBound{
-		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
+	public HashSet<Peer> GetPeerSet(int pieceIndex) 
+	throws TerptorrentsModelsPieceNotWritable, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
 			return ((PeerPiece)(pieces[pieceIndex])).getPeerSet();
@@ -86,17 +141,51 @@ public class PieceManager {
 	}
 	
 	public byte [] requestBlock(int pieceIndex, int blockBegin, int blockLength)	
-	throws TerptorrentsModelsPieceNotReadable, TerptorrentsModelsBlockIndexOutOfBound, TerptorrentsModelsPieceIndexOutOfBound{
-		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
+	throws TerptorrentsModelsPieceNotReadable, 
+	TerptorrentsModelsBlockIndexOutOfBound, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
-		return pieces[pieceIndex].requestBlock(io, pieceIndex, blockBegin, blockLength);
+		if(pieces[pieceIndex] instanceof PeerPiece)
+			throw new TerptorrentsModelsPieceNotReadable();
+		if(!((LocalPiece)(pieces[pieceIndex])).isBufferInRAM()){
+			while(currentRequestBufferSize + pieces[pieceIndex].getSize() 
+					> terptorrents.Main.MAX_REQUEST_BUFFER_SIZE)
+				evictPiecesInRequestBuffer(terptorrents.Main.NUM_PIECES_TO_EVICT);
+			currentRequestBufferSize += pieces[pieceIndex].getSize();
+			localPieceList.add((LocalPiece)pieces[pieceIndex]);
+		}
+		return pieces[pieceIndex].requestBlock(io, pieceIndex, 
+				blockBegin, blockLength);
 	}
 	
-	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, byte [] data)
-	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsBlockIndexOutOfBound, TerptorrentsModelsPieceIndexOutOfBound{
-		if(pieceIndex < 0 || pieceIndex > io.getBitSet().totalNumOfPieces())
+	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, 
+			byte [] data)
+	throws TerptorrentsModelsPieceNotWritable, 
+	TerptorrentsModelsBlockIndexOutOfBound, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
-		if(pieces[pieceIndex].updateBlock(io, pieceIndex, blockBegin, blockLength, data))
-			pieces[pieceIndex] = new LocalPiece((pieceIndex == pieces.length - 1));
+		if(pieces[pieceIndex].updateBlock(io, pieceIndex, blockBegin, 
+				blockLength, data)){
+			//TODO this call can be expensive
+			peerPieceList.remove(pieces[pieceIndex]);
+			pieces[pieceIndex] = new LocalPiece(
+					(pieceIndex == pieces.length - 1), 
+					pieceIndex);
+		}
+	}
+	
+	private void evictPiecesInRequestBuffer(int numPieces){
+		Collections.sort(localPieceList, new LocalPieceComparatorLRU());
+		for(int i = 0; i < numPieces; i++){
+			localPieceList.get(0).clearBuffer();
+			localPieceList.get(0).resetNumRequest();
+			currentRequestBufferSize -= localPieceList.get(0).getSize();
+			localPieceList.remove(0);
+		}
+		for(LocalPiece localPiece:localPieceList){
+			localPiece.resetNumRequest();
+		}
 	}
 }
