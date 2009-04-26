@@ -9,21 +9,24 @@ import terptorrents.comm.messages.HandshakeMessage;
 import terptorrents.exceptions.InvalidProtocolException;
 import terptorrents.models.Peer;
 
-public class PeerListener {
+public class PeerListener implements Runnable {
+	private boolean listenForConnections = true;
+	private ServerSocket serverSocket;
+
+	public PeerListener(int port) throws IOException {
+		this.serverSocket = new ServerSocket(port);
+	}
 
 	/**
 	 * Listen for incoming peer connections on the specified port.
 	 * When a new connection comes in, start a PeerConnection for it.
-	 * @param port
 	 * @throws IOException
 	 */
-	public void listen(int port) throws IOException {
-		boolean listenForConnections = true;
-
-		ServerSocket serverSocket = new ServerSocket(port);
+	public void run() {
+		Socket socket = null;
 		while(listenForConnections) {
-			Socket socket = serverSocket.accept();
 			try {
+				socket = serverSocket.accept();
 				HandshakeMessage handshake = getHandshake(socket);
 
 				// make sure handshake.getInfoHash() matches
@@ -39,11 +42,17 @@ public class PeerListener {
 				}
 			} catch(Exception ex) {
 				// something went wrong with the handshake. drop the connection
-				socket.close();
+				try {
+					socket.close();
+				} catch(IOException ex2) {}
 			}
 		}
 
-		serverSocket.close();
+		try {
+			serverSocket.close();
+		} catch(Exception ex) {
+			
+		}
 	}
 
 	private HandshakeMessage getHandshake(Socket socket) throws InvalidProtocolException, IOException {
@@ -52,5 +61,9 @@ public class PeerListener {
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(dis, handshakeLength);
 		return handshake;
+	}
+
+	public void stopListening() {
+		listenForConnections = false;
 	}
 }
