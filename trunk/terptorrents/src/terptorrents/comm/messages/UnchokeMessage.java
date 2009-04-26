@@ -1,4 +1,4 @@
-package terptorrents.comm;
+package terptorrents.comm.messages;
 
 public class UnchokeMessage extends Message {
 	public int getId() {
