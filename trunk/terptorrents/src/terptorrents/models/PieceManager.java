@@ -139,7 +139,11 @@ public class PieceManager {
 		else
 			throw new TerptorrentsModelsPieceNotWritable();
 	}
-
+	
+	/**
+	 * this function can be expensive
+	 * @param peer
+	 */
 	public void removePeer(Peer peer){
 		for(int i = 0; i < pieces.length; i++)
 			if(pieces[i] instanceof PeerPiece)
