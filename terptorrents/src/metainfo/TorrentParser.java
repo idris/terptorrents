@@ -77,16 +77,21 @@ public class TorrentParser {
 			if(lastPieceLength != 0) numPieces++; //account for irregular last piece
 			pieceHashMap=getPieceHashes(allHashes, numPieces);
 			
-			/* create trivial file name list and file length map for single file case */
+			/* create trivial file name list,file length map, and file path list for single file case */
 			List<String>singleFileList=new ArrayList<String>();
 			singleFileList.add(name);
 			Map<String,Long>singleFileLengthMap=new LinkedHashMap<String,Long>();
 			singleFileLengthMap.put(name, fileLength);
+			List<String>singleFilePathList=new ArrayList<String>();
+			
+			
 			
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
-					createdBy, pieceLength, singleFileList,null,
+					createdBy, pieceLength, singleFileList,singleFilePathList,
 					singleFileLengthMap,pieceHashMap);
+			
+			
 		}
 		
 		
