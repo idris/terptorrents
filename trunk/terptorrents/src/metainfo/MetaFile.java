@@ -22,7 +22,7 @@ public class MetaFile {
 
 	public MetaFile(String announce, Date creationDate, String comment,
 			String createdBy, Long pieceLength, List<String> filenames,
-			Map<String, Long> fileLengths, Map<Integer, byte[]> hashes) {
+			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
 
 		this.announce = announce;
 		this.creationDate = creationDate;
@@ -31,7 +31,7 @@ public class MetaFile {
 		this.pieceLength = pieceLength;
 		this.filenames = filenames;
 		this.fileLengths = fileLengths;
-		SHAHashes = hashes;
+		SHAHashes = pieceHashes;
 	}
 
 	public String getAnnounce() {
@@ -60,6 +60,14 @@ public class MetaFile {
 
 	public List<String> getFilenames() {
 		return filenames;
+	}
+	
+	/*
+	 * LinkedHashMap, iterator preserves insertion order. Maps each file name (in correct order)
+	 * to a list of directory names forming its path. 
+	 */
+	public Map<String,List<String>> getFileFolders(){
+		return null;
 	}
 
 	/*
