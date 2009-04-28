@@ -18,13 +18,14 @@ public class IO {
 	
 	/* SINGLETON */
 	private static IO instance = null;
-	
+	private static boolean DEBUG = false;
 	private RandomAccessFile files[];
 	private final int pieceSize;
 	private final int irregPieceSize;
 	private final MessageDigest digest;
 	private final Map<Integer, byte[]> pieceHashes;
 	private volatile boolean mask[];
+	private MyIOBitSet ioBitSet = new MyIOBitSet();
 
 	
 	private IO(MetaFile m) throws IOException {
@@ -50,27 +51,29 @@ public class IO {
 	    long totalLength = 0;
 	    for (int i = 0; i < files.length; i++) 
 	    	totalLength += files[i].length();
-	    int numPieces = (int) totalLength % pieceSize;
+	    int numPieces = (int) Math.ceil(((double)totalLength)/pieceSize);
 	    if (pieceHashes.size() != numPieces )
 	    	throw new IOException("Number of hashes #" + pieceHashes.size() + 
 	    			"do not match with number of pieces in a file: " + numPieces);
 	    /* check files for integrity, and see what parts need to be downloaded */
 	    mask = new boolean[numPieces];
 	    checkFilesIntegrity();
+	    /* it was set to false just to remove some prints caused by constructor */
+	    DEBUG = Main.DEBUG;
 	}
 	
 	/* checks pieces in a file against SHA1 and mark mask[] if piece needs
 	 * to be downloaded
 	 */
 	private void checkFilesIntegrity() throws IOException {
-		dprint("Checking files integrity");
+		dprint("Checking file(s) integrity...");
 		byte[] piece;
+		dprint("Marking pieces to download: ");
 		for (int i = 0; i < mask.length; i++) {
 			try {
 				piece = this.getPiece(i);
 				digest.update(piece);
-				byte[] hash = digest.digest();
-				dprint("Marking pieces to download: ");
+				byte[] hash = digest.digest();				
 				if (!Arrays.equals(hash, this.pieceHashes.get(i))) {
 					if (Main.DEBUG) System.out.print(i + "  ");
 					mask[i] = false;
@@ -152,7 +155,7 @@ public class IO {
 	 * for upload by brain
 	 */	
 	public synchronized byte[] getPiece(int i) throws IOException, TerptorrentsIONoSuchPieceException {
-		dprint("Piece #" + i + " requested");
+		if (DEBUG) dprint("Piece #" + i + " requested");
 		if (i < 0 || i >= mask.length) 
 			throw new TerptorrentsIONoSuchPieceException("Requested index:" + i + 
 					" is out of bounds");
@@ -217,7 +220,7 @@ public class IO {
 	 * Returns: false if SHA1 does not match with SHA1 in MetaFile
 	 */
 	public synchronized boolean writePiece(int i, byte[] piece) throws IOException, TerptorrentsIONoSuchPieceException {
-		dprint("Writing piece #" + i + " Size: " + piece.length);
+		if (DEBUG) dprint("Writing piece #" + i + " Size: " + piece.length);
 		if (i < 0 || i >= mask.length) 
 			throw new TerptorrentsIONoSuchPieceException("Requested index:" + i + 
 					" is out of bounds");
@@ -242,7 +245,7 @@ public class IO {
 		digest.update(piece);
 		byte[] hash = digest.digest();
 		if (!Arrays.equals(hash, pieceHashes.get(i))) {
-			dprint("Hash function of given piece #" + i + " does not match");
+			dprint("Hash function of given piece #" + i + " does not match with MetaFile");
 			return false;
 		}
 		/* *********** */
@@ -251,7 +254,6 @@ public class IO {
 		if (startFile == endFile) {
 			startFile.seek(startOffset);
 			startFile.write(piece);
-			return true;
 		/* 3 */
 		} else if (startFile != null && endFile == null){
 			dprint("Writing irregular pice #" + i);
@@ -260,20 +262,20 @@ public class IO {
 					("writePiece(): Irregular piece size does not match");
 			startFile.seek(startOffset);
 			startFile.write(piece);
-			return true;
 		/* 4 */
 		} else {
 			int firstHalfOfPiece = (int) startFile.length() % pieceSize;
 			int secondHalfOfPiece = pieceSize - firstHalfOfPiece;
 			startFile.write(piece, startOffset, firstHalfOfPiece);
 			endFile.write(piece, endOffset, secondHalfOfPiece);
-			return true;
 		}
+		mask[i] = true;
+		return true;
 	}
 	
 	/* returns a bit mask of pieces that are available for upload */
 	public IOBitSet getBitSet() {
-		return new MyIOBitSet();
+		return this.ioBitSet;
 	}
 	
 	/* return true is all pieces are available in a file */
@@ -303,12 +305,14 @@ public class IO {
 	private class MyIOBitSet implements IOBitSet {
 
 		public Iterator<Integer> getEmptyPiecesIterator() {
-			return null;
+			return new EmptyPiecesIterator();
 		}
 
 		public int getNumEmptyPieces() {
-			// TODO Auto-generated method stub
-			return 0;
+			int num = 0;
+			for (int i = 0; i < mask.length; i++) 
+				if (mask[i] == false) num++;
+			return num;
 		}
 
 		public BitSet getUnsyncBitSet() {
@@ -318,9 +322,9 @@ public class IO {
 			return s;
 		}
 
-		public synchronized boolean havePiece(int index) throws TerptorrentsIONoSuchPieceException {
+		public boolean havePiece(int index)  {
 			if (index < 0 || index > mask.length) 
-				throw new TerptorrentsIONoSuchPieceException("requested piece: " 
+				throw new InternalError("requested piece: " 
 						+ index + " does not exists");
 			return mask[index];
 		}
@@ -332,14 +336,23 @@ public class IO {
 	
 	private class EmptyPiecesIterator implements Iterator<Integer> {
 
+		private int emptyIndex = 0; /* -1 indicates that there is no empty pieces */
+		
+		private void seekNextEmptyPiece() {
+			while (emptyIndex < mask.length 
+					&& mask[emptyIndex] == true) 
+				emptyIndex++;
+			if (emptyIndex == mask.length) emptyIndex = -1;
+		}
+
 		public boolean hasNext() {
-			// TODO Auto-generated method stub
-			return false;
+			seekNextEmptyPiece();
+			if (emptyIndex == -1) return false;
+			return true;
 		}
 
 		public Integer next() {
-			// TODO Auto-generated method stub
-			return null;
+			return emptyIndex;
 		}
 
 		public void remove() {
@@ -350,7 +363,7 @@ public class IO {
 	
 	private void dprint(String message) {
 		if (Main.DEBUG)
-			System.out.print("*** IO: " + message);
+			System.out.println("*** IO: " + message);
 	}
 
 }
