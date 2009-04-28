@@ -1,10 +1,12 @@
 package terptorrents.io;
 import java.util.*;
 
+import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
+
 public interface IOBitSet {
 	
 	/* returns true if piece is available (downloaded) */
-	public boolean havePiece(int index);
+	public boolean havePiece(int index) throws TerptorrentsIONoSuchPieceException;
 	
 	/* returns total number of pieces in a current torrent */
 	public int totalNumOfPieces();
