@@ -36,22 +36,38 @@ public class TorrentParser {
 		BDecoder bdecoder=null;
 		bdecoder=new BDecoder(stream);
 		topLevelMap=bdecoder.bdecode().getMap();
+		BEValue announceBE,commentBE,createdByBE,creationDateBE,filesBE;
+		String announce,comment,createdBy;
+		List files;
+		Date creationDate;
+		
 		
 		/* pull simple string fields out of top level bencoded dictionary */
-		String announce = ((BEValue)topLevelMap.get("announce")).getString();
-		String comment = ((BEValue)topLevelMap.get("comment")).getString();
-		String createdBy=((BEValue)topLevelMap.get("created by")).getString();
-		Date creationDate=new Date(((BEValue)topLevelMap.get("creation date")).getLong());
+		announceBE=(BEValue)topLevelMap.get("announce");
+		commentBE=(BEValue)topLevelMap.get("comment");
+		createdByBE=(BEValue)topLevelMap.get("created by");
+		creationDateBE=((BEValue)topLevelMap.get("creation date"));
+		if(announceBE!=null) announce = announceBE.getString();
+		else announce=null;
+		if(commentBE!=null)comment = commentBE.getString();
+		else comment=null;
+		if(createdByBE!=null)createdBy=createdByBE.getString();
+		else createdBy=null;
+		if(creationDateBE!=null)creationDate=new Date(creationDateBE.getLong());
+		else creationDate=null;
 		
 		/* pull simple fields out of info dictionary */
 		Map infoDictionary = ((BEValue)topLevelMap.get("info")).getMap();
 		Long pieceLength = ((BEValue)infoDictionary.get("piece length")).getLong();
-		List files = ((BEValue)(infoDictionary.get("files"))).getList();
+		filesBE=(BEValue)(infoDictionary.get("files"));
+		if(filesBE!=null) files = filesBE.getList();
+		else files=null;
 		String name = ((BEValue)(infoDictionary.get("name"))).getString(); //can be filename or directory name
 		
 		/* get concatenated SHA hash values from info dictionary */
 		byte[] allHashes=((BEValue)(infoDictionary.get("pieces"))).getBytes();
 		Map<Integer,byte[]> pieceHashMap;
+		
 		
 		if(files==null){ // single file case
 			Long lastPieceLength=0L;
@@ -68,8 +84,8 @@ public class TorrentParser {
 			singleFileLengthMap.put(name, fileLength);
 			
 			// instantiate MetaFile
-			torrent = new MetaFile(announce, creationDate, null,
-					null, pieceLength, singleFileList,
+			torrent = new MetaFile(announce, creationDate, comment,
+					createdBy, pieceLength, singleFileList,null,
 					singleFileLengthMap,pieceHashMap);
 		}
 		
