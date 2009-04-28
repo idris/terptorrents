@@ -10,7 +10,8 @@ public abstract class Torrent {
 	String comment;
 	String createdBy;
 	String encoding;
-
 	Long pieceLength;
 	List<Piece> pieces;
 }
+
+

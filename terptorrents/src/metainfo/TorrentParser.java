@@ -40,8 +40,8 @@ public class TorrentParser {
 		/* pull simple string fields out of top level bencoded dictionary */
 		String announce = ((BEValue)topLevelMap.get("announce")).getString();
 		String comment = ((BEValue)topLevelMap.get("comment")).getString();
-		String createdBy=((BEValue)topLevelMap.get("createdBy")).getString();
-		Date creationDate=new Date(((BEValue)topLevelMap.get("creationDate")).getLong());
+		String createdBy=((BEValue)topLevelMap.get("created by")).getString();
+		Date creationDate=new Date(((BEValue)topLevelMap.get("creation date")).getLong());
 		
 		/* pull simple fields out of info dictionary */
 		Map infoDictionary = ((BEValue)topLevelMap.get("info")).getMap();
@@ -68,8 +68,8 @@ public class TorrentParser {
 			singleFileLengthMap.put(name, fileLength);
 			
 			// instantiate MetaFile
-			torrent = new MetaFile(announce, creationDate, comment,
-					createdBy, pieceLength, singleFileList,
+			torrent = new MetaFile(announce, creationDate, null,
+					null, pieceLength, singleFileList,
 					singleFileLengthMap,pieceHashMap);
 		}
 		
@@ -99,6 +99,7 @@ public class TorrentParser {
 				String newString=((BEValue)pathListElt).getString();
 				addedPath.concat(newString+"/");
 			}
+			System.out.println(addedPath);
 			addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
 		}
