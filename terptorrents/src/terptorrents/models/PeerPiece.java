@@ -33,30 +33,10 @@ public class PeerPiece extends Piece {
 	 * 
 	 * @return
 	 */
-	public BlockRange getBlockRangeToRequest(){
-		int max_begin = 0;
-		int pieceLength = blockBitFeild.length();
-		int max_length = 0;
-		
-		if(getNumPeer() == 0)
-			return null;
-		
-		for(int i = 0; i < pieceLength; i++){
-			if(!blockBitFeild.get(i)){
-				int currentLength = blockBitFeild.nextSetBit(i) - i;
-				if(currentLength >= terptorrents.Main.MAX_REQUEST_BLOCK_SIZE){
-					max_length = terptorrents.Main.MAX_REQUEST_BLOCK_SIZE;
-					max_begin = i;
-					break;
-				}
-				if(currentLength > max_length){
-					max_length = currentLength;
-					max_begin = i;
-				}
-				i = currentLength + i - 1;
-			}
-		}
-		return new BlockRange(max_begin, max_length, getIndex());
+	public BlockRange [] getBlockRangeToRequest(){
+		BlockRange [] res = null;
+		//TODO 
+		return res;
 	}
 	
 	public void addPeer(Peer newPeer){
