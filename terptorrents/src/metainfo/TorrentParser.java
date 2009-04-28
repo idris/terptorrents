@@ -20,6 +20,8 @@ public class TorrentParser {
 	private String filename;
 	private Map topLevelMap;
 	private MetaFile torrent; //only instantiated after calling parse()
+	private long totalFileLength;
+	
 	
 	public TorrentParser(String filename){
 		this.filename=filename;
@@ -58,10 +60,14 @@ public class TorrentParser {
 			lastPieceLength=fileLength % pieceLength;
 			if(lastPieceLength != 0) numPieces++; //account for irregular last piece
 			pieceHashMap=getPieceHashes(allHashes, numPieces);
+			
+			/* create trivial file name list and file length map for single file case */
 			List<String>singleFileList=new ArrayList<String>();
 			singleFileList.add(name);
 			Map<String,Long>singleFileLengthMap=new LinkedHashMap<String,Long>();
 			singleFileLengthMap.put(name, fileLength);
+			
+			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
 					createdBy, pieceLength, singleFileList,
 					singleFileLengthMap,pieceHashMap);
@@ -69,17 +75,34 @@ public class TorrentParser {
 		
 		
 		//TODO: multi-file case
-		else{}
+		else{
+			List<String>filePaths=getMultiFilePaths(((BEValue)(infoDictionary.get("files"))).getList());
+			for(String path: filePaths){
+				System.out.println(path);
+			}
+		}
 		
 	}
 	
 	//TODO: multi-file case
-	private Map<String,Long> getMultiFileInfo(Map infoHash){
-		
-		//List<String> infoHash.get("files");
-		
+	private Map<String,Long> getMultiFileLengths(Map infoHash){
 		return null;
-		
+	}
+	
+	/* Returns a list of single strings as full paths, IE  "sam/jon/idris/sergey.jpg"  */
+	private List<String> getMultiFilePaths(List fileMaps) throws InvalidBEncodingException{
+		List<String> filePaths = new ArrayList<String>();
+		for(Object fileMap : fileMaps){
+			List pathList=((BEValue)(((BEValue)fileMap).getMap().get("path"))).getList();
+			String addedPath="";
+			for(Object pathListElt : pathList){
+				String newString=((BEValue)pathListElt).getString();
+				addedPath.concat(newString+"/");
+			}
+			addedPath=addedPath.substring(0, addedPath.length()-1);
+			filePaths.add(addedPath);
+		}
+		return filePaths;
 	}
 	
 	//TODO: multi-file case
@@ -91,6 +114,7 @@ public class TorrentParser {
 			Long length=((BEValue)fileMap.get("length")).getLong();
 		}
 		return null;
+		
 	}
 	
 	/* 
@@ -106,6 +130,8 @@ public class TorrentParser {
 		}
 		return returnValue;
 	}
+	
+	
 	
 	public MetaFile getMetaFile(){
 		return torrent;
