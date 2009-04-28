@@ -17,11 +17,12 @@ public class MetaFile {
 	private Long pieceLength;
 	private List<Piece> pieces;
 	private List<String> filenames;
+	private List<String> filePaths;
 	private Map<String, Long> fileLengths;
 	private Map<Integer, byte[]> SHAHashes;
 
 	public MetaFile(String announce, Date creationDate, String comment,
-			String createdBy, Long pieceLength, List<String> filenames,
+			String createdBy, Long pieceLength, List<String>filePaths,List<String> filenames,
 			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
 
 		this.announce = announce;
@@ -31,6 +32,7 @@ public class MetaFile {
 		this.pieceLength = pieceLength;
 		this.filenames = filenames;
 		this.fileLengths = fileLengths;
+		this.filePaths=filePaths;
 		SHAHashes = pieceHashes;
 	}
 
@@ -63,11 +65,11 @@ public class MetaFile {
 	}
 	
 	/*
-	 * LinkedHashMap, iterator preserves insertion order. Maps each file name (in correct order)
-	 * to a list of directory names forming its path. 
+	 * List of path strings, not including file names
+	 *  IE ["a/b/c", "c/d/e",...]
 	 */
-	public Map<String,List<String>> getFileFolders(){
-		return null;
+	public List<String> getFileFolders(){
+		return filePaths;
 	}
 
 	/*
