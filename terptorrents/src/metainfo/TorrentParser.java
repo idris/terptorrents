@@ -83,12 +83,12 @@ public class TorrentParser {
 			Map<String,Long>singleFileLengthMap=new LinkedHashMap<String,Long>();
 			singleFileLengthMap.put(name, fileLength);
 			List<String>singleFilePathList=new ArrayList<String>();
-			
+	
 			
 			
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
-					createdBy, pieceLength, singleFileList,singleFilePathList,
+					createdBy, pieceLength, singleFilePathList,singleFileList,
 					singleFileLengthMap,pieceHashMap);
 			
 			
