@@ -3,6 +3,7 @@ package terptorrents.comm;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Date;
+import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import terptorrents.comm.messages.*;
@@ -28,9 +29,9 @@ public class PeerConnection {
 	boolean disconnect = false;
 
 	final LinkedBlockingQueue<Message> outgoingMessages = new LinkedBlockingQueue<Message>();
-//	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
-//	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
-//	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
+	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
+	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
+	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
 
 
 	public PeerConnection(Peer peer) throws IOException {
@@ -117,6 +118,34 @@ public class PeerConnection {
 
 	public boolean canPeerRequest() {
 		return interesting && !choking;
+	}
+
+	/**
+	 * @return the outgoingMessages
+	 */
+	public synchronized LinkedBlockingQueue<Message> getOutgoingMessages() {
+		return outgoingMessages;
+	}
+
+	/**
+	 * @return the outgoingPieces
+	 */
+	public synchronized Stack<PieceMessage> getOutgoingPieces() {
+		return outgoingPieces;
+	}
+
+	/**
+	 * @return the incomingRequests
+	 */
+	public synchronized Stack<RequestMessage> getIncomingRequests() {
+		return incomingRequests;
+	}
+
+	/**
+	 * @return the outgoingRequests
+	 */
+	public synchronized Stack<RequestMessage> getOutgoingRequests() {
+		return outgoingRequests;
 	}
 
 	boolean peerIsDead() {

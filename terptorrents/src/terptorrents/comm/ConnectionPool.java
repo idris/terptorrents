@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Vector;
 
 import terptorrents.models.Peer;
@@ -79,23 +80,27 @@ public class ConnectionPool {
 	 * @return one peer at random that is choked and interested
 	 */
 	public PeerConnection getPlannedOptimisticUnchokedPeerConnection() {
-		throw new UnsupportedOperationException();
+		ArrayList<PeerConnection> PlannedOptimisticUnchokedPeerCandidates 
+		= getChokedAndInterested();
+		Random rand = new Random();
+		return PlannedOptimisticUnchokedPeerCandidates.get(rand.nextInt() %
+				PlannedOptimisticUnchokedPeerCandidates.size());
 	}
-
 
 	/**
 	 * 
 	 * @return all PeerConnections such that each peer is choked and interested
 	 */
-	public ArrayList<PeerConnection> getChokedAndInterested() {
+	private ArrayList<PeerConnection> getChokedAndInterested() {
 		throw new UnsupportedOperationException();
 	}
 
 	/**
 	 * 
 	 * @return all PeerConnections such that each peer is not choking us
+	 * also we are insteresed
 	 */
-	public ArrayList<PeerConnection> getNonChoking() {
+	public ArrayList<PeerConnection> getNonChokingAndInsterested() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -112,7 +117,7 @@ public class ConnectionPool {
 	 * order by fastest download rate
 	 * @return
 	 */
-	public PriorityQueue<PeerConnection> getActiveAndInterested() {
+	public ArrayList<PeerConnection> getActiveAndInterested() {
 		throw new UnsupportedOperationException();
 	}
 
