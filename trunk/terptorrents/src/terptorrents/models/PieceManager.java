@@ -96,6 +96,10 @@ public class PieceManager {
 				peerPieceList.add((PeerPiece)pieces[pieceIndex]);
 		}else
 			throw new TerptorrentsModelsPieceNotWritable();
+
+		if(peer.getConnection() != null && nowInterested && !peer.getConnection().amInterested()) {
+			// send InterestedMessage
+		}
 	}
 
 	/**
@@ -136,6 +140,13 @@ public class PieceManager {
 		}
 		return pieces[pieceIndex].requestBlock(io, pieceIndex, 
 				blockBegin, blockLength);
+	}
+
+	public void updateBlock(int pieceIndex, int blockBegin, byte[] data)
+	throws TerptorrentsModelsPieceNotWritable, 
+	TerptorrentsModelsBlockIndexOutOfBound, 
+	TerptorrentsModelsPieceIndexOutOfBound{
+		updateBlock(pieceIndex, blockBegin, data.length, data);
 	}
 
 	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, 
