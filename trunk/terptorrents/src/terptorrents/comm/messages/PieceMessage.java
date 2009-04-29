@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.Stats;
 import terptorrents.comm.PeerConnection;
 import terptorrents.models.PieceManager;
 
@@ -32,9 +33,15 @@ public class PieceMessage extends Message {
 	}
 
 	@Override
+	public void onSend(PeerConnection conn) {
+		Stats.getInstance().uploaded.addAndGet(block.length);
+	}
+
+	@Override
 	public void onReceive(PeerConnection conn) {
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block);
+			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
 			// something was wrong with this block
 		}
