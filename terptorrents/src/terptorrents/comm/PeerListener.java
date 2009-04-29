@@ -31,7 +31,7 @@ public class PeerListener implements Runnable {
 
 				// make sure handshake.getInfoHash() matches
 
-				// find the peer
+				// find (or create) the peer
 				Peer peer = null;
 				if(peer.getConnection() != null) {
 					// already connected to peer

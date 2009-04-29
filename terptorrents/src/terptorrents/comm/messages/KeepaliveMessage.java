@@ -1,5 +1,7 @@
 package terptorrents.comm.messages;
 
+import terptorrents.comm.PeerConnection;
+
 public class KeepaliveMessage extends Message {
 
 	@Override

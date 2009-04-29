@@ -11,7 +11,6 @@ public class HandshakeMessage extends Message {
 	private String infoHash;
 	private String peerId;
 
-
 	public String getInfoHash() {
 		return infoHash;
 	}
@@ -19,7 +18,6 @@ public class HandshakeMessage extends Message {
 	public String getPeerId() {
 		return peerId;
 	}
-
 
 	@Override
 	protected int getId() {

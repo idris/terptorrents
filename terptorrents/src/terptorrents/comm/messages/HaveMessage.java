@@ -4,6 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.comm.PeerConnection;
+import terptorrents.models.Peer;
+import terptorrents.models.PieceManager;
+
 public class HaveMessage extends Message {
 	private int index;
 
@@ -24,6 +28,16 @@ public class HaveMessage extends Message {
 	@Override
 	public void read(DataInputStream dis, int length) throws IOException {
 		index = dis.readInt();
+	}
+
+	@Override
+	public void onReceive(PeerConnection from) {
+		Peer peer = from.getPeer();
+		try {
+			PieceManager.getInstance().updatePeer(peer, index);
+		} catch(Exception ex) {
+			// ignore
+		}
 	}
 
 	@Override

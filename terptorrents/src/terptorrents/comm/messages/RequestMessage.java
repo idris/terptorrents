@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.comm.PeerConnection;
+
 public class RequestMessage extends Message {
 	private int index;
 	private int begin;
@@ -32,6 +34,11 @@ public class RequestMessage extends Message {
 		index = dis.readInt();
 		begin = dis.readInt();
 		this.length = dis.readInt();
+	}
+
+	@Override
+	public void onReceive(PeerConnection conn) {
+		conn.addPeerRequest(this);
 	}
 
 	@Override
