@@ -297,9 +297,21 @@ public class IO {
 		return this.getLastPieceSize();
 	}
 	
+	/* closes all open files for wirte */
 	public void close() throws IOException {
 		for (int i = 0; i < files.length; i++) 
 			files[i].close();
+	}
+	/*
+	 * @return number of bytes to download
+	 */
+	public long bytesRemaining() {
+		long remaining = 0;
+		int i;
+		for (i = 0; i < mask.length - 1; i++)
+			if (!mask[i]) remaining += pieceSize;
+		if (!mask[i]) remaining += this.irregPieceSize;
+		return remaining;
 	}
 	
 	private class MyIOBitSet implements IOBitSet {
