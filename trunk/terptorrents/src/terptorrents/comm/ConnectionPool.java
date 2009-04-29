@@ -1,20 +1,65 @@
 package terptorrents.comm;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Vector;
 
+import terptorrents.models.Peer;
+import terptorrents.models.PeerManager;
+
+
+/**
+ * 
+ * @author idris
+ *
+ */
 public class ConnectionPool {
+	private static final int LISTEN_PORT = 1234;
 	private static final int MAX_CONNECTIONS = 40;
+	private static ConnectionPool instance;
+
+	private PeerListener listener;
+
 	/**
 	 * connections I have initiated
 	 */
-	private final PeerConnection[] outgoingConnections = new PeerConnection[MAX_CONNECTIONS];
+	private final List<PeerConnection> outgoingConnections = new Vector<PeerConnection>(MAX_CONNECTIONS);
 
 	/**
 	 * connections initiated by other peers
 	 */
-	private final PeerConnection[] incomingConnections = new PeerConnection[MAX_CONNECTIONS];
+	private final List<PeerConnection> incomingConnections = new Vector<PeerConnection>(MAX_CONNECTIONS);
+
+
+	private ConnectionPool() {
+		// use newInstance to instantiate this singleton.
+
+		try {
+			listener = new PeerListener(LISTEN_PORT);
+		} catch(IOException ex) {
+			// FATAL ERROR
+		}
+
+		List<Peer> randomPeers = PeerManager.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS);
+		for(Peer peer: randomPeers) {
+			try {
+				outgoingConnections.add(new PeerConnection(peer));
+			} catch(IOException ex) {
+				// oh well..
+			}
+		}
+	}
+
+	public static ConnectionPool newInstance() {
+		instance = new ConnectionPool();
+		return instance;
+	}
+
+	public static ConnectionPool getInstance() {
+		return instance;
+	}
 
 
 	/**
@@ -23,8 +68,8 @@ public class ConnectionPool {
 	 */
 	public ArrayList<PeerConnection> getConnections() {
 		ArrayList<PeerConnection> connections = new ArrayList<PeerConnection>();
-		connections.addAll(Arrays.asList(incomingConnections));
-		connections.addAll(Arrays.asList(outgoingConnections));
+		connections.addAll(incomingConnections);
+		connections.addAll(outgoingConnections);
 		return connections;
 	}
 

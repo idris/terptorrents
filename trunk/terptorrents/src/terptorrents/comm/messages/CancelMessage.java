@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.comm.PeerConnection;
+
 public class CancelMessage extends Message {
 	private int index;
 	private int begin;
@@ -25,6 +27,11 @@ public class CancelMessage extends Message {
 		index = dis.readInt();
 		begin = dis.readInt();
 		this.length = dis.readInt();
+	}
+
+	@Override
+	public void onReceive(PeerConnection conn) {
+		// remove this from the incoming request queue or outgoing messages queue
 	}
 
 	@Override
