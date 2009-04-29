@@ -3,7 +3,6 @@ package terptorrents.models;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
-import terptorrents.io.IO;
 
 abstract public class Piece {
 	private static int size;
@@ -42,11 +41,11 @@ abstract public class Piece {
 		return (isLastPiece)? lastPieceSize : size;
 	}
 	
-	public abstract byte [] requestBlock(IO io, int pieceIndex, 
+	public abstract byte [] requestBlock(int pieceIndex, 
 			int blockBegin, int blockLength)	
 	throws TerptorrentsModelsPieceNotReadable, TerptorrentsModelsBlockIndexOutOfBound;
 	
-	public abstract boolean updateBlock(IO io, int pieceIndex,
-			int blockBegin, int blockLength, byte [] data)
-	throws TerptorrentsModelsPieceNotWritable, TerptorrentsModelsBlockIndexOutOfBound;
+	public abstract boolean updateBlock(int pieceIndex, int blockBegin, int blockLength,
+			byte[] data) throws TerptorrentsModelsBlockIndexOutOfBound,
+			TerptorrentsModelsPieceNotWritable;
 }

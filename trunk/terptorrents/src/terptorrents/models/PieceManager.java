@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 
+import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
@@ -32,13 +33,18 @@ public class PieceManager {
 	public static  PieceManager getInstance() {
 		return SINGLETON;
 	}
-
+	
+	public static void initialize(){
+		if (SINGLETON == null)
+			SINGLETON = new PieceManager();
+	}
+	
 	private PieceManager(){
-		IOBitSet bitMap = io.getBitSet();
+		IOBitSet bitMap = IO.getInstance().getBitSet();
 		int numPieces = bitMap.totalNumOfPieces();
 
-		Piece.setLastPieceSize(io.getPieceSize());
-		Piece.setSize(io.getLastPieceSize());
+		Piece.setLastPieceSize(IO.getInstance().getPieceSize());
+		Piece.setSize(IO.getInstance().getLastPieceSize());
 
 		peerPieceList = new ArrayList<PeerPiece>();
 		localPieceList = new ArrayList<LocalPiece>();
@@ -46,9 +52,14 @@ public class PieceManager {
 		numPieceReceived = 0;
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
-			pieces[i] = (bitMap.havePiece(i)) ? 
-					new LocalPiece((i == numPieces - 1), i) : 
-						new PeerPiece((i == numPieces - 1), i);
+			try {
+				pieces[i] = (bitMap.havePiece(i)) ? 
+						new LocalPiece((i == numPieces - 1), i) : 
+							new PeerPiece((i == numPieces - 1), i);
+			} catch (TerptorrentsIONoSuchPieceException e) {
+				if(terptorrents.Main.DEBUG)
+					e.printStackTrace();
+			}
 		}
 	}
 
@@ -56,7 +67,7 @@ public class PieceManager {
 		int pieceIndex;
 		if(numPieceReceived <= 4){
 			Random random = new Random();
-			pieceIndex = peerPieceList.get(random.nextInt() 
+			pieceIndex = peerPieceList.get(random.nextInt()
 					% peerPieceList.size()).getIndex();
 		}else{
 			Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
@@ -96,10 +107,13 @@ public class PieceManager {
 				peerPieceList.add((PeerPiece)pieces[pieceIndex]);
 		}else
 			throw new TerptorrentsModelsPieceNotWritable();
-
-		if(peer.getConnection() != null && nowInterested && !peer.getConnection().amInterested()) {
-			// send InterestedMessage
+		
+		/*TODO send InterestedMessage
+		if(peer.getConnection() != null && nowInterested 
+				&& !peer.getConnection().amInterested()) {
+			
 		}
+		*/
 	}
 
 	/**
@@ -138,7 +152,7 @@ public class PieceManager {
 			currentRequestBufferSize += pieces[pieceIndex].getSize();
 			localPieceList.add((LocalPiece)pieces[pieceIndex]);
 		}
-		return pieces[pieceIndex].requestBlock(io, pieceIndex, 
+		return pieces[pieceIndex].requestBlock(pieceIndex, 
 				blockBegin, blockLength);
 	}
 
@@ -156,7 +170,7 @@ public class PieceManager {
 	TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
-		if(pieces[pieceIndex].updateBlock(io, pieceIndex, blockBegin, 
+		if(pieces[pieceIndex].updateBlock(pieceIndex, blockBegin, 
 				blockLength, data)){
 			peerPieceList.remove(pieces[pieceIndex]);
 			numPieceReceived++;

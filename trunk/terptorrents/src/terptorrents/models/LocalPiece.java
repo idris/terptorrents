@@ -6,6 +6,7 @@ package terptorrents.models;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
 import terptorrents.io.IO;
@@ -47,12 +48,20 @@ public class LocalPiece extends Piece {
 	}
 	
 	@Override
-	public byte [] requestBlock(IO io, int pieceIndex, int blockBegin, 
+	public byte [] requestBlock(int pieceIndex, int blockBegin, 
 			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound{
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){
-			data = new ByteArrayInputStream(io.getPiece(pieceIndex));
+			try {
+				data = new ByteArrayInputStream(IO.getInstance().getPiece(pieceIndex));
+			} catch (IOException e) {
+				if(terptorrents.Main.DEBUG)
+					e.printStackTrace();
+			} catch (TerptorrentsIONoSuchPieceException e) {
+				if(terptorrents.Main.DEBUG)
+					e.printStackTrace();
+			}
 		}
 		numRequest++;
 		byte [] res = new byte[blockLength];
@@ -61,8 +70,9 @@ public class LocalPiece extends Piece {
 	}
 
 	@Override
-	public boolean updateBlock(IO io, int pieceIndex,
-			int begin, int length, byte [] data) throws TerptorrentsModelsPieceNotWritable {
+	public boolean updateBlock(int pieceIndex,
+			int begin, int length, byte [] data) 
+	throws TerptorrentsModelsPieceNotWritable {
 		throw new TerptorrentsModelsPieceNotWritable();
 	}
 }
