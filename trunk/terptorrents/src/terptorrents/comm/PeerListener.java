@@ -38,7 +38,6 @@ public class PeerListener implements Runnable {
 				} else {
 					PeerConnection connection = new PeerConnection(peer, socket);
 					peer.setConnection(connection);
-					new Thread(connection).run();
 				}
 			} catch(Exception ex) {
 				// something went wrong with the handshake. drop the connection
