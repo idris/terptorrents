@@ -13,6 +13,13 @@ public class PieceMessage extends Message {
 	private int begin;
 	private byte[] block;
 
+	public PieceMessage(int index, int begin, byte[] block) {
+		super();
+		this.index = index;
+		this.begin = begin;
+		this.block = block;
+	}
+
 	@Override
 	protected int getId() {
 		return 7;

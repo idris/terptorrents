@@ -1,5 +1,6 @@
 /**
- * 
+ *
+ *
  */
 package terptorrents.models;
 
@@ -37,30 +38,6 @@ public class PieceManager {
 	public static void initialize(){
 		if (SINGLETON == null)
 			SINGLETON = new PieceManager();
-	}
-	
-	private PieceManager(){
-		IOBitSet bitMap = IO.getInstance().getBitSet();
-		int numPieces = bitMap.totalNumOfPieces();
-
-		Piece.setLastPieceSize(IO.getInstance().getPieceSize());
-		Piece.setSize(IO.getInstance().getLastPieceSize());
-
-		peerPieceList = new ArrayList<PeerPiece>();
-		localPieceList = new ArrayList<LocalPiece>();
-		currentRequestBufferSize = 0;
-		numPieceReceived = 0;
-		pieces = new Piece[numPieces];
-		for(int i = 0; i < numPieces; i++){
-			try {
-				pieces[i] = (bitMap.havePiece(i)) ? 
-						new LocalPiece((i == numPieces - 1), i) : 
-							new PeerPiece((i == numPieces - 1), i);
-			} catch (TerptorrentsIONoSuchPieceException e) {
-				if(terptorrents.Main.DEBUG)
-					e.printStackTrace();
-			}
-		}
 	}
 
 	public BlockRange [] getBlockRangeToRequest(){
@@ -107,13 +84,6 @@ public class PieceManager {
 				peerPieceList.add((PeerPiece)pieces[pieceIndex]);
 		}else
 			throw new TerptorrentsModelsPieceNotWritable();
-		
-		/*TODO send InterestedMessage
-		if(peer.getConnection() != null && nowInterested 
-				&& !peer.getConnection().amInterested()) {
-			
-		}
-		*/
 	}
 
 	/**
@@ -177,6 +147,30 @@ public class PieceManager {
 			pieces[pieceIndex] = new LocalPiece(
 					(pieceIndex == pieces.length - 1), 
 					pieceIndex);
+		}
+	}
+	
+	private PieceManager(){
+		IOBitSet bitMap = IO.getInstance().getBitSet();
+		int numPieces = bitMap.totalNumOfPieces();
+
+		Piece.setLastPieceSize(IO.getInstance().getPieceSize());
+		Piece.setSize(IO.getInstance().getLastPieceSize());
+
+		peerPieceList = new ArrayList<PeerPiece>();
+		localPieceList = new ArrayList<LocalPiece>();
+		currentRequestBufferSize = 0;
+		numPieceReceived = 0;
+		pieces = new Piece[numPieces];
+		for(int i = 0; i < numPieces; i++){
+			try {
+				pieces[i] = (bitMap.havePiece(i)) ? 
+						new LocalPiece((i == numPieces - 1), i) : 
+							new PeerPiece((i == numPieces - 1), i);
+			} catch (TerptorrentsIONoSuchPieceException e) {
+				if(terptorrents.Main.DEBUG)
+					e.printStackTrace();
+			}
 		}
 	}
 

@@ -48,4 +48,22 @@ public class RequestMessage extends Message {
 		out.writeInt(begin);
 		out.writeInt(length);
 	}
+
+	/**
+	 * @return the index
+	 */
+	public int getIndex() {
+		return index;
+	}
+
+	/**
+	 * @return the begin
+	 */
+	public int getBegin() {
+		return begin;
+	}
+	
+	public int getBlockLength() {
+		return length;
+	}
 }
