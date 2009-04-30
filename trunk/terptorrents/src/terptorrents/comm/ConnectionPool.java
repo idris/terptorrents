@@ -19,7 +19,7 @@ import terptorrents.models.PeerManager;
 public class ConnectionPool {
 	private static final int LISTEN_PORT = 1234;
 	private static final int MAX_CONNECTIONS = 40;
-	private static ConnectionPool instance;
+	private static final ConnectionPool singleton = new ConnectionPool();
 
 	private PeerListener listener;
 
@@ -39,7 +39,7 @@ public class ConnectionPool {
 
 		try {
 			listener = new PeerListener(LISTEN_PORT);
-		} catch(IOException ex) {
+		} catch(Exception ex) {
 			// FATAL ERROR
 		}
 
@@ -53,13 +53,8 @@ public class ConnectionPool {
 		}
 	}
 
-	public static ConnectionPool newInstance() {
-		instance = new ConnectionPool();
-		return instance;
-	}
-
 	public static ConnectionPool getInstance() {
-		return instance;
+		return singleton;
 	}
 
 
@@ -80,8 +75,7 @@ public class ConnectionPool {
 	 * @return one peer at random that is choked and interested
 	 */
 	public PeerConnection getPlannedOptimisticUnchokedPeerConnection() {
-		ArrayList<PeerConnection> PlannedOptimisticUnchokedPeerCandidates 
-		= getChokedAndInterested();
+		List<PeerConnection> PlannedOptimisticUnchokedPeerCandidates = getChokedAndInterested();
 		Random rand = new Random();
 		return PlannedOptimisticUnchokedPeerCandidates.get(rand.nextInt() %
 				PlannedOptimisticUnchokedPeerCandidates.size());
@@ -91,8 +85,14 @@ public class ConnectionPool {
 	 * 
 	 * @return all PeerConnections such that each peer is choked and interested
 	 */
-	private ArrayList<PeerConnection> getChokedAndInterested() {
-		throw new UnsupportedOperationException();
+	private Vector<PeerConnection> getChokedAndInterested() {
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
+		for(PeerConnection c: getConnections()) {
+			if(c.amChoking() && c.peerInterested()) {
+				list.add(c);
+			}
+		}
+		return list;
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class ConnectionPool {
 	 * @return all PeerConnections such that each peer is not choking us
 	 * also we are insteresed
 	 */
-	public ArrayList<PeerConnection> getNonChokingAndInsterested() {
+	public Vector<PeerConnection> getNonChokingAndInsterested() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -108,7 +108,7 @@ public class ConnectionPool {
 	 * 
 	 * @return all PeerConnections such that each peer is unchoked and interested
 	 */
-	public ArrayList<PeerConnection> getUnchokedAndInterested() {
+	public Vector<PeerConnection> getUnchokedAndInterested() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -117,7 +117,7 @@ public class ConnectionPool {
 	 * order by fastest download rate
 	 * @return
 	 */
-	public ArrayList<PeerConnection> getActiveAndInterested() {
+	public Vector<PeerConnection> getActiveAndInterested() {
 		throw new UnsupportedOperationException();
 	}
 
