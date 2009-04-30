@@ -45,10 +45,10 @@ public class Main {
 			trackerComm.setDaemon(true);
 			trackerComm.start();
 			
-			/* instantiate ConnectionPool */			
+			/* instantiate ConnectionPool */
 			dprint("Instantiating ConnectionPool");
-			//TODO instantiate
-			
+			ConnectionPool.newInstance();
+
 			/* BRAIN stuff */
 			//TODO
 			

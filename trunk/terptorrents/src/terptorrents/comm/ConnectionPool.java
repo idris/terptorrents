@@ -19,7 +19,7 @@ import terptorrents.models.PeerManager;
 public class ConnectionPool {
 	private static final int LISTEN_PORT = 1234;
 	private static final int MAX_CONNECTIONS = 40;
-	private static final ConnectionPool singleton = new ConnectionPool();
+	private static ConnectionPool singleton;
 
 	private PeerListener listener;
 
@@ -34,14 +34,10 @@ public class ConnectionPool {
 	private final List<PeerConnection> incomingConnections = new Vector<PeerConnection>(MAX_CONNECTIONS);
 
 
-	private ConnectionPool() {
+	private ConnectionPool() throws IOException {
 		// use newInstance to instantiate this singleton.
 
-		try {
-			listener = new PeerListener(LISTEN_PORT);
-		} catch(Exception ex) {
-			// FATAL ERROR
-		}
+		listener = new PeerListener(LISTEN_PORT);
 
 		List<Peer> randomPeers = PeerManager.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS);
 		for(Peer peer: randomPeers) {
@@ -51,6 +47,10 @@ public class ConnectionPool {
 				// oh well..
 			}
 		}
+	}
+
+	public static ConnectionPool newInstance() throws IOException {
+		return singleton = new ConnectionPool();
 	}
 
 	public static ConnectionPool getInstance() {
