@@ -1,6 +1,7 @@
 package terptorrents.comm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringBufferInputStream;
 import java.net.InetAddress;
@@ -80,12 +81,14 @@ public class TrackerCommunicator implements Runnable {
 
 		URL url = new URL(trackerURL);
 		URLConnection conn = url.openConnection();
-		InputStreamReader reader = new InputStreamReader(conn.getInputStream());
+		
+		
+		/*InputStreamReader reader = new InputStreamReader(conn.getInputStream());
 		StringBuffer buf = new StringBuffer();
 		CharBuffer charBuf = CharBuffer.wrap(buf);
-		while(reader.read(charBuf) > 0);
+		while(reader.read(charBuf) > 0);*/
 
-		handleResponse(buf.toString());
+		handleResponse(conn.getInputStream());
 	}
 
 	private String generateQueryString(String event) {
@@ -110,9 +113,8 @@ public class TrackerCommunicator implements Runnable {
 		return str;
 	}
 
-	private void handleResponse(String response) throws InvalidBEncodingException, IOException {
-		BDecoder bdecoder = new BDecoder(new StringBufferInputStream(response));
+	private void handleResponse(InputStream responseStream) throws InvalidBEncodingException, IOException {
+		BDecoder bdecoder = new BDecoder(responseStream);
 		Map topLevelMap=bdecoder.bdecode().getMap();
-		
 	}
 }
