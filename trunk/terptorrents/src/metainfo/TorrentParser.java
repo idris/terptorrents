@@ -83,8 +83,6 @@ public class TorrentParser {
 			Map<String,Long>singleFileLengthMap=new LinkedHashMap<String,Long>();
 			singleFileLengthMap.put(name, fileLength);
 			List<String>singleFilePathList=new ArrayList<String>();
-	
-			
 			
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
@@ -97,10 +95,24 @@ public class TorrentParser {
 		
 		//TODO: multi-file case
 		else{
-			List<String>filePaths=getMultiFilePaths(((BEValue)(infoDictionary.get("files"))).getList());
-			for(String path: filePaths){
-				System.out.println(path);
+			List fileList=((BEValue)(infoDictionary.get("files"))).getList();
+			List<String>fileNames=getMultiFileNames(fileList);
+			List<String>filePaths=getMultiFilePaths(fileList);
+			Long totalLength=0L;
+			Map<String,Long>fileLengthMap=new HashMap<String,Long>();
+			for(int i=0; i<fileNames.size();i++){
+				Long fileLength=((BEValue)(((BEValue)fileList.get(i)).getMap().get("length"))).getLong();
+				fileLengthMap.put(fileNames.get(i), fileLength);
+				totalLength+=fileLength;
 			}
+			Long lastPieceLength=0L;
+			Long numPieces=totalLength/pieceLength;
+			lastPieceLength=totalLength % pieceLength;
+			if(lastPieceLength != 0) numPieces++; //account for irregular last piece
+			pieceHashMap=getPieceHashes(allHashes, numPieces);
+			torrent = new MetaFile(announce, creationDate, comment,
+					createdBy, pieceLength, filePaths,fileNames,
+					fileLengthMap,pieceHashMap);
 		}
 		
 	}
@@ -110,18 +122,36 @@ public class TorrentParser {
 		return null;
 	}
 	
-	/* Returns a list of single strings as full paths, IE  "sam/jon/idris/sergey.jpg"  */
-	private List<String> getMultiFilePaths(List fileMaps) throws InvalidBEncodingException{
+	/* Returns a list of single strings as full paths with filenames, IE  "sam/jon/idris/sergey.jpg"  */
+	private List<String> getMultiFileNames(List fileMaps) throws InvalidBEncodingException{
 		List<String> filePaths = new ArrayList<String>();
 		for(Object fileMap : fileMaps){
 			List pathList=((BEValue)(((BEValue)fileMap).getMap().get("path"))).getList();
 			String addedPath="";
 			for(Object pathListElt : pathList){
 				String newString=((BEValue)pathListElt).getString();
-				addedPath.concat(newString+"/");
+				addedPath=addedPath.concat(newString+"/");
 			}
-			System.out.println(addedPath);
-			addedPath=addedPath.substring(0, addedPath.length()-1);
+			if(addedPath!="")addedPath=addedPath.substring(0, addedPath.length()-1);
+			filePaths.add(addedPath);
+		}
+		return filePaths;
+	}
+	
+	private List<String> getMultiFilePaths(List fileMaps) throws InvalidBEncodingException{
+		List<String> filePaths = new ArrayList<String>();
+		for(Object fileMap : fileMaps){
+			List pathList=((BEValue)(((BEValue)fileMap).getMap().get("path"))).getList();
+			String addedPath="";
+			int pathListIndex=0;
+			for(Object pathListElt : pathList){
+				if(!(pathListIndex==pathList.size()-1)){
+					String newString=((BEValue)pathListElt).getString();
+					addedPath=addedPath.concat(newString+"/");
+				}
+				pathListIndex++;
+			}
+			//addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
 		}
 		return filePaths;

@@ -9,7 +9,7 @@ public class TorrentFileTester {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		TorrentParser myParser=new TorrentParser("maryland.jpg.torrent");
+		TorrentParser myParser=new TorrentParser("sam.torrent");
 		try {
 			myParser.parse();
 		} catch (InvalidBEncodingException e) {
