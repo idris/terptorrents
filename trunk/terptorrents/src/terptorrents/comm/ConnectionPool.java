@@ -50,7 +50,8 @@ public class ConnectionPool {
 	}
 
 	public static ConnectionPool newInstance() throws IOException {
-		return singleton = new ConnectionPool();
+		if (singleton == null) singleton = new ConnectionPool();
+		return singleton;
 	}
 
 	public static ConnectionPool getInstance() {
