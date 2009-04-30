@@ -2,10 +2,14 @@ package terptorrents.comm;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringBufferInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.CharBuffer;
+import java.util.Map;
+
+import metainfo.*;
 
 import terptorrents.Stats;
 import terptorrents.tracker.TrackerRequest;
@@ -106,7 +110,9 @@ public class TrackerCommunicator implements Runnable {
 		return str;
 	}
 
-	private void handleResponse(String response) {
-		// bdecode and do stuff here.
+	private void handleResponse(String response) throws InvalidBEncodingException, IOException {
+		BDecoder bdecoder = new BDecoder(new StringBufferInputStream(response));
+		Map topLevelMap=bdecoder.bdecode().getMap();
+		
 	}
 }
