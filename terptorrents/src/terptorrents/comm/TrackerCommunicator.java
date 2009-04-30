@@ -8,11 +8,16 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import metainfo.*;
 
 import terptorrents.Stats;
+import terptorrents.exceptions.TrackerResponseException;
+import terptorrents.models.Peer;
+import terptorrents.models.PeerManager;
 import terptorrents.tracker.TrackerRequest;
 import terptorrents.tracker.TrackerResponse;
 
@@ -20,7 +25,8 @@ public class TrackerCommunicator implements Runnable {
 	private static final String EVENT_STARTED = "started";
 	private static final String EVENT_STOPPED = "stopped";
 	private static final String EVENT_COMPLETED = "completed";
-
+	
+	
 	private long requestInterval = 1000*60*30; // thirty minutes
 	private String trackerId = null;
 	private final String peerId;
@@ -30,6 +36,15 @@ public class TrackerCommunicator implements Runnable {
 	private final boolean compact = true;
 	private boolean completed = false;
 	private boolean stopped = false;
+	
+	// Tracker response fields
+	private List<Peer>peerList;
+	private int interval; //time to wait between requests, in seconds
+	private int minInterval; //optional, time to wait between announce
+	private String trackerID;
+	private int numSeeders;
+	private int numLeechers;
+	
 
 	public TrackerCommunicator() throws IOException {
 		// TODO: use real values
@@ -87,8 +102,13 @@ public class TrackerCommunicator implements Runnable {
 		StringBuffer buf = new StringBuffer();
 		CharBuffer charBuf = CharBuffer.wrap(buf);
 		while(reader.read(charBuf) > 0);*/
-
-		handleResponse(conn.getInputStream());
+		
+		try {
+			handleResponse(conn.getInputStream());
+		} catch (TrackerResponseException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	private String generateQueryString(String event) {
@@ -113,8 +133,37 @@ public class TrackerCommunicator implements Runnable {
 		return str;
 	}
 
-	private void handleResponse(InputStream responseStream) throws InvalidBEncodingException, IOException {
+	private void handleResponse(InputStream responseStream) throws InvalidBEncodingException, IOException, TrackerResponseException {
 		BDecoder bdecoder = new BDecoder(responseStream);
+		BEValue failureReasonBE;
 		Map topLevelMap=bdecoder.bdecode().getMap();
+		failureReasonBE=(BEValue)(topLevelMap.get("failure reason"));
+		if(failureReasonBE!=null){ //presence of "failure reason" in response indicates failed tracker communication 
+			throw new TrackerResponseException("Tracker Responded With Failure: \n"+failureReasonBE.getString());
+		}
+		else{
+			BEValue intervalBE=(BEValue)(topLevelMap.get("interval"));
+			if(intervalBE!=null)interval=intervalBE.getInt();
+			BEValue peersBE=(BEValue)(topLevelMap.get("peers"));
+			if(peersBE!=null){
+				peerList=new ArrayList<Peer>();
+				byte[]peerBytes=peersBE.getBytes();
+				for(int i=0; i<peerBytes.length; i+=6){
+					byte[]ip=new byte[4];
+					for(int j=0; j<4; j++){
+						ip[j]=peerBytes[i+j];
+					}
+					int port = 0;
+					port |= peerBytes[i+4];
+					port <<= 8;
+					port |= peerBytes[i+5];
+					String dottedIP=InetAddress.getByAddress(ip).getHostAddress();
+					peerList.add(new Peer(dottedIP+":"+port,dottedIP,port));
+					PeerManager.getInstance().addPeers(peerList);
+				}
+			}
+			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));
+			if(trackerIDBE!=null)trackerID=trackerIDBE.getString();
+		}	
 	}
 }
