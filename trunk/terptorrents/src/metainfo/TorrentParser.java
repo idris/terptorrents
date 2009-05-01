@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.security.MessageDigest;
 
 import metainfo.*;
@@ -82,11 +84,11 @@ public class TorrentParser {
 			singleFileList.add(name);
 			Map<String,Long>singleFileLengthMap=new LinkedHashMap<String,Long>();
 			singleFileLengthMap.put(name, fileLength);
-			List<String>singleFilePathList=new ArrayList<String>();
+			HashSet<String>singleFilePathSet=new HashSet<String>();
 			
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
-					createdBy, pieceLength, singleFilePathList,singleFileList,
+					createdBy, pieceLength, singleFilePathSet,singleFileList,
 					singleFileLengthMap,pieceHashMap);
 			
 			
@@ -97,7 +99,7 @@ public class TorrentParser {
 		else{
 			List fileList=((BEValue)(infoDictionary.get("files"))).getList();
 			List<String>fileNames=getMultiFileNames(fileList);
-			List<String>filePaths=getMultiFilePaths(fileList);
+			Set<String>filePaths=getMultiFilePaths(fileList);
 			Long totalLength=0L;
 			Map<String,Long>fileLengthMap=new HashMap<String,Long>();
 			for(int i=0; i<fileNames.size();i++){
@@ -134,12 +136,13 @@ public class TorrentParser {
 			}
 			if(addedPath!="")addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
+			System.out.println(addedPath);
 		}
 		return filePaths;
 	}
 	
-	private List<String> getMultiFilePaths(List fileMaps) throws InvalidBEncodingException{
-		List<String> filePaths = new ArrayList<String>();
+	private Set<String> getMultiFilePaths(List fileMaps) throws InvalidBEncodingException{
+		Set<String> filePaths = new HashSet<String>();
 		for(Object fileMap : fileMaps){
 			List pathList=((BEValue)(((BEValue)fileMap).getMap().get("path"))).getList();
 			String addedPath="";
@@ -151,6 +154,7 @@ public class TorrentParser {
 				}
 				pathListIndex++;
 			}
+			System.out.println("addedPath"+addedPath);
 			//addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
 		}
