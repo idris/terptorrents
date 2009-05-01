@@ -3,6 +3,7 @@ package metainfo;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import terptorrents.models.Piece;
 
@@ -17,12 +18,12 @@ public class MetaFile {
 	private Long pieceLength;
 	private List<Piece> pieces;
 	private List<String> filenames;
-	private List<String> filePaths;
+	private Set<String> filePaths;
 	private Map<String, Long> fileLengths;
 	private Map<Integer, byte[]> SHAHashes;
 
 	public MetaFile(String announce, Date creationDate, String comment,
-			String createdBy, Long pieceLength, List<String>filePaths,List<String> filenames,
+			String createdBy, Long pieceLength, Set<String>filePaths,List<String> filenames,
 			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
 
 		this.announce = announce;
@@ -68,7 +69,7 @@ public class MetaFile {
 	 * List of path strings, not including file names
 	 *  IE ["a/b/c", "c/d/e",...]
 	 */
-	public List<String> getFileFolders(){
+	public Set<String> getFileFolders(){
 		return filePaths;
 	}
 
