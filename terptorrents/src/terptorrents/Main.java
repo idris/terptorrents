@@ -16,6 +16,7 @@ public class Main {
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 12;
 	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
+	public static final int NUM_PEERS_TO_UNCHOKE = 3;
 	/* ****************************************************** */
 	
 	private static String torrentFile;
