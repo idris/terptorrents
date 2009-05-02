@@ -3,6 +3,8 @@ package metainfo;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import metainfo.*;
 
@@ -23,6 +26,7 @@ public class TorrentParser {
 	private Map topLevelMap;
 	private MetaFile torrent; //only instantiated after calling parse()
 	private long totalFileLength;
+	private MessageDigest digest;
 	
 	
 	public TorrentParser(String filename){
@@ -32,6 +36,14 @@ public class TorrentParser {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		try {
+			digest = MessageDigest.getInstance("SHA");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
 	}
 	
 	public void parse() throws InvalidBEncodingException,IOException, FileNotFoundException{
@@ -59,7 +71,8 @@ public class TorrentParser {
 		else creationDate=null;
 		
 		/* pull simple fields out of info dictionary */
-		Map infoDictionary = ((BEValue)topLevelMap.get("info")).getMap();
+		BEValue infoBE=((BEValue)topLevelMap.get("info"));
+		Map infoDictionary = infoBE.getMap();
 		Long pieceLength = ((BEValue)infoDictionary.get("piece length")).getLong();
 		filesBE=(BEValue)(infoDictionary.get("files"));
 		if(filesBE!=null) files = filesBE.getList();
@@ -69,7 +82,8 @@ public class TorrentParser {
 		/* get concatenated SHA hash values from info dictionary */
 		byte[] allHashes=((BEValue)(infoDictionary.get("pieces"))).getBytes();
 		Map<Integer,byte[]> pieceHashMap;
-		
+		String infoHash=computeInfoHash(infoBE);
+		String urlInfoHash=URLEncoder.encode(infoHash,"UTF-8");
 		
 		if(files==null){ // single file case
 			Long lastPieceLength=0L;
@@ -89,8 +103,7 @@ public class TorrentParser {
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
 					createdBy, pieceLength, singleFilePathSet,singleFileList,
-					singleFileLengthMap,pieceHashMap);
-			
+					singleFileLengthMap,pieceHashMap,infoHash,urlInfoHash);
 			
 		}
 		
@@ -114,7 +127,7 @@ public class TorrentParser {
 			pieceHashMap=getPieceHashes(allHashes, numPieces);
 			torrent = new MetaFile(announce, creationDate, comment,
 					createdBy, pieceLength, filePaths,fileNames,
-					fileLengthMap,pieceHashMap);
+					fileLengthMap,pieceHashMap,infoHash,urlInfoHash);
 		}
 		
 	}
@@ -161,7 +174,7 @@ public class TorrentParser {
 		return filePaths;
 	}
 	
-	//TODO: multi-file case
+	/*
 	public Map<String,Long> processFileList(List fileList) throws InvalidBEncodingException{
 		LinkedHashMap<String,Long> returnValue=new LinkedHashMap<String,Long>();
 		for(Object fileObject : fileList){
@@ -171,7 +184,7 @@ public class TorrentParser {
 		}
 		return null;
 		
-	}
+	}*/
 	
 	/* 
 	 * Takes a byte array consisting of concatenation of all SHA-hashes and separates it into
@@ -185,6 +198,18 @@ public class TorrentParser {
 			returnValue.put(i,currentHash);
 		}
 		return returnValue;
+	}
+	
+	private String computeInfoHash(BEValue infoHash) throws InvalidBEncodingException{
+			digest.update(infoHash.getBytes());
+			byte[] hash = digest.digest();
+			try {
+				return new String(hash,"UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				System.exit(0);
+			}
+			return null; //control never reaches this point
 	}
 	
 	

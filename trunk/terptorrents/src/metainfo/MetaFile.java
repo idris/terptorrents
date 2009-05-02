@@ -21,10 +21,12 @@ public class MetaFile {
 	private Set<String> filePaths;
 	private Map<String, Long> fileLengths;
 	private Map<Integer, byte[]> SHAHashes;
+	private String urlInfoHash;
+	private String infoHash;
 
 	public MetaFile(String announce, Date creationDate, String comment,
 			String createdBy, Long pieceLength, Set<String>filePaths,List<String> filenames,
-			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
+			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes, String infoHash, String urlInfoHash) {
 
 		this.announce = announce;
 		this.creationDate = creationDate;
@@ -35,6 +37,8 @@ public class MetaFile {
 		this.fileLengths = fileLengths;
 		this.filePaths=filePaths;
 		SHAHashes = pieceHashes;
+		this.urlInfoHash=urlInfoHash;
+		this.infoHash=infoHash;
 	}
 
 	public String getAnnounce() {
@@ -84,6 +88,18 @@ public class MetaFile {
 	/* Returns a map from piece numbers to SHA Hash values */
 	public Map<Integer, byte[]> getSHAHashes() {
 		return SHAHashes;
+	}
+	
+	public String getInfoHashURLEncoded(){
+		return infoHash;
+	}
+	
+	public String getURLInfoHash(){
+		return urlInfoHash;
+	}
+	
+	public String getInfoHash(){
+		return infoHash;
 	}
 
 }
