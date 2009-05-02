@@ -3,7 +3,6 @@ package terptorrents.comm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -138,12 +137,20 @@ public class ConnectionPool {
 		throw new UnsupportedOperationException();
 	}
 
+	public Vector<PeerConnection> getUnchoked() {
+		throw new UnsupportedOperationException();
+	}
+	
+	public Vector<PeerConnection> getInstersted() {
+		throw new UnsupportedOperationException();
+	}
+	
 	/**
 	 * return all unchoked and interested peers who were unchoked within the last 20 seconds, or who have pending requests
 	 * order unchoked peers by last unchoked time, then highest upload rate. order the rest by highest upload rate
 	 * @return
 	 */
-	public PriorityQueue<PeerConnection> getSeedableConnections() {
+	public Vector<PeerConnection> getSeedableConnections() {
 		throw new UnsupportedOperationException();
 	}
 }
