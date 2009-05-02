@@ -20,30 +20,36 @@ import metainfo.*;
 
 
 public class TorrentParser {
+	
+	private static TorrentParser instance = null;
 
 	private FileInputStream stream;
-	private String filename;
 	private Map topLevelMap;
 	private MetaFile torrent; //only instantiated after calling parse()
-	private long totalFileLength;
 	private MessageDigest digest;
 	
 	
-	public TorrentParser(String filename){
-		this.filename=filename;
+	private TorrentParser(String filename) throws IOException{
 		try {
 			stream=new FileInputStream(filename);
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			throw new IOException("Parser: File Not Found");
 		}
 		
 		try {
 			digest = MessageDigest.getInstance("SHA");
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			System.exit(0);
+			throw new IOException("Parser: problem instantiating MessageDigest");
 		}
-		
+		parse();
+	}
+	
+	public static void instantiate(String fileName) throws IOException {
+		if (instance == null) instance = new TorrentParser(fileName);
+	}
+	
+	public static TorrentParser getInstance() {
+		return instance;
 	}
 	
 	public void parse() throws InvalidBEncodingException,IOException, FileNotFoundException{
