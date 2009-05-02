@@ -2,7 +2,7 @@ package terptorrents.comm;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
@@ -24,12 +24,14 @@ public class ConnectionPool {
 	/**
 	 * connections I have initiated
 	 */
-	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = 
+		new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
 	/**
 	 * connections initiated by other peers
 	 */
-	private final ArrayBlockingQueue<PeerConnection> incomingConnections = new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> incomingConnections = 
+		new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
 
 	private ConnectionPool() throws IOException {
@@ -91,7 +93,8 @@ public class ConnectionPool {
 	 * @return one peer at random that is choked and interested
 	 */
 	public PeerConnection getPlannedOptimisticUnchokedPeerConnection() {
-		List<PeerConnection> PlannedOptimisticUnchokedPeerCandidates = getChokedAndInterested();
+		Vector<PeerConnection> PlannedOptimisticUnchokedPeerCandidates = 
+			getChokedAndInterested();
 		Random rand = new Random();
 		return PlannedOptimisticUnchokedPeerCandidates.get(rand.nextInt() %
 				PlannedOptimisticUnchokedPeerCandidates.size());
@@ -112,46 +115,76 @@ public class ConnectionPool {
 	}
 
 	/**
-	 * 
-	 * @return all PeerConnections such that each peer is not choking us
-	 * also we are interested
-	 */
-	public Vector<PeerConnection> getNonChokingAndInsterested() {
-		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * 
-	 * @return all PeerConnections such that each peer is unchoked and interested
-	 */
-	public Vector<PeerConnection> getUnchokedAndInterested() {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
 	 * each peer is interested and has sent a block in the last 30 seconds
 	 * order by fastest download rate
 	 * @return
 	 */
 	public Vector<PeerConnection> getActiveAndInterested() {
-		throw new UnsupportedOperationException();
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
+		ArrayList<PeerConnection> allConnections = getConnections();		
+		for(PeerConnection peerConnection : allConnections){
+			if(peerConnection.peerInterested() && System.currentTimeMillis() - 
+						peerConnection.getLastPieceRecievedDate().getTime() 
+						< 30000){
+					list.add(peerConnection);
+			}
+		}
+		Collections.sort(list, new DownlaodSpeedComparator());
+		return list;
 	}
 
-	public Vector<PeerConnection> getUnchoked() {
-		throw new UnsupportedOperationException();
-	}
-	
-	public Vector<PeerConnection> getInstersted() {
-		throw new UnsupportedOperationException();
-	}
-	
 	/**
-	 * return all unchoked and interested peers who were unchoked within the last 20 seconds, or who have pending requests
-	 * order unchoked peers by last unchoked time, then highest upload rate. order the rest by highest upload rate
+	 * get all peers that we have unchoked
+	 * @return
+	 * 
+	 */
+	public Vector<PeerConnection> getUnchoked() {		
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
+		ArrayList<PeerConnection> allConnections = getConnections();		
+		for(PeerConnection peerConnection: allConnections){
+			if(!peerConnection.amChoking())
+				list.add(peerConnection);
+		}
+		return list;
+	}
+
+	/**
+	 * get all peers that are interested in us
+	 * @return
+	 */
+	public Vector<PeerConnection> getInstersted() {		
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
+		ArrayList<PeerConnection> allConnections = getConnections();		
+		for(PeerConnection peerConnection: allConnections){
+			if(peerConnection.peerInterested())
+				list.add(peerConnection);
+		}
+		return list;
+	}
+
+	/**
+	 * return all unchoked and interested peers who were unchoked within the 
+	 * last 20 seconds, or who have pending requests
+	 * order unchoked peers by last unchoked time, then highest upload rate. 
+	 * order the rest by highest upload rate
 	 * @return
 	 */
 	public Vector<PeerConnection> getSeedableConnections() {
-		throw new UnsupportedOperationException();
+		Vector<PeerConnection> recentlyUnchoked = new Vector<PeerConnection>();
+		Vector<PeerConnection> notRecentlyUnchoked = new Vector<PeerConnection>();
+		
+		ArrayList<PeerConnection> allConnections = getConnections();		
+		for(PeerConnection peerConnection: allConnections){
+			if(System.currentTimeMillis() - peerConnection.
+					getLastUnchokedDate().getTime() < 20000){
+				recentlyUnchoked.add(peerConnection);
+			}else{
+				notRecentlyUnchoked.add(peerConnection);
+			}
+		}
+		Collections.sort(recentlyUnchoked, new UploadSpeedComparator());
+		Collections.sort(notRecentlyUnchoked, new UploadSpeedComparator());
+		recentlyUnchoked.addAll(notRecentlyUnchoked);
+		return recentlyUnchoked;
 	}
 }
