@@ -11,7 +11,7 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	public static boolean DEBUG = false;	
+	public static boolean DEBUG = true;	
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 27;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 12;
@@ -31,9 +31,8 @@ public class Main {
 		try {
 			/* Parsing .torrent file */
 			dprint("Parsing .torrent file");
-			TorrentParser parser = new TorrentParser(torrentFile);
-			parser.parse();
-			MetaFile metaFile = parser.getMetaFile();
+			TorrentParser.instantiate(torrentFile);
+			MetaFile metaFile = TorrentParser.getInstance().getMetaFile();
 			
 			/* instantiate IO layer */
 			dprint("Instantiating IO layer");
@@ -46,12 +45,20 @@ public class Main {
 			trackerComm.setDaemon(true);
 			trackerComm.start();
 			
-			/* instantiate ConnectionPool */
+			/* instantiate ConnectionPool */			
 			dprint("Instantiating ConnectionPool");
-			ConnectionPool.newInstance();
-
+			ConnectionPool.getInstance();
+			//TODO instantiate
+			
 			/* BRAIN stuff */
 			//TODO
+			
+			
+			/* ********************************* */
+			/* closing Bittorrent procedures     */
+			
+			/* Last step. Close IO at the end to flush everything into the disk */
+			IO.getInstance().close();
 			
 		} catch (IOException e) {
 			dprint("IOException is caught. Reason: " + e);
