@@ -13,11 +13,25 @@ public class PieceMessage extends Message {
 	private int begin;
 	private byte[] block;
 
+	public PieceMessage() {}
+
 	public PieceMessage(int index, int begin, byte[] block) {
 		super();
 		this.index = index;
 		this.begin = begin;
 		this.block = block;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public int getBegin() {
+		return begin;
+	}
+
+	public int getBlockLength() {
+		return block.length;
 	}
 
 	@Override
@@ -26,7 +40,7 @@ public class PieceMessage extends Message {
 	}
 
 	@Override
-	protected int getLength() {
+	public int getLength() {
 		return 9 + block.length;
 	}
 
