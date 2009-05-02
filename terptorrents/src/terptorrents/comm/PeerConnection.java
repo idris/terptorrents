@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import metainfo.TorrentParser;
+
+import terptorrents.Main;
 import terptorrents.comm.messages.*;
 import terptorrents.models.Peer;
 import terptorrents.models.PieceManager;
@@ -46,7 +49,9 @@ public class PeerConnection {
 
 		lastReceived = new Date();
 
-		HandshakeMessage handshake = new HandshakeMessage(infoHash, peerId);
+		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
+				getInstance().getMetaFile().getInfoHash(), 
+				Main.PEER_ID.toString());
 		outgoingMessages.add(handshake);
 
 		Thread outThread = new Thread(new PeerConnectionOut(this));

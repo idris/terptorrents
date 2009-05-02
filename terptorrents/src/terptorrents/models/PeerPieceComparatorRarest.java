@@ -11,7 +11,6 @@ import java.util.Comparator;
  */
 public class PeerPieceComparatorRarest implements Comparator<PeerPiece> {
 
-	@Override
 	public int compare(PeerPiece arg0, PeerPiece arg1) {
 		if(arg0.getNumPeer() == arg1.getNumPeer())
 			return 0;

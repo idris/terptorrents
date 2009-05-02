@@ -11,7 +11,6 @@ import java.util.Comparator;
  */
 public class LocalPieceComparatorLRU implements Comparator<LocalPiece> {
 
-	@Override
 	public int compare(LocalPiece o1, LocalPiece o2) {
 		if(o1.getNumRequest() == o2.getNumRequest())
 			return 0;

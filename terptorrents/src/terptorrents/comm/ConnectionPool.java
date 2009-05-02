@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import terptorrents.Main;
 import terptorrents.models.Peer;
 import terptorrents.models.PeerList;
 
@@ -18,24 +19,23 @@ import terptorrents.models.PeerList;
  *
  */
 public class ConnectionPool {
-	private static final int MAX_CONNECTIONS = 40;
 	private static ConnectionPool singleton;
 
 	/**
 	 * connections I have initiated
 	 */
-	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = new ArrayBlockingQueue<PeerConnection>(MAX_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
 	/**
 	 * connections initiated by other peers
 	 */
-	private final ArrayBlockingQueue<PeerConnection> incomingConnections = new ArrayBlockingQueue<PeerConnection>(MAX_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> incomingConnections = new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
 
 	private ConnectionPool() throws IOException {
 		// use newInstance to instantiate this singleton.
 
-		Set<Peer> randomPeers = PeerList.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS);
+		Set<Peer> randomPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS);
 		for(Peer peer: randomPeers) {
 			try {
 				outgoingConnections.add(new PeerConnection(peer));
@@ -60,7 +60,7 @@ public class ConnectionPool {
 
 	public synchronized void removeConnection(PeerConnection conn) {
 		if(outgoingConnections.remove(conn)) {
-			Set<Peer> newPeers = PeerList.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS - outgoingConnections.size());
+			Set<Peer> newPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS - outgoingConnections.size());
 			for(Peer p: newPeers) {
 				try {
 					outgoingConnections.add(new PeerConnection(p));
@@ -114,9 +114,10 @@ public class ConnectionPool {
 	/**
 	 * 
 	 * @return all PeerConnections such that each peer is not choking us
-	 * also we are insteresed
+	 * also we are interested
 	 */
 	public Vector<PeerConnection> getNonChokingAndInsterested() {
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
 		throw new UnsupportedOperationException();
 	}
 

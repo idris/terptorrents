@@ -48,7 +48,7 @@ public class LocalPiece extends Piece {
 	}
 	
 	@Override
-	public byte [] requestBlock(int pieceIndex, int blockBegin, 
+	public synchronized byte [] requestBlock(int pieceIndex, int blockBegin, 
 			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound{
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
