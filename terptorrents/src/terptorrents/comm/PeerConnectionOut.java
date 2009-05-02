@@ -4,14 +4,16 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import terptorrents.Stats;
 import terptorrents.comm.messages.Message;
+import terptorrents.comm.messages.PieceMessage;
 
 /**
  * 
  * @author idris
  *
  */
-public class PeerConnectionOut implements Runnable {
+class PeerConnectionOut implements Runnable {
 	private final PeerConnection connection;
 	private final DataOutputStream out;
 
@@ -32,15 +34,21 @@ public class PeerConnectionOut implements Runnable {
 				// keep on truckin'
 			} catch(IOException ex) {
 				// oh noes!
+				connection.disconnect = true;
 			}
 		}
 
-		connection.close();
+		connection.teardown();
 	}
 
 	private void writeMessage(Message message) throws IOException {
+		long start = System.currentTimeMillis();
 		message.write(out);
 		out.flush();
+		if(message instanceof PieceMessage) {
+			connection.uploadRate =  ((PieceMessage)message).getLength() / ((System.currentTimeMillis() - start) / 1000);
+			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
+		}
 		message.onSend(connection);
 	}
 }

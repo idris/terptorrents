@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import terptorrents.Stats;
 import terptorrents.comm.messages.BitfieldMessage;
 import terptorrents.comm.messages.CancelMessage;
 import terptorrents.comm.messages.ChokeMessage;
@@ -24,7 +25,7 @@ import terptorrents.exceptions.UnknownMessageException;
  * @author idris
  *
  */
-public class PeerConnectionIn implements Runnable {
+class PeerConnectionIn implements Runnable {
 	private final PeerConnection connection;
 	private final DataInputStream in;
 
@@ -41,6 +42,8 @@ public class PeerConnectionIn implements Runnable {
 				
 			}
 		}
+
+		connection.teardown();
 	}
 
 	private Message readMessage() throws IOException, UnknownMessageException {
@@ -93,7 +96,13 @@ public class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
-		m.read(in, length);
+		if(m instanceof PieceMessage) {
+			long start = System.currentTimeMillis();
+			m.read(in, length);
+			connection.downloadRate =  (((PieceMessage)m).getLength() - 1) / ((System.currentTimeMillis() - start) / 1000);
+			Stats.getInstance().downloaded.addAndGet(((PieceMessage)m).getBlockLength());
+			connection.lastPieceReceived = new Date();
+		}
 		m.onReceive(connection);
 
 		return m;

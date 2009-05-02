@@ -6,8 +6,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import terptorrents.comm.messages.HandshakeMessage;
+import terptorrents.exceptions.BadHandshakeException;
 import terptorrents.exceptions.InvalidProtocolException;
 import terptorrents.models.Peer;
+import terptorrents.models.PeerList;
 
 public class PeerListener implements Runnable {
 	private boolean listenForConnections = true;
@@ -28,22 +30,28 @@ public class PeerListener implements Runnable {
 			try {
 				socket = serverSocket.accept();
 				HandshakeMessage handshake = getHandshake(socket);
-
-				// make sure handshake.getInfoHash() matches
+				if(handshake.getInfoHash() != infoHash) {
+					throw new BadHandshakeException();
+				}
 
 				// find (or create) the peer
-				Peer peer = null;
+				Peer peer = PeerList.getInstance().getPeer(handshake.getPeerId());
+				if(peer == null) {
+					peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+				}
 				if(peer.getConnection() != null) {
 					// already connected to peer
 				} else {
 					PeerConnection connection = new PeerConnection(peer, socket);
-					peer.setConnection(connection);
+					ConnectionPool.getInstance().addIncomingConnection(connection);
 				}
+			} catch(InterruptedException ex) {
+				// trouble adding connection to pool
 			} catch(Exception ex) {
 				// something went wrong with the handshake. drop the connection
 				try {
 					socket.close();
-				} catch(IOException ex2) {}
+				} catch(Exception ex2) {}
 			}
 		}
 

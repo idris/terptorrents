@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import terptorrents.models.Peer;
-import terptorrents.models.PeerManager;
+import terptorrents.models.PeerList;
 
 
 /**
@@ -17,29 +19,24 @@ import terptorrents.models.PeerManager;
  *
  */
 public class ConnectionPool {
-	private static final int LISTEN_PORT = 1234;
 	private static final int MAX_CONNECTIONS = 40;
 	private static ConnectionPool singleton;
-
-	private PeerListener listener;
 
 	/**
 	 * connections I have initiated
 	 */
-	private final List<PeerConnection> outgoingConnections = new Vector<PeerConnection>(MAX_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = new ArrayBlockingQueue<PeerConnection>(MAX_CONNECTIONS);
 
 	/**
 	 * connections initiated by other peers
 	 */
-	private final List<PeerConnection> incomingConnections = new Vector<PeerConnection>(MAX_CONNECTIONS);
+	private final ArrayBlockingQueue<PeerConnection> incomingConnections = new ArrayBlockingQueue<PeerConnection>(MAX_CONNECTIONS);
 
 
 	private ConnectionPool() throws IOException {
 		// use newInstance to instantiate this singleton.
 
-		listener = new PeerListener(LISTEN_PORT);
-
-		List<Peer> randomPeers = PeerManager.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS);
+		Set<Peer> randomPeers = PeerList.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS);
 		for(Peer peer: randomPeers) {
 			try {
 				outgoingConnections.add(new PeerConnection(peer));
@@ -56,6 +53,25 @@ public class ConnectionPool {
 
 	public static ConnectionPool getInstance() {
 		return singleton;
+	}
+
+	public void addIncomingConnection(PeerConnection conn) throws InterruptedException {
+		incomingConnections.put(conn);
+	}
+
+	public synchronized void removeConnection(PeerConnection conn) {
+		if(outgoingConnections.remove(conn)) {
+			Set<Peer> newPeers = PeerList.getInstance().getRandomUnconnectedPeers(MAX_CONNECTIONS - outgoingConnections.size());
+			for(Peer p: newPeers) {
+				try {
+					outgoingConnections.add(new PeerConnection(p));
+				} catch(IOException ex) {
+					PeerList.getInstance().removePeer(p);
+				}
+			}
+		} else {
+			incomingConnections.remove(conn);
+		}
 	}
 
 
