@@ -11,6 +11,13 @@ public class HandshakeMessage extends Message {
 	private String infoHash;
 	private String peerId;
 
+	public HandshakeMessage() {}
+
+	public HandshakeMessage(String infoHash, String peerId) {
+		this.infoHash = infoHash;
+		this.peerId = peerId;
+	}
+
 	public String getInfoHash() {
 		return infoHash;
 	}

@@ -11,6 +11,17 @@ public class CancelMessage extends Message {
 	private int begin;
 	private int length;
 
+	public int getIndex() {
+		return index;
+	}
+
+	public int getBegin() {
+		return begin;
+	}
+
+	public int getBlockLength() {
+		return length;
+	}
 
 	@Override
 	protected int getId() {
@@ -31,7 +42,7 @@ public class CancelMessage extends Message {
 
 	@Override
 	public void onReceive(PeerConnection conn) {
-		// remove this from the incoming request queue or outgoing messages queue
+		conn.cancelPeerRequest(this);
 	}
 
 	@Override
