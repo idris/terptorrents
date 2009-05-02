@@ -16,10 +16,9 @@ public class IOTestingClass {
 	 * @throws InvalidBEncodingException 
 	 * @throws TerptorrentsIONoSuchPieceException 
 	 */
-	public static void main(String[] args) throws InvalidBEncodingException, FileNotFoundException, IOException, TerptorrentsIONoSuchPieceException {
-		TorrentParser parser = new TorrentParser("some_porn_to_test.torrent");
-		parser.parse();
-		MetaFile m = parser.getMetaFile();
+	public static void main(String[] args) throws InvalidBEncodingException, FileNotFoundException, IOException, TerptorrentsIONoSuchPieceException {;
+		TorrentParser.instantiate("");
+		MetaFile m = TorrentParser.getInstance().getMetaFile();
 		IO.instantiate(m);
 		IO io = IO.getInstance();
 		for (int i = 0; i < 95; i++) {
