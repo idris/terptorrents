@@ -92,7 +92,7 @@ public class IO {
 	}
 	
 	private void prepareFolders(MetaFile m) {
-		List<String> paths = m.getFileFolders();
+		Set<String> paths = m.getFileFolders();
 		if (paths.isEmpty()) return;
 		File f;
 		dprint("Preparing folders srtucture");
