@@ -126,13 +126,6 @@ public class PieceManager {
 				blockBegin, blockLength);
 	}
 
-	public void updateBlock(int pieceIndex, int blockBegin, byte[] data)
-	throws TerptorrentsModelsPieceNotWritable, 
-	TerptorrentsModelsBlockIndexOutOfBound, 
-	TerptorrentsModelsPieceIndexOutOfBound{
-		updateBlock(pieceIndex, blockBegin, data.length, data);
-	}
-
 	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, 
 			byte [] data)
 	throws TerptorrentsModelsPieceNotWritable, 

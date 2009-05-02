@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import metainfo.TorrentParser;
+
+import terptorrents.Main;
 import terptorrents.comm.messages.HandshakeMessage;
 import terptorrents.exceptions.BadHandshakeException;
 import terptorrents.exceptions.InvalidProtocolException;
@@ -15,8 +18,21 @@ public class PeerListener implements Runnable {
 	private boolean listenForConnections = true;
 	private ServerSocket serverSocket;
 
-	public PeerListener(int port) throws IOException {
-		this.serverSocket = new ServerSocket(port);
+	public PeerListener(int port){
+		int i;
+		for(i = port; i < 10; i++){
+			try {
+				this.serverSocket = new ServerSocket(i);
+				break;
+			} catch (IOException e) {
+				if(Main.DEBUG){
+					System.out.println("trying new port to listen:" + port +"\n");
+				}
+			}
+		}
+		if(i == 10){
+			throw new InternalError("No available ports\n");
+		}
 	}
 
 	/**
@@ -29,8 +45,11 @@ public class PeerListener implements Runnable {
 		while(listenForConnections) {
 			try {
 				socket = serverSocket.accept();
+
+				//TODO check the number of active connections, drop sockets if it is over limit
+
 				HandshakeMessage handshake = getHandshake(socket);
-				if(handshake.getInfoHash() != infoHash) {
+				if(handshake.getInfoHash() != TorrentParser.getInstance().getMetaFile().getInfoHash()) {
 					throw new BadHandshakeException();
 				}
 
@@ -58,7 +77,7 @@ public class PeerListener implements Runnable {
 		try {
 			serverSocket.close();
 		} catch(Exception ex) {
-			
+
 		}
 	}
 

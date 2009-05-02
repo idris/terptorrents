@@ -25,7 +25,7 @@ public class PeerPiece extends Piece {
 		initFreeBlock();
 	}
 
-	public int getNumPeer(){
+	public synchronized int getNumPeer(){
 		return peerSet.size();
 	}
 
@@ -37,7 +37,7 @@ public class PeerPiece extends Piece {
 	 * 
 	 * @return
 	 */
-	public BlockRange [] getBlockRangeToRequest(){
+	public synchronized BlockRange [] getBlockRangeToRequest(){
 		BlockRange [] res = new BlockRange [freeBlock.size()];
 
 		TreeMap<Integer, Integer> mergedBlock = mergeBlock();
@@ -48,16 +48,16 @@ public class PeerPiece extends Piece {
 		return res;
 	}
 
-	public void addPeer(Peer newPeer){
+	public synchronized void addPeer(Peer newPeer){
 		peerSet.add(newPeer);
 	}
 
-	public void removePeer(Peer peer){
+	public synchronized void removePeer(Peer peer){
 		if(peerSet.contains(peer))
 			peerSet.remove(peer);
 	}
 
-	public HashSet<Peer> getPeerSet(){
+	public synchronized HashSet<Peer> getPeerSet(){
 		return peerSet;
 	}
 
@@ -68,7 +68,7 @@ public class PeerPiece extends Piece {
 	}
 
 	@Override
-	public boolean updateBlock(int pieceIndex,
+	public synchronized boolean updateBlock(int pieceIndex,
 			int blockBegin, int blockLength, byte [] data) 
 	throws TerptorrentsModelsBlockIndexOutOfBound {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
