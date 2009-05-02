@@ -37,7 +37,11 @@ public class IO {
 		if (files.length == 0) 
 			throw new IOException("File list to download is empty");
 		this.pieceSize = m.getPieceLength().intValue();
-		this.irregPieceSize = (int) (files[files.length - 1].length() % pieceSize);
+		/* calculate irregular Piece size */
+		long total = 0;
+		for (int i = 0; i < files.length; i++)
+			total += files[i].length();
+		this.irregPieceSize = (int) (total % pieceSize);
 		/* instantiate message digest function SHA1*/	    
 	    try {
 	    	dprint("Instantiating SHA1...");
@@ -94,7 +98,7 @@ public class IO {
 		dprint("Preparing folders srtucture");
 		for (String path : paths) {
 			f = new File(path);
-			f.mkdirs();
+			if (!f.exists()) f.mkdirs();
 		}
 	}
 	
@@ -108,9 +112,12 @@ public class IO {
 		Map<String, Long> lengths = m.getFileLengths();
 		File f;
 		RandomAccessFile newFile;
-		LinkedList<RandomAccessFile> filesList = new LinkedList<RandomAccessFile>();
+		//LinkedList<RandomAccessFile> filesList = new LinkedList<RandomAccessFile>();
 		long length;
-		for (String fileName : filenames) {
+		this.files = new RandomAccessFile[filenames.size()];
+		String fileName;
+		for (int i =0; i < filenames.size(); i++) {
+			fileName = filenames.get(i);
 			f = new File(fileName);
 			length = lengths.get(fileName);
 			/* if file does not exists, create and fill with zeros */
@@ -130,12 +137,9 @@ public class IO {
 					newFile.close();
 				}
 			}
-			filesList.add(newFile);
+			dprint("Adding new file #" + i + ": " + fileName);
+			this.files[i] = newFile;
 		}
-		/* initialize initial files[] array */
-		this.files = new RandomAccessFile[filesList.size()];
-		for(int i = 0; i < this.files.length; i++) 
-			this.files[i] = filesList.get(i);
 	}
 	
 	/* returns SINGLETON instance of IO. If not instantiated, runtime exception is thrown */
@@ -159,62 +163,98 @@ public class IO {
 		if (i < 0 || i >= mask.length) 
 			throw new TerptorrentsIONoSuchPieceException("Requested index:" + i + 
 					" is out of bounds");
-		int startOffset = i*pieceSize;
-		int endOffset = startOffset + pieceSize;
-		RandomAccessFile startFile = findFile(startOffset);
-		RandomAccessFile endFile = findFile(endOffset);		
+		long startOffset = i*pieceSize;
+		long endOffset = startOffset + pieceSize;
+		LongContainer cont = new LongContainer();
+		int startFileIndex = findFile(startOffset, cont);
+		startOffset -= cont.l;
+		cont = new LongContainer();
+		int endFileIndex = findFile(endOffset, cont);
+		endOffset -= cont.l;
+
 		/* possible cases:
 		 * 1. No such piece
 		 * 2. Piece is entirely inside one file
 		 * 3. Irregular piece
-		 * 4. Piece is on the boundary of 2 files
+		 * 4. Piece is on the boundary of 2 files (There can be multiple files between startOffset and endOffset)
 		 */
 		/* 1 */
-		if (startFile == null && endFile == null) 
+		if (startFileIndex == -1 && endFileIndex == -1) 
 			throw new TerptorrentsIONoSuchPieceException("Requested piece #" + i + " does not exists");
 		byte[] result;
 		int numRead = 0;
 		/* 2 */
-		if (startFile == endFile) {
+		if (startFileIndex == endFileIndex) {
 			result = new byte[pieceSize];
+			RandomAccessFile startFile = files[startFileIndex];
 			startFile.seek(startOffset);
 			numRead = startFile.read(result);
 		/* 3 */
-		} else if (startFile != null && endFile == null){
+		} else if (startFileIndex != -1 && endFileIndex == -1){
+			RandomAccessFile startFile = files[startFileIndex];
 			result = new byte[irregPieceSize];
-			startFile.seek(startOffset);
-			numRead = startFile.read(result);
+			/* check if piece entirely inside the last file */
+			if (startFileIndex == files.length - 1) {				
+				startFile.seek(startOffset);
+				numRead = startFile.read(result);
+			} else {
+				/* last couple files fit inside irregular piece */
+				numRead = 0;
+				/* read bytes from the start file */
+				numRead += read(startFileIndex, (int)startOffset, TILL_END, result, numRead);
+				/* read bytes from the rest of the files to the right */
+				for (int indx = startFileIndex + 1; indx < files.length; indx++) 
+					numRead += read(indx, 0, TILL_END, result, numRead);
+			}
 		/* 4 */
 		} else {
 			result = new byte[pieceSize];
-			byte[] tmp = new byte[pieceSize];
-			int tmpNumRead;
 			numRead = 0;
 			/* copy part of the piece from the file on the left */
-			tmpNumRead = startFile.read(tmp, startOffset, (int) startFile.length() % pieceSize);
-			System.arraycopy(tmp, 0, result, 0, tmpNumRead);
-			numRead += tmpNumRead;
+			numRead += read(startFileIndex, (int)startOffset, TILL_END, result, numRead);
+			/* copy content of the files between startFile and endFile */
+			for (int indx = startFileIndex + 1; indx < endFileIndex; indx++) {
+				numRead += read(indx, 0, TILL_END, result, numRead);
+			}			
 			/* copy part of the piece from the file on the right */
-			tmpNumRead = endFile.read(tmp, 0, pieceSize - numRead);
-			System.arraycopy(tmp, 0, result, numRead, tmpNumRead);
-			numRead += tmpNumRead;
+			numRead += read(endFileIndex, 0, pieceSize - numRead, result, numRead);
 		}
 		if (numRead < 0 || numRead != result.length)
-			throw new TerptorrentsIOCodeLogicBrokenException();
+			throw new InternalError("Error in getting piece");
 		return result;
 	}
 	
+	//return number of read bytes
+	private static final int TILL_END = 0;
+	private int read(int file, int offset, int bytesToRead, byte[] result, int resultOffset) throws IOException {
+		RandomAccessFile f = files[file];
+		byte[] tmp;
+		if (bytesToRead == TILL_END) {
+			tmp = new byte[(int)(f.length() - offset)];
+		} else tmp = new byte[bytesToRead];
+		f.seek(offset);
+		int tmpNumRead = f.read(tmp);
+		System.arraycopy(tmp, 0, result, resultOffset, tmpNumRead);
+		return tmpNumRead;
+	}
+
+	
 	/* return file which have specified byte of data */
-	private RandomAccessFile findFile(long offset) throws IOException {
-		RandomAccessFile f = null;
+	private class LongContainer{ long l = 0;};
+	private int findFile(long offset, LongContainer cont) throws IOException {
 		long totalLength = 0;
 		for (int i = 0; i < files.length; i++) {
 			totalLength += files[i].length();
 			if (offset < totalLength)
-				return files[i];
+				return i;
+			/* get total length of the files prior the one I should read from
+			 * so I can adjust offset later
+			 */
+			cont.l += files[i].length();
 		}
-		return f;			
+		return -1;			
 	}
+	
 	
 	/* Computes SHA1 of the piece and writes it into the file
 	 * Returns: false if SHA1 does not match with SHA1 in MetaFile
@@ -226,18 +266,22 @@ public class IO {
 					" is out of bounds");
 		if (piece.length > this.pieceSize)
 			throw new TerptorrentsIONoSuchPieceException("writePiece() Given piece is > than pieceSize");
-		int startOffset = i*pieceSize;
-		int endOffset = startOffset + pieceSize;
-		RandomAccessFile startFile = findFile(startOffset);
-		RandomAccessFile endFile = findFile(endOffset);		
+		long startOffset = i*pieceSize;
+		long endOffset = startOffset + pieceSize;
+		LongContainer cont = new LongContainer();
+		int startFileIndex = findFile(startOffset, cont);
+		startOffset -= cont.l;
+		cont = new LongContainer();
+		int endFileIndex = findFile(endOffset, cont);
+		endOffset -= cont.l;	
 		/* possible cases:
 		 * 1. No such piece
 		 * 2. Piece is entirely inside one file
 		 * 3. Irregular piece
-		 * 4. Piece is on the boundary of 2 files
+		 * 4. Piece is on the boundary of 2 files (there can be smaller files in between)
 		 */
 		/* 1 */
-		if (startFile == null && endFile == null) 
+		if (startFileIndex == -1 && endFileIndex == -1) 
 			throw new TerptorrentsIONoSuchPieceException("Requested piece #" + i + 
 					" does not exists");
 		
@@ -251,26 +295,63 @@ public class IO {
 		/* *********** */
 		
 		/* 2 */
-		if (startFile == endFile) {
+		if (startFileIndex == endFileIndex) {
+			RandomAccessFile startFile = files[startFileIndex];
 			startFile.seek(startOffset);
 			startFile.write(piece);
 		/* 3 */
-		} else if (startFile != null && endFile == null){
-			dprint("Writing irregular pice #" + i);
+		} else if (startFileIndex != -1 && endFileIndex == -1){
+			dprint("Writing irregular piece #" + i);
 			if (piece.length != this.irregPieceSize)
 				throw new TerptorrentsIONoSuchPieceException
 					("writePiece(): Irregular piece size does not match");
-			startFile.seek(startOffset);
-			startFile.write(piece);
+			RandomAccessFile startFile = files[startFileIndex];
+			/* there might be multiple files that fit in irregular piece */
+			/* check if startFileIndex is the last file in the list */
+			if (startFileIndex == files.length - 1) {
+				/* if it is the last file, just write in it whole piece */
+				startFile.seek(startOffset);
+				startFile.write(piece);
+			} else {
+				/* irregular piece must be split and written in multiple files */
+				int numWritten = 0;
+				/* write into firstFile */
+				numWritten += write(startFileIndex, (int)startOffset, TILL_END, piece, numWritten);
+				/* write pieces into the files to the right of the startFile */
+				for (int indx = startFileIndex + 1; indx < files.length; indx++)
+					numWritten += write(indx, 0, TILL_END, piece, numWritten);
+				if (numWritten != piece.length)
+					throw new InternalError("Error writing IRREGULAR piece");
+			}
 		/* 4 */
 		} else {
-			int firstHalfOfPiece = (int) startFile.length() % pieceSize;
-			int secondHalfOfPiece = pieceSize - firstHalfOfPiece;
-			startFile.write(piece, startOffset, firstHalfOfPiece);
-			endFile.write(piece, endOffset, secondHalfOfPiece);
+			int numWritten = 0;
+			/* write some bytes into the left file */
+			numWritten += write(startFileIndex, (int)startOffset, TILL_END, piece, numWritten);
+			/* write bytes into the files in-between startFile and EndFile */
+			for (int indx = startFileIndex + 1; indx < endFileIndex; indx++) {
+				numWritten += write(indx, 0, TILL_END, piece, numWritten);
+			}
+			/* write remaining bytes to the right file */
+			numWritten += write(endFileIndex, 0, (piece.length - numWritten), piece, numWritten);
+			if (numWritten != piece.length)
+				throw new InternalError("Error writing a piece");
+			
 		}
 		mask[i] = true;
 		return true;
+	}
+	
+	private int write(int file, int offset, int len, byte[] piece, int pieceOffset) throws IOException {
+		byte tmp[];
+		RandomAccessFile f = files[file];
+		if (len == TILL_END) {
+			tmp = new byte[(int)(f.length() - offset)];
+		} else tmp = new byte[len];
+		System.arraycopy(piece, pieceOffset, tmp, 0, tmp.length);
+		files[file].seek(offset);
+		files[file].write(tmp);
+		return tmp.length;
 	}
 	
 	/* returns a bit mask of pieces that are available for upload */
@@ -358,13 +439,14 @@ public class IO {
 		}
 
 		public boolean hasNext() {
-			seekNextEmptyPiece();
 			if (emptyIndex == -1) return false;
 			return true;
 		}
 
 		public Integer next() {
-			return emptyIndex;
+			int nextEmptyPiece = emptyIndex;
+			seekNextEmptyPiece();
+			return nextEmptyPiece;
 		}
 
 		public void remove() {
