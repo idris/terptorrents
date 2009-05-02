@@ -25,21 +25,24 @@ public class ChockingAlgorithm implements Runnable {
 				//seeding mode
 				Vector<PeerConnection> peersToUnchoke = 
 					ConnectionPool.getInstance().getSeedableConnections();
-
+				Vector<PeerConnection> unchokedPeers = 
+					ConnectionPool.getInstance().getUnchoked();
+				
+				
+				
 				for(int i = 0 ; i < Main.NUM_PEERS_TO_UNCHOKE; i++){
-					if(!ConnectionPool.getInstance().getUnchoked().
-							contains(peersToUnchoke.get(i))){
+					if(!unchokedPeers.contains(peersToUnchoke.get(i))){
 						peersToUnchoke.get(i).sendMessage(new UnchokeMessage());
 					}
 				}
-				for(PeerConnection unchokedPeer : ConnectionPool.getInstance().getUnchoked()){
+				for(PeerConnection unchokedPeer : unchokedPeers){
 					if(!peersToUnchoke.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
 							contains(peersToUnchoke))
 						unchokedPeer.sendMessage(new ChokeMessage());
 				}
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){
-					if(!ConnectionPool.getInstance().getUnchoked().
-							contains(peersToUnchoke.get( Main.NUM_PEERS_TO_UNCHOKE))){
+					if(!unchokedPeers.contains(peersToUnchoke.get( 
+							Main.NUM_PEERS_TO_UNCHOKE))){
 						peersToUnchoke.get( Main.NUM_PEERS_TO_UNCHOKE).
 						sendMessage(new UnchokeMessage());
 					}
@@ -60,13 +63,16 @@ public class ChockingAlgorithm implements Runnable {
 
 				Vector<PeerConnection> uploaderList = 
 					ConnectionPool.getInstance().getActiveAndInterested();
+				Vector<PeerConnection> unchokedPeers = 
+					ConnectionPool.getInstance().getUnchoked();
+				
+				
 				for(int i = 0; i < Main.NUM_PEERS_TO_UNCHOKE; i++){
-					if(!ConnectionPool.getInstance().getUnchoked().
-							contains(uploaderList.get(i))){
+					if(!unchokedPeers.contains(uploaderList.get(i))){
 						uploaderList.get(i).sendMessage(new UnchokeMessage());
 					}
 				}
-				for(PeerConnection unchokedPeer : ConnectionPool.getInstance().getUnchoked()){
+				for(PeerConnection unchokedPeer : unchokedPeers){
 					if(!uploaderList.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
 							contains(uploaderList))
 						unchokedPeer.sendMessage(new ChokeMessage());
@@ -74,10 +80,12 @@ public class ChockingAlgorithm implements Runnable {
 				if(plannedOptimisticUnchokedPeer != null){
 					do{
 						while(uploaderList.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
-								contains(plannedOptimisticUnchokedPeer.getConnection()))
+								contains(plannedOptimisticUnchokedPeer.
+										getConnection()))
 							plannedOptimisticUnchokedPeer = 
 								ConnectionPool.getInstance().
-								getPlannedOptimisticUnchokedPeerConnection().getPeer();
+								getPlannedOptimisticUnchokedPeerConnection().
+								getPeer();
 
 						plannedOptimisticUnchokedPeer.getConnection().
 						sendMessage(new UnchokeMessage());
