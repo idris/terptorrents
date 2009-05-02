@@ -2,12 +2,9 @@ package terptorrents.comm;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringBufferInputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +13,9 @@ import metainfo.*;
 
 import terptorrents.Stats;
 import terptorrents.exceptions.TrackerResponseException;
+import terptorrents.io.IO;
 import terptorrents.models.Peer;
-import terptorrents.models.PeerManager;
-import terptorrents.tracker.TrackerRequest;
-import terptorrents.tracker.TrackerResponse;
+import terptorrents.models.PeerList;
 
 public class TrackerCommunicator implements Runnable {
 	private static final String EVENT_STARTED = "started";
@@ -27,13 +23,14 @@ public class TrackerCommunicator implements Runnable {
 	private static final String EVENT_COMPLETED = "completed";
 	
 	
-	private long requestInterval = 1000*60*30; // thirty minutes
-	private String trackerId = null;
 	private final String peerId;
 	private final int port;
 	private final String infoHash;
 	private final Stats stats = Stats.getInstance();
 	private final boolean compact = true;
+
+	private long requestInterval = 1000*60*30; // thirty minutes
+	private String trackerId = null;
 	private boolean completed = false;
 	private boolean stopped = false;
 	
@@ -55,40 +52,61 @@ public class TrackerCommunicator implements Runnable {
 	}
 
 	public void run() {
+		try {
+			Thread.sleep(requestInterval);
+		} catch(InterruptedException ex) {
+			// keep going
+		}
+
 		while(!completed) {
+			try {
+				pingTracker();
+			} catch(IOException ex) {
+				// oh well... maybe next time.
+			}
+
 			try {
 				Thread.sleep(requestInterval);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
+		}
 
-			try {
-				pingTracker(null);
-			} catch(IOException ex) {
-				// oh well... maybe next time.
-			}
+		try {
+			pingTracker(EVENT_COMPLETED);
+		} catch(IOException ex) {
+			// oh well... maybe next time.
 		}
 
 		while(!stopped) {
 			try {
-				pingTracker(EVENT_COMPLETED);
-			} catch(IOException ex) {
-				// oh well... maybe next time.
-			}
-
-			try {
 				Thread.sleep(requestInterval);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
+
+			try {
+				pingTracker();
+			} catch(IOException ex) {
+				// oh well... maybe next time.
+			}
+		}
+
+		try {
+			pingTracker(EVENT_STOPPED);
+		} catch(IOException ex) {
+			// oh well... maybe next time.
 		}
 	}
 
-	public void stop() throws IOException {
+	public void stop() {
 		stopped = true;
-		pingTracker(EVENT_STOPPED);
 	}
 
+
+	private void pingTracker() throws IOException {
+		pingTracker(null);
+	}
 	private void pingTracker(String event) throws IOException {
 		String trackerURL = "http://blahblahblah";
 
@@ -112,7 +130,7 @@ public class TrackerCommunicator implements Runnable {
 	}
 
 	private String generateQueryString(String event) {
-		int left = 555; // TODO: get number of bytes remaining from IO
+		long left = IO.getInstance().bytesRemaining(); // TODO: get number of bytes remaining from IO
 
 		String str = "info_hash=" + infoHash +
 		"peer_id" + peerId +
@@ -120,9 +138,11 @@ public class TrackerCommunicator implements Runnable {
 		"uploaded" + stats.uploaded.get() +
 		"downloaded" + stats.downloaded.get() +
 		"left" + left +
-		"compact" + (compact ? "1" : "0") +
+		"compact" + (compact ? "1" : "0");
 //		"no_peer_id" + no_peer_id +
-		"event" + event;
+		if(event != null) {
+			str += "event" + event;
+		}
 //		"ip" + ip +
 //		"numwant" + numwant +
 //		"key" + key +
@@ -159,7 +179,7 @@ public class TrackerCommunicator implements Runnable {
 					port |= peerBytes[i+5];
 					String dottedIP=InetAddress.getByAddress(ip).getHostAddress();
 					peerList.add(new Peer(dottedIP+":"+port,dottedIP,port));
-					PeerManager.getInstance().addPeers(peerList);
+					PeerList.getInstance().addPeers(peerList);
 				}
 			}
 			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));

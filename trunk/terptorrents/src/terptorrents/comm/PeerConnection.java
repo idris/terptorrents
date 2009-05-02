@@ -3,11 +3,11 @@ package terptorrents.comm;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Date;
-import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import terptorrents.comm.messages.*;
 import terptorrents.models.Peer;
+import terptorrents.models.PieceManager;
 
 
 /**
@@ -21,30 +21,41 @@ public class PeerConnection {
 
 	private static final long MAX_KEEPALIVE = 1000*60*2; // two minutes
 
-	Date lastReceived;
-	private boolean choking = true;
-	private boolean interested = false;
-	private boolean choked = true;
-	private boolean interesting = false;
-	boolean disconnect = false;
+	volatile Date lastReceived;
+	volatile Date lastPieceReceived = null;
+	volatile Date lastUnchoked = null;
+	volatile double downloadRate = 0;
+	volatile double uploadRate = 0;
+	private volatile boolean choking = true;
+	private volatile boolean interested = false;
+	private volatile boolean choked = true;
+	private volatile boolean interesting = false;
+	volatile boolean disconnect = false;
 
 	final LinkedBlockingQueue<Message> outgoingMessages = new LinkedBlockingQueue<Message>();
-	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
-	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
-	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
+//	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
+//	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
+//	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
 
 
 	public PeerConnection(Peer peer) throws IOException {
 		this.peer = peer;
-		socket = new Socket(peer.getAddress().getAddress(), peer.getAddress().getPort());
+		peer.setConnection(this);
+
+		this.socket = new Socket(peer.getAddress().getAddress(), peer.getAddress().getPort());
+
 		lastReceived = new Date();
 
-		HandshakeMessage handshake = new HandshakeMessage();
-		// TODO: properly initialize the HandshakeMessage
+		HandshakeMessage handshake = new HandshakeMessage(infoHash, peerId);
 		outgoingMessages.add(handshake);
 
-		new Thread(new PeerConnectionOut(this)).run();
-		new Thread(new PeerConnectionIn(this)).run();
+		Thread outThread = new Thread(new PeerConnectionOut(this));
+		outThread.setDaemon(true);
+		outThread.start();
+
+		Thread inThread = new Thread(new PeerConnectionIn(this));
+		inThread.setDaemon(true);
+		inThread.start();
 	}
 
 	/**
@@ -55,11 +66,19 @@ public class PeerConnection {
 	 */
 	public PeerConnection(Peer peer, Socket socket) throws IOException {
 		this.peer = peer;
+		peer.setConnection(this);
+
 		this.socket = socket;
+
 		lastReceived = new Date();
 
-		new Thread(new PeerConnectionIn(this)).run();
-		new Thread(new PeerConnectionOut(this)).run();
+		Thread inThread = new Thread(new PeerConnectionIn(this));
+		inThread.setDaemon(true);
+		inThread.start();
+
+		Thread outThread = new Thread(new PeerConnectionOut(this));
+		outThread.setDaemon(true);
+		outThread.start();
 	}
 
 
@@ -76,6 +95,32 @@ public class PeerConnection {
 */
 	}
 
+	public void addPeerRequest(RequestMessage requestMessage) {
+		// TODO: if they have a different block size, their request may span 2 of our blocks. we should queue ALL blocks between begin and length
+		try {
+			byte[] data = PieceManager.getInstance().requestBlock(
+					requestMessage.getIndex(), requestMessage.getBegin(), 
+					requestMessage.getBlockLength());
+			sendMessage(new PieceMessage(requestMessage.getIndex(), 
+					requestMessage.getBegin(), data));
+		} catch(Exception ex) {
+			// something went wrong. maybe we didn't have the piece. oh well...
+			ex.printStackTrace();
+		}
+	}
+
+	public void cancelPeerRequest(CancelMessage msg) {
+		for(Message m: outgoingMessages) {
+			if(m instanceof PieceMessage) {
+				PieceMessage queued = (PieceMessage)m;
+				if(queued.getIndex() == msg.getIndex() && queued.getBegin() == msg.getBegin()) {
+					outgoingMessages.remove(m);
+					break;
+				}
+			}
+		}
+	}
+
 	public Peer getPeer() {
 		return peer;
 	}
@@ -86,6 +131,9 @@ public class PeerConnection {
 
 	public void setChoking(boolean choking) {
 		this.choking = choking;
+		if(choking == false) {
+			lastUnchoked = new Date();
+		}
 	}
 
 	public void setInterested(boolean interested) {
@@ -120,44 +168,35 @@ public class PeerConnection {
 		return interesting && !choking;
 	}
 
-	/**
-	 * @return the outgoingMessages
-	 */
-	public synchronized LinkedBlockingQueue<Message> getOutgoingMessages() {
-		return outgoingMessages;
+	public double getDownloadRate() {
+		return downloadRate;
 	}
 
-	/**
-	 * @return the outgoingPieces
-	 */
-	public synchronized Stack<PieceMessage> getOutgoingPieces() {
-		return outgoingPieces;
+	public double getUploadRate() {
+		return uploadRate;
 	}
 
-	/**
-	 * @return the incomingRequests
-	 */
-	public synchronized Stack<RequestMessage> getIncomingRequests() {
-		return incomingRequests;
+	public Date getLastPieceRecievedDate() {
+		return lastPieceReceived;
 	}
 
-	/**
-	 * @return the outgoingRequests
-	 */
-	public synchronized Stack<RequestMessage> getOutgoingRequests() {
-		return outgoingRequests;
+	public Date getLastUnchokedDate() {
+		return lastUnchoked;
 	}
 
 	boolean peerIsDead() {
 		return (System.currentTimeMillis() - lastReceived.getTime()) > MAX_KEEPALIVE;
 	}
 
-	void close() {
+	void teardown() {
 		try {
 			disconnect = true;
 			socket.close();
 		} catch(IOException ex) {
-			peer.setConnection(null);
+			
 		}
+
+		peer.setConnection(null);
+		ConnectionPool.getInstance().removeConnection(this);
 	}
 }
