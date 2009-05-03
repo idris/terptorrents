@@ -23,7 +23,7 @@ import terptorrents.io.IO;
  *
  */
 public class PieceManager {
-	private static PieceManager SINGLETON = new PieceManager();
+	private static PieceManager SINGLETON = null;
 	
 	private Piece [] pieces;
 	private ArrayList<PeerPiece> peerPieceList;
