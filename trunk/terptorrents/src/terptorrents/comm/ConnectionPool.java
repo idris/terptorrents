@@ -114,8 +114,19 @@ public class ConnectionPool {
 		return list;
 	}
 
+	/**
+	 * this is the Can I request list
+	 * @return
+	 */
 	public Vector<PeerConnection> getNonChokingAndInsterested(){
-		throw new UnsupportedOperationException();
+		Vector<PeerConnection> list = new Vector<PeerConnection>();
+		ArrayList<PeerConnection> allConnections = getConnections();		
+		for(PeerConnection peerConnection : allConnections){
+			if(!peerConnection.peerChoking() && peerConnection.amInterested()){
+					list.add(peerConnection);
+			}
+		}
+		return list;
 	}
 	
 	/**

@@ -9,7 +9,9 @@ import terptorrents.Main;
 import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.ChokeMessage;
+import terptorrents.comm.messages.RequestMessage;
 import terptorrents.comm.messages.UnchokeMessage;
+import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
 import terptorrents.io.IO;
 
 /**
@@ -21,14 +23,29 @@ public class ChockingAlgorithm implements Runnable {
 
 	public void run() {
 		while(true){
+			
+			/*send request message*/
+			for(PeerConnection peerCon: ConnectionPool.
+					getInstance().getNonChokingAndInsterested()){
+				try {
+					for(BlockRange br : PieceManager.getInstance().
+							getBlockRangeToRequest(peerCon.getPeer())){
+						peerCon.sendMessage(new RequestMessage(
+								br.getPieceIndex(), br.getBegin(), 
+								br.getLength()));
+					}
+				} catch (TerptorrentsModelsCanNotRequstFromThisPeer e) {
+					e.printStackTrace();
+				}
+			}
+			
+			/*choking algorithm*/
 			if(IO.getInstance().isComplete()){
 				//seeding mode
 				Vector<PeerConnection> peersToUnchoke = 
 					ConnectionPool.getInstance().getSeedableConnections();
 				Vector<PeerConnection> unchokedPeers = 
 					ConnectionPool.getInstance().getUnchoked();
-				
-				
 				
 				for(int i = 0 ; i < Main.NUM_PEERS_TO_UNCHOKE; i++){
 					if(!unchokedPeers.contains(peersToUnchoke.get(i))){
