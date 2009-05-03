@@ -3,12 +3,15 @@ package terptorrents.comm.messages;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
-import terptorrents.exceptions.InvalidProtocolException;
+import metainfo.TorrentParser;
+
+import terptorrents.exceptions.BadHandshakeException;
 
 public class HandshakeMessage extends Message {
-	private static final String pstr = "BitTorrent protocol";
-	private static final int HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN = 49;
+	public static final String pstr = "BitTorrent protocol";
+	public static final int HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN = 49;
 	private byte[] infoHash;
 	private byte[] peerId;
 
@@ -38,15 +41,12 @@ public class HandshakeMessage extends Message {
 	}
 
 	@Override
-	public void read(DataInputStream dis, int length) throws IOException {
-		int pstrlen = length - 49;
-		if(pstrlen != HandshakeMessage.pstr.length()) throw new InvalidProtocolException();
+	public void read(DataInputStream dis, int pstrlen) throws IOException {
+		if(pstrlen != HandshakeMessage.pstr.length()) throw new BadHandshakeException();
 
-		
-		
 		byte[] pstr = new byte[pstrlen];
 		dis.readFully(pstr);
-		if(!HandshakeMessage.pstr.getBytes().equals(pstr)) throw new InvalidProtocolException();
+		if(!HandshakeMessage.pstr.equals(new String(pstr))) throw new BadHandshakeException();
 
 		dis.readLong(); // reserved
 		byte[] twentyBytes = new byte[20];
@@ -54,7 +54,11 @@ public class HandshakeMessage extends Message {
 		dis.readFully(twentyBytes); // info_hash
 		
 		infoHash = twentyBytes;
-		
+
+		if(!Arrays.equals(infoHash, TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
+			throw new BadHandshakeException();
+		}
+
 		dis.readFully(twentyBytes); // peer_id
 		peerId = twentyBytes;
 	}

@@ -135,7 +135,8 @@ public class PeerPiece extends Piece {
 
 	private void initFreeBlock(){
 		freeBlock.clear();
-		for(int i = 0; i < getSize(); i++){
+		int end = getSize() / Main.MAX_REQUEST_BLOCK_SIZE;
+		for(int i = 0; i < end; i++){
 			freeBlock.put(i * Main.MAX_REQUEST_BLOCK_SIZE, 
 					Main.MAX_REQUEST_BLOCK_SIZE);
 		}

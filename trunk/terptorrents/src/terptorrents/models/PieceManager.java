@@ -44,13 +44,13 @@ public class PieceManager {
 			SINGLETON = new PieceManager();
 	}
 
+
 	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer) throws
 	TerptorrentsModelsCanNotRequstFromThisPeer{
 		int requestedBytes = 0;
 		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
-		if(!ConnectionPool.getInstance().getNonChokingAndInsterested().
-				contains(peer.getClass()))
-			throw new TerptorrentsModelsCanNotRequstFromThisPeer ();
+		if(peer.getConnection().peerChoking() || !peer.getConnection().amInterested())
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer();
 		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 		while(peerPieceList.get(0).getNumPeer() == 0)
 			peerPieceList.remove(0);

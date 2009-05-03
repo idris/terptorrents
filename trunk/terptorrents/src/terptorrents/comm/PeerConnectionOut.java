@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import terptorrents.Stats;
+import terptorrents.comm.messages.KeepaliveMessage;
 import terptorrents.comm.messages.Message;
 import terptorrents.comm.messages.PieceMessage;
 
@@ -29,9 +30,14 @@ class PeerConnectionOut implements Runnable {
 				break;
 			}
 			try {
-				writeMessage(connection.outgoingMessages.poll(10, TimeUnit.SECONDS));
+				Message toSend = connection.outgoingMessages.poll(2, TimeUnit.MINUTES);
+				if(toSend == null) {
+					toSend = new KeepaliveMessage();
+				}
+				writeMessage(toSend);
 			} catch(InterruptedException ex) {
 				// keep on truckin'
+				ex.printStackTrace();
 			} catch(IOException ex) {
 				// oh noes!
 				connection.disconnect = true;
@@ -49,6 +55,9 @@ class PeerConnectionOut implements Runnable {
 			connection.uploadRate =  ((PieceMessage)message).getLength() / ((System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
 		}
+
+		System.out.println("=== SENT MESSAGE to " + connection.peer.getAddress().toString() + " ===\n" + message.toString());
+
 		message.onSend(connection);
 	}
 }

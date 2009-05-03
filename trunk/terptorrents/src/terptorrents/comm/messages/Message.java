@@ -33,4 +33,8 @@ public abstract class Message {
 			out.writeByte(getId());
 		}
 	}
+
+	public String toString() {
+		return getClass().getName();
+	}
 }

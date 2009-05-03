@@ -1,6 +1,7 @@
 package terptorrents.comm;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -9,6 +10,7 @@ import metainfo.TorrentParser;
 
 import terptorrents.Main;
 import terptorrents.comm.messages.*;
+import terptorrents.io.IO;
 import terptorrents.models.Peer;
 import terptorrents.models.PieceManager;
 
@@ -23,6 +25,7 @@ public class PeerConnection {
 	final Socket socket;
 
 	private static final long MAX_KEEPALIVE = 1000*60*2; // two minutes
+	private static final int CONNECT_TIMEOUT = 1000 * 2;
 
 	volatile Date lastReceived;
 	volatile Date lastPieceReceived = null;
@@ -34,6 +37,7 @@ public class PeerConnection {
 	private volatile boolean choked = true;
 	private volatile boolean interesting = false;
 	volatile boolean disconnect = false;
+	boolean handshook = false;
 
 	final LinkedBlockingQueue<Message> outgoingMessages = new LinkedBlockingQueue<Message>();
 //	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
@@ -45,15 +49,15 @@ public class PeerConnection {
 		this.peer = peer;
 		peer.setConnection(this);
 
-		this.socket = new Socket(peer.getAddress().getAddress(), peer.getAddress().getPort());
-
+		this.socket = new Socket();
+		socket.connect(new InetSocketAddress(peer.getAddress().getAddress(), peer.getAddress().getPort()), CONNECT_TIMEOUT);
 		lastReceived = new Date();
 
 		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
 				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
 		outgoingMessages.add(handshake);
 
-		BitfieldMessage bitfieldMessage = new BitfieldMessage();
+		BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
 		outgoingMessages.add(bitfieldMessage);
 
 		Thread outThread = new Thread(new PeerConnectionOut(this));
@@ -79,6 +83,8 @@ public class PeerConnection {
 
 		lastReceived = new Date();
 
+		handshook = true;
+
 		Thread inThread = new Thread(new PeerConnectionIn(this));
 		inThread.setDaemon(true);
 		inThread.start();
@@ -90,6 +96,9 @@ public class PeerConnection {
 
 
 	public void sendMessage(Message message) {
+		if(disconnect) {
+			return;
+		}
 		outgoingMessages.add(message);
 /*
 		if(message instanceof PieceMessage) {
@@ -203,7 +212,7 @@ public class PeerConnection {
 			
 		}
 
-		peer.setConnection(null);
 		ConnectionPool.getInstance().removeConnection(this);
+		peer.setConnection(null);
 	}
 }

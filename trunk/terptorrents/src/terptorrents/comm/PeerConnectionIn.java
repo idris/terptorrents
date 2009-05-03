@@ -8,6 +8,7 @@ import terptorrents.Stats;
 import terptorrents.comm.messages.BitfieldMessage;
 import terptorrents.comm.messages.CancelMessage;
 import terptorrents.comm.messages.ChokeMessage;
+import terptorrents.comm.messages.HandshakeMessage;
 import terptorrents.comm.messages.HaveMessage;
 import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.KeepaliveMessage;
@@ -35,6 +36,16 @@ class PeerConnectionIn implements Runnable {
 	}
 
 	public void run() {
+		if(!connection.handshook) {
+			try {
+				// receive initial handshake
+				readHandshake();
+			} catch(IOException ex) {
+				connection.teardown();
+				return;
+			}
+		}
+
 		while(!connection.disconnect) {
 			try {
 				readMessage();
@@ -46,11 +57,28 @@ class PeerConnectionIn implements Runnable {
 		connection.teardown();
 	}
 
+	private Message readHandshake() throws IOException {
+		int length = in.readByte();
+		HandshakeMessage handshake = new HandshakeMessage();
+		handshake.read(in, length);
+		return handshake;
+	}
+
 	private Message readMessage() throws IOException, UnknownMessageException {
-		int length = in.readInt();
+		int one, two, three, four;
+		one = in.readByte();
+		two = in.readByte();
+		three = in.readByte();
+		four = in.readByte();
+//		int length = in.readInt();
+		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
+
 		if(length < 0) {
 			throw new UnknownMessageException("Length is negative");
 		}
+
+		System.out.println("=== NEW MESSAGE: " + length + " ===");
+		System.out.println("first byte: " + one);
 
 		connection.lastReceived = new Date();
 
@@ -59,6 +87,7 @@ class PeerConnectionIn implements Runnable {
 		}
 
 		byte id = in.readByte();
+		System.out.println("Message ID: " + id);
 
 		Message m;
 		switch(id) {
@@ -93,6 +122,10 @@ class PeerConnectionIn implements Runnable {
 			m = new PortMessage();
 			break;
 		default:
+			length -= 1;
+			while(length > 0) {
+				length -= in.skip(length);
+			}
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
@@ -102,8 +135,12 @@ class PeerConnectionIn implements Runnable {
 			connection.downloadRate =  (((PieceMessage)m).getLength() - 1) / ((System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().downloaded.addAndGet(((PieceMessage)m).getBlockLength());
 			connection.lastPieceReceived = new Date();
+		} else {
+			m.read(in, length);
 		}
 		m.onReceive(connection);
+
+		System.out.println("TYPE: " + m.getClass().getName());
 
 		return m;
 	}

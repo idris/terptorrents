@@ -59,7 +59,13 @@ public class Peer {
 	public PeerConnection getConnection() {
 		return connection;
 	}
-	
-	
-	
+
+	public boolean isConnected() {
+		return connection != null;
+	}
+
+	@Override
+	public String toString() {
+		return new String(id) + "|" + address.toString();
+	}
 }

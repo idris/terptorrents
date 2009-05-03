@@ -38,7 +38,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debuggin purpose
-		torrentFile = "maryland.jpg.torrent";
+		torrentFile = "piratemaryland.jpg.torrent";
 		//parseCommand(args);
 		
 		
@@ -65,17 +65,16 @@ public class Main {
 			trackerComm.setDaemon(true);
 			trackerComm.start();
 
+			/*start connection pool*/
+			dprint("Instantiating ConnectionPool");
+			ConnectionPool.newInstance();
+
 			/*start peer listener*/
 			dprint("Starting peer listener");
 			Thread peerListener = new Thread(new PeerListener(PORT));
 			//make thread a daemon, so it dies when Main exits
 			peerListener.setDaemon(true);
 			peerListener.start();
-
-			
-			/*start connection pool*/
-			dprint("Instantiating ConnectionPool");
-			ConnectionPool.newInstance();
 			
 			/*start chocking algorithm*/
 			dprint("Starting choking algorithm");

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import metainfo.*;
 
+import sun.net.util.IPAddressUtil;
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.exceptions.TrackerResponseException;
@@ -37,7 +38,7 @@ public class TrackerCommunicator implements Runnable {
 	
 	// Tracker response fields
 	private List<Peer>peerList;
-	private int interval = 1000*60*30; //time to wait between requests, in seconds
+	private int interval = 30; //time to wait between requests, in seconds
 	private int minInterval; //optional, time to wait between announce
 	private int numSeeders;
 	private int numLeechers;
@@ -52,7 +53,7 @@ public class TrackerCommunicator implements Runnable {
 
 	public void run() {
 		try {
-			Thread.sleep(interval);
+			Thread.sleep(interval*60*1000);
 		} catch(InterruptedException ex) {
 			// keep going
 		}
@@ -65,7 +66,7 @@ public class TrackerCommunicator implements Runnable {
 			}
 
 			try {
-				Thread.sleep(interval);
+				Thread.sleep(interval*60*1000);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
@@ -79,7 +80,7 @@ public class TrackerCommunicator implements Runnable {
 
 		while(!stopped) {
 			try {
-				Thread.sleep(interval);
+				Thread.sleep(interval*60*1000);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
@@ -135,6 +136,7 @@ public class TrackerCommunicator implements Runnable {
 		"&uploaded=" + stats.uploaded +
 		"&downloaded=" + stats.downloaded +
 		"&left=" + IO.getInstance().bytesRemaining() +
+		"&numwant=50" + 
 		"&compact=" + (compact?"1":"0");
 		
 		if(event != null) {
@@ -167,10 +169,17 @@ public class TrackerCommunicator implements Runnable {
 						ip[j]=peerBytes[i+j];
 					}
 					int port = 0;
-					port |= peerBytes[i+4];
-					port <<= 8;
-					port |= peerBytes[i+5];
-					String dottedIP=InetAddress.getByAddress(ip).getHostAddress();
+					port=peerBytes[i+5] & 0xFF;
+					port |= (peerBytes[i+4]<<8)&0xFF00;
+					//port <<= 8;
+					//port |= peerBytes[i+5];
+					InetAddress inetAddress = InetAddress.getByAddress(ip);
+					if(inetAddress.equals(InetAddress.getLocalHost())) {
+						// TODO: find a better way to detect if this is a local IP
+						// this is me! skip it.
+						continue;
+					}
+					String dottedIP = inetAddress.getHostAddress();
 					peerList.add(new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port));
 					PeerList.getInstance().addPeers(peerList);
 				}

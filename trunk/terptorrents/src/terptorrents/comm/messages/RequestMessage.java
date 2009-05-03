@@ -66,4 +66,9 @@ public class RequestMessage extends Message {
 	public int getBlockLength() {
 		return length;
 	}
+
+	@Override
+	public String toString() {
+		return "RequestMessage: (piece index: " + index + ")";
+	}
 }
