@@ -59,6 +59,7 @@ public class PieceManager {
 			BlockRange [] blockRanges = 
 				((PeerPiece)(pieces[i])).getBlockRangeToRequest();
 			int j = 0;
+			i++;
 			while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
 					&& j < blockRanges.length){
 				res.add(blockRanges[j]);
