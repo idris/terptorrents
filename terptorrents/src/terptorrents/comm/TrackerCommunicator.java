@@ -25,37 +25,34 @@ public class TrackerCommunicator implements Runnable {
 	private static final String EVENT_COMPLETED = "completed";
 	
 	
-	private final String peerId;
+	private final byte[] peerId;
 	private final int port;
 	private final String infoHash;
 	private final Stats stats = Stats.getInstance();
 	private final boolean compact = true;
 
-	private long requestInterval = 1000*60*30; // thirty minutes
 	private String trackerId = null;
 	private boolean completed = false;
 	private boolean stopped = false;
 	
 	// Tracker response fields
 	private List<Peer>peerList;
-	private int interval; //time to wait between requests, in seconds
+	private int interval = 1000*60*30; //time to wait between requests, in seconds
 	private int minInterval; //optional, time to wait between announce
-	private String trackerID;
 	private int numSeeders;
 	private int numLeechers;
 	
 
 	public TrackerCommunicator() throws IOException {
-		// TODO: use real values
-		peerId = "my peer id";
-		port = 1234;
-		infoHash = "some info hash here";
+		peerId = Main.PEER_ID;
+		port = Main.PORT;
+		infoHash = TorrentParser.getInstance().getMetaFile().getURLInfoHash();
 		pingTracker(EVENT_STARTED);
 	}
 
 	public void run() {
 		try {
-			Thread.sleep(requestInterval);
+			Thread.sleep(interval);
 		} catch(InterruptedException ex) {
 			// keep going
 		}
@@ -68,7 +65,7 @@ public class TrackerCommunicator implements Runnable {
 			}
 
 			try {
-				Thread.sleep(requestInterval);
+				Thread.sleep(interval);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
@@ -82,7 +79,7 @@ public class TrackerCommunicator implements Runnable {
 
 		while(!stopped) {
 			try {
-				Thread.sleep(requestInterval);
+				Thread.sleep(interval);
 			} catch(InterruptedException ex) {
 				// keep going
 			}
@@ -110,7 +107,7 @@ public class TrackerCommunicator implements Runnable {
 		pingTracker(null);
 	}
 	private void pingTracker(String event) throws IOException {
-		String trackerURL = "http://blahblahblah";
+		String trackerURL = TorrentParser.getInstance().getMetaFile().getAnnounce();
 
 		trackerURL += generateQueryString(event);
 
@@ -132,13 +129,13 @@ public class TrackerCommunicator implements Runnable {
 	}
 
 	private String generateQueryString(String event) {
-		String str = "?info_hash=" + TorrentParser.getInstance().getMetaFile().getURLInfoHash() +
-		"&peer_id=" + TerpURL.urlencode(Main.PEER_ID) +
-		"&port=" + Main.PORT +
-		"&uploaded=" + Stats.getInstance().downloaded +
-		"&downloaded=" + Stats.getInstance().uploaded +
+		String str = "?info_hash=" + infoHash +
+		"&peer_id=" + TerpURL.urlencode(peerId) +
+		"&port=" + port +
+		"&uploaded=" + stats.uploaded +
+		"&downloaded=" + stats.downloaded +
 		"&left=" + IO.getInstance().bytesRemaining() +
-		"&compact=1";
+		"&compact=" + (compact?"1":"0");
 		
 		if(event != null) {
 			str += "&event=" + event;
@@ -174,12 +171,12 @@ public class TrackerCommunicator implements Runnable {
 					port <<= 8;
 					port |= peerBytes[i+5];
 					String dottedIP=InetAddress.getByAddress(ip).getHostAddress();
-					peerList.add(new Peer(dottedIP+":"+port,dottedIP,port));
+					peerList.add(new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port));
 					PeerList.getInstance().addPeers(peerList);
 				}
 			}
 			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));
-			if(trackerIDBE!=null)trackerID=trackerIDBE.getString();
+			if(trackerIDBE!=null)trackerId=trackerIDBE.getString();
 		}	
 	}
 }
