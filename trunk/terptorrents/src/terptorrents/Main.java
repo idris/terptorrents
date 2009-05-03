@@ -24,7 +24,7 @@ public class Main {
 	public static final int MAX_PEER_CONNECTIONS = 40;
 	public static byte [] PEER_ID = {34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52};
 	public static final int PORT = 6881;
-	public static boolean ENABLE_SELECTIVE_DOWNLOAD = true;
+	public static boolean ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 10000;
 	/* ****************************************************** */
 	
