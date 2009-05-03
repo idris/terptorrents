@@ -485,15 +485,15 @@ public class IO {
 	}
 	
 	private List<Integer> getIntegers(String s) {
-		System.out.print("Enter file numbers separated by space: ");
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		Pattern p = Pattern.compile("(//d)");
-		Matcher m = p.matcher(s);			
+		List<Integer>returnValue=new ArrayList<Integer>();
+		Pattern p = Pattern.compile("(\\d+)");
+		Matcher m = p.matcher(s);
 		while (m.find()) {
-			System.out.println("Match found: " + m.group());
+			Integer added=new Integer(s.substring(m.start(), m.end()));
+			returnValue.add(added);
+			System.out.println(added);
 		}
-		System.out.println("Done parsing");
-		return null;
+		return returnValue;
 	}
 	
 	private void dprint(String message) {
