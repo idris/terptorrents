@@ -1,6 +1,6 @@
 package terptorrents.exceptions;
 
 @SuppressWarnings("serial")
-public class InvalidProtocolException extends Exception {
+public class StaleConnectionException extends Exception {
 
 }

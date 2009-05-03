@@ -47,7 +47,7 @@ public class ChockingAlgorithm implements Runnable {
 				Vector<PeerConnection> unchokedPeers = 
 					ConnectionPool.getInstance().getUnchoked();
 				
-				for(int i = 0 ; i < Main.NUM_PEERS_TO_UNCHOKE; i++){
+				for(int i = 0 ; i < Math.min(peersToUnchoke.size(), Main.NUM_PEERS_TO_UNCHOKE); i++){
 					if(!unchokedPeers.contains(peersToUnchoke.get(i))){
 						peersToUnchoke.get(i).sendMessage(new UnchokeMessage());
 					}
@@ -71,11 +71,11 @@ public class ChockingAlgorithm implements Runnable {
 				countOptimistic++;
 			}else{
 				//leeching mode
-				Peer plannedOptimisticUnchokedPeer = null;
+				PeerConnection plannedOptimisticUnchokedPeer = null;
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){
 					plannedOptimisticUnchokedPeer = 
 						ConnectionPool.getInstance().
-						getPlannedOptimisticUnchokedPeerConnection().getPeer();
+						getPlannedOptimisticUnchokedPeerConnection();
 				}
 
 				Vector<PeerConnection> uploaderList = 
@@ -84,7 +84,7 @@ public class ChockingAlgorithm implements Runnable {
 					ConnectionPool.getInstance().getUnchoked();
 				
 				
-				for(int i = 0; i < Main.NUM_PEERS_TO_UNCHOKE; i++){
+				for(int i = 0; i < Math.min(uploaderList.size(), Main.NUM_PEERS_TO_UNCHOKE); i++){
 					if(!unchokedPeers.contains(uploaderList.get(i))){
 						uploaderList.get(i).sendMessage(new UnchokeMessage());
 					}
@@ -97,14 +97,12 @@ public class ChockingAlgorithm implements Runnable {
 				if(plannedOptimisticUnchokedPeer != null){
 					do{
 						while(uploaderList.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
-								contains(plannedOptimisticUnchokedPeer.
-										getConnection()))
+								contains(plannedOptimisticUnchokedPeer))
 							plannedOptimisticUnchokedPeer = 
 								ConnectionPool.getInstance().
-								getPlannedOptimisticUnchokedPeerConnection().
-								getPeer();
+								getPlannedOptimisticUnchokedPeerConnection();
 
-						plannedOptimisticUnchokedPeer.getConnection().
+						plannedOptimisticUnchokedPeer.
 						sendMessage(new UnchokeMessage());
 					}while(!ConnectionPool.getInstance().getInstersted().
 							contains(plannedOptimisticUnchokedPeer));

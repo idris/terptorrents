@@ -4,14 +4,9 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-
-import metainfo.TorrentParser;
 
 import terptorrents.Main;
 import terptorrents.comm.messages.HandshakeMessage;
-import terptorrents.exceptions.BadHandshakeException;
-import terptorrents.exceptions.InvalidProtocolException;
 import terptorrents.models.Peer;
 import terptorrents.models.PeerList;
 
@@ -21,9 +16,9 @@ public class PeerListener implements Runnable {
 
 	public PeerListener(int port){
 		int i;
-		for(i = port; i < 10; i++){
+		for(i = 0; i < 10; i++){
 			try {
-				this.serverSocket = new ServerSocket(i);
+				this.serverSocket = new ServerSocket(port + i);
 				break;
 			} catch (IOException e) {
 				if(Main.DEBUG){
@@ -43,38 +38,37 @@ public class PeerListener implements Runnable {
 	 */
 	public void run() {
 		Socket socket = null;
-		while(listenForConnections) {
-			try {
-				socket = serverSocket.accept();
-
-				//TODO check the number of active connections, drop sockets if it is over limit
-
-				HandshakeMessage handshake = getHandshake(socket);
-
-				if (!Arrays.equals(handshake.getInfoHash(), 
-						TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
-					throw new BadHandshakeException();
-				}
-
-				// find (or create) the peer
-				Peer peer = PeerList.getInstance().getPeer(handshake.getPeerId());
-				if(peer == null) {
-					peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
-				}
-				if(peer.getConnection() != null) {
-					// already connected to peer
-				} else {
-					PeerConnection connection = new PeerConnection(peer, socket);
-					ConnectionPool.getInstance().addIncomingConnection(connection);
-				}
-			} catch(InterruptedException ex) {
-				// trouble adding connection to pool
-			} catch(Exception ex) {
-				// something went wrong with the handshake. drop the connection
+		try {
+			while(listenForConnections && ConnectionPool.getInstance().acquireIncomingSlot()) {
 				try {
-					socket.close();
-				} catch(Exception ex2) {}
+					socket = serverSocket.accept();
+
+					//TODO check the number of active connections, drop sockets if it is over limit
+
+					HandshakeMessage handshake = getHandshake(socket);
+
+					// find (or create) the peer
+					Peer peer = PeerList.getInstance().getPeer(handshake.getPeerId());
+					if(peer == null) {
+						peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+					}
+					if(peer.getConnection() != null) {
+						// already connected to peer
+					} else {
+						PeerConnection connection = new PeerConnection(peer, socket);
+						ConnectionPool.getInstance().addIncomingConnection(connection);
+					}
+				} catch(IOException ex) {
+					// something went wrong with the handshake. drop the connection
+					ConnectionPool.getInstance().releaseIncomingSlot();
+					try {
+						socket.close();
+					} catch(Exception ex2) {}
+				}
 			}
+		} catch(InterruptedException ex) {
+			//
+			ex.printStackTrace();
 		}
 
 		try {
@@ -84,7 +78,7 @@ public class PeerListener implements Runnable {
 		}
 	}
 
-	private HandshakeMessage getHandshake(Socket socket) throws InvalidProtocolException, IOException {
+	private HandshakeMessage getHandshake(Socket socket) throws IOException {
 		DataInputStream dis = new DataInputStream(socket.getInputStream());
 		int handshakeLength = dis.readByte();
 		HandshakeMessage handshake = new HandshakeMessage();
