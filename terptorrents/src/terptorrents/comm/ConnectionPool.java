@@ -114,6 +114,10 @@ public class ConnectionPool {
 		return list;
 	}
 
+	public Vector<PeerConnection> getNonChokingAndInsterested(){
+		throw new UnsupportedOperationException();
+	}
+	
 	/**
 	 * each peer is interested and has sent a block in the last 30 seconds
 	 * order by fastest download rate
