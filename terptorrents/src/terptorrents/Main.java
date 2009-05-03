@@ -37,7 +37,11 @@ public class Main {
 	 */		
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
-		parseCommand(args);
+		//TODO remove comment. It is OFF for debuggin purpose
+		torrentFile = "beyonce.torrent";
+		//parseCommand(args);
+		
+		
 		try {
 			/* Generate Client ID */
 			generatePeerID();
@@ -50,7 +54,7 @@ public class Main {
 			/* instantiate IO layer */
 			dprint("Instantiating IO layer");
 			IO.instantiate(metaFile);
-			/*init piece manager*/
+			/* init piece manager */
 			dprint("Starting Piece Manager");
 			PieceManager.initialize();
 
@@ -124,7 +128,7 @@ public class Main {
 	}
 
 	private static void dprint(String message) {
-		System.out.print("MAIN: " + message);
+		System.out.println("MAIN: " + message);
 	}
 	
 	private static void generatePeerID(){
