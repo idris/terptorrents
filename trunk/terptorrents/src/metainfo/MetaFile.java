@@ -100,12 +100,12 @@ public class MetaFile {
 	}
 
 
-	public String getURLInfoHash() {
+	public String getURLInfoHash(){
 		return TerpURL.urlencode(this.getByteInfoHash());
 	}
 	
-	public byte[] getByteInfoHash() {
-		byte[] infoBytes = BEncoder.bencode(this.createInfoMap());
+	public byte[] getByteInfoHash(){
+		byte[] infoBytes = BEncoder.bencode(rebuildInfo());
 
 		try
 		{
@@ -119,29 +119,25 @@ public class MetaFile {
 	}
 
 
-	private Map<String, Object> createInfoMap()
-	{
-		Map<String, Object> info = new HashMap<String, Object>();
-		info.put("name", TorrentParser.getInstance().getName());
-		info.put("piece length", new Integer(this.pieceLength.intValue()));
-		info.put("pieces", TorrentParser.getInstance().getAllHashes());
-		
-		
-		if (this.filenames.size() == 1)
-			info.put("length", new Long(this.fileLengths.get(this.filenames.get(0))));
-		else {
-			List<Map<String, Object>> l = new ArrayList<Map<String, Object>>();
-			for (int i = 0; i < this.filenames.size(); i++)
-			{
+	private Map<String, Object> rebuildInfo() {
+		Map<String, Object> rebuiltInfo = new HashMap<String, Object>();
+		rebuiltInfo.put("name", TorrentParser.getInstance().getName());
+		rebuiltInfo.put("piece length", new Integer(pieceLength.intValue()));
+		rebuiltInfo.put("pieces", TorrentParser.getInstance().getAllHashes());	
+		if(filenames.size()>1){
+			List<Map<String, Object>> fileList = new ArrayList<Map<String, Object>>();
+			for (int i = 0; i < this.filenames.size(); i++){
 				Map<String, Object> file = new HashMap<String, Object>();
-				
 				file.put("path", TorrentParser.getInstance().getPathLists().get(i));
 				file.put("length", this.fileLengths.get(this.filenames.get(i)) );
-				l.add(file);
+				fileList.add(file);
 			}
-			info.put("files", l);
-		}		
-		return info;
+			rebuiltInfo.put("files", fileList);
+		}
+		else if(filenames.size()==1){
+			rebuiltInfo.put("length", new Long(this.fileLengths.get(this.filenames.get(0))));
+		}
+		return rebuiltInfo;
 	}
 
 }
