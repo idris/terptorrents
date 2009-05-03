@@ -4,8 +4,11 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import metainfo.MetaFile;
+import metainfo.TorrentParser;
 
 import terptorrents.Main;
 import terptorrents.exceptions.*;
@@ -25,6 +28,7 @@ public class IO {
 	private final MessageDigest digest;
 	private final Map<Integer, byte[]> pieceHashes;
 	private volatile boolean mask[];
+	private HashSet<Integer> piecesWeDonNotWant = new HashSet<Integer>();
 	private MyIOBitSet ioBitSet;
 
 	
@@ -65,8 +69,9 @@ public class IO {
 	    checkFilesIntegrity();
 	    /* it was set to false just to remove some prints caused by constructor */
 	    DEBUG = Main.DEBUG;
+	    if (Main.ENABLE_SELECTIVE_DOWNLOAD) selectFilesForDownload();
 	}
-	
+
 	/* checks pieces in a file against SHA1 and mark mask[] if piece needs
 	 * to be downloaded
 	 */
@@ -457,7 +462,39 @@ public class IO {
 		}
 	}
 	
-
+	/* Interactive select of the files user don't want to download */
+	private void selectFilesForDownload() {
+		/* print filenames to choose from */
+		List<String> files = TorrentParser.getInstance().getMetaFile().getFilenames();
+		System.out.println("Choose files you don't want to download: ");
+		for (int i = 0; i < files.size(); i++) {
+			System.out.println("" + (i+1) + ". " + files.get(i));
+		}
+		System.out.print("Enter file numbers separated by space: ");
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			Pattern p = Pattern.compile("(//d)");
+			Matcher m = p.matcher(in.readLine());			
+			while (m.find()) {
+				System.out.println("Match found: " + m.group());
+			}
+			System.out.println("Done parsing");
+		} catch (IOException e) {
+			System.out.println("Sorry, Could not parse your input. Downloading all files.");
+		}		
+	}
+	
+	private List<Integer> getIntegers(String s) {
+		System.out.print("Enter file numbers separated by space: ");
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		Pattern p = Pattern.compile("(//d)");
+		Matcher m = p.matcher(s);			
+		while (m.find()) {
+			System.out.println("Match found: " + m.group());
+		}
+		System.out.println("Done parsing");
+		return null;
+	}
 	
 	private void dprint(String message) {
 		if (Main.DEBUG)
