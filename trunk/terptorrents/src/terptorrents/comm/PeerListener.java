@@ -50,8 +50,7 @@ public class PeerListener implements Runnable {
 				//TODO check the number of active connections, drop sockets if it is over limit
 
 				HandshakeMessage handshake = getHandshake(socket);
-				
-				//XXX always do DEEP comparison  
+
 				if (!Arrays.equals(handshake.getInfoHash(), 
 						TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
 					throw new BadHandshakeException();

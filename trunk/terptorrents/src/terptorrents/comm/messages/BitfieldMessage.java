@@ -13,6 +13,14 @@ import terptorrents.util.BitSetUtil;
 public class BitfieldMessage extends Message {
 	BitSet bitfield;
 
+	public BitfieldMessage() {
+		
+	}
+	
+	public BitfieldMessage(BitSet bitfield) {
+		this.bitfield = bitfield;
+	}
+
 	@Override
 	public int getId() {
 		return 5;
