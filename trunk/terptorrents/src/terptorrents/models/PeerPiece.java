@@ -48,6 +48,10 @@ public class PeerPiece extends Piece {
 		return res;
 	}
 
+	public synchronized boolean hasPeer(Peer peer){
+		return peerSet.contains(peer);
+	}
+	
 	public synchronized void addPeer(Peer newPeer){
 		peerSet.add(newPeer);
 	}
