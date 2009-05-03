@@ -2,11 +2,15 @@ package terptorrents.util;
 
 import java.util.BitSet;
 
+import terptorrents.io.IO;
+
 public final class BitSetUtil {
 	public static BitSet fromByteArray(byte[] bytes) {
 		BitSet bits = new BitSet();
-		for (int i=0; i<bytes.length*8; i++) {
-			if ((bytes[bytes.length-i/8-1] & (1 << (i%8))) > 0) {
+		int length = IO.getInstance().getBitSet().totalNumOfPieces();
+		
+		for (int i = 0; i < length; i++) {
+			if ((bytes[bytes.length - i / 8 - 1] & (1 << (i%8))) > 0) {
 				bits.set(i);
 			}
 		}

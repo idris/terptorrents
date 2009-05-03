@@ -8,6 +8,7 @@ import terptorrents.exceptions.InvalidProtocolException;
 
 public class HandshakeMessage extends Message {
 	private static final String pstr = "BitTorrent protocol";
+	private static final int HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN = 49;
 	private byte[] infoHash;
 	private byte[] peerId;
 
@@ -33,7 +34,7 @@ public class HandshakeMessage extends Message {
 
 	@Override
 	protected int getLength() {
-		return 49 + pstr.length();
+		return HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN + pstr.length();
 	}
 
 	@Override
@@ -41,6 +42,8 @@ public class HandshakeMessage extends Message {
 		int pstrlen = length - 49;
 		if(pstrlen != HandshakeMessage.pstr.length()) throw new InvalidProtocolException();
 
+		
+		
 		byte[] pstr = new byte[pstrlen];
 		dis.readFully(pstr);
 		if(!HandshakeMessage.pstr.getBytes().equals(pstr)) throw new InvalidProtocolException();
@@ -48,9 +51,10 @@ public class HandshakeMessage extends Message {
 		dis.readLong(); // reserved
 		byte[] twentyBytes = new byte[20];
 		
-		//TODO infoHash MUST BE A DEEP COPY
 		dis.readFully(twentyBytes); // info_hash
+		
 		infoHash = twentyBytes;
+		
 		dis.readFully(twentyBytes); // peer_id
 		peerId = twentyBytes;
 	}

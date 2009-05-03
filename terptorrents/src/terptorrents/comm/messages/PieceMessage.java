@@ -64,7 +64,7 @@ public class PieceMessage extends Message {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
-			// something was wrong with this block
+			ex.printStackTrace();
 		}
 	}
 
