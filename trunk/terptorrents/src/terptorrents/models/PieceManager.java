@@ -11,6 +11,7 @@ import java.util.HashSet;
 
 import terptorrents.Main;
 import terptorrents.comm.ConnectionPool;
+import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.NotInterestedMessage;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
@@ -72,6 +73,14 @@ public class PieceManager {
 
 	public void addPeer(BitSet peerBitField, Peer peer) {
 		assert peerBitField.length() == pieces.length;
+
+		for(int i = 0; i < peerBitField.size(); i++){
+			if(peerBitField.get(i) && pieces[i] instanceof PeerPiece){
+				peer.getConnection().sendMessage(new InterestedMessage());
+				break;
+			}
+		}
+
 		for(int i = 0; i < pieces.length; i++){
 			if(pieces[i] instanceof PeerPiece && peerBitField.get(i)){
 				((PeerPiece)(pieces[i])).addPeer(peer); 
@@ -92,13 +101,16 @@ public class PieceManager {
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece){
+			if(!peer.getConnection().amInterested())
+				peer.getConnection().sendMessage(new InterestedMessage());
+			
 			((PeerPiece)(pieces[pieceIndex])).addPeer(peer);
 			if(!peerPieceList.contains(peer))
 				peerPieceList.add((PeerPiece)pieces[pieceIndex]);
 		}else
 			throw new TerptorrentsModelsPieceNotWritable();
 	}
-
+	
 	/**
 	 * this function can be expensive
 	 * @param peer
@@ -165,8 +177,6 @@ public class PieceManager {
 			pieces[pieceIndex] = new LocalPiece(
 					(pieceIndex == pieces.length - 1), 
 					pieceIndex);
-			
-			
 		}
 	}
 
