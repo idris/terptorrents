@@ -1,11 +1,16 @@
 package metainfo;
 
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import terptorrents.models.Piece;
+import terptorrents.util.TerpURL;
 
 public class MetaFile {
 
@@ -26,7 +31,7 @@ public class MetaFile {
 
 	public MetaFile(String announce, Date creationDate, String comment,
 			String createdBy, Long pieceLength, Set<String>filePaths,List<String> filenames,
-			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes, String infoHash, String urlInfoHash) {
+			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
 
 		this.announce = announce;
 		this.creationDate = creationDate;
@@ -68,7 +73,7 @@ public class MetaFile {
 	public List<String> getFilenames() {
 		return filenames;
 	}
-	
+
 	/*
 	 * List of path strings, not including file names
 	 *  IE ["a/b/c", "c/d/e",...]
@@ -89,17 +94,54 @@ public class MetaFile {
 	public Map<Integer, byte[]> getSHAHashes() {
 		return SHAHashes;
 	}
-	
+
 	public String getInfoHashURLEncoded(){
 		return infoHash;
 	}
-	
-	public String getURLInfoHash(){
-		return urlInfoHash;
+
+
+	public String getURLInfoHash() {
+		return TerpURL.urlencode(this.getByteInfoHash());
 	}
 	
-	public String getInfoHash(){
-		return infoHash;
+	public byte[] getByteInfoHash() {
+		byte[] infoBytes = BEncoder.bencode(this.createInfoMap());
+
+		try
+		{
+			MessageDigest digest = MessageDigest.getInstance("SHA");
+			return digest.digest(infoBytes);
+		}
+		catch(NoSuchAlgorithmException nsa)
+		{
+			throw new InternalError(nsa.toString());
+		}
+	}
+
+
+	private Map<String, Object> createInfoMap()
+	{
+		Map<String, Object> info = new HashMap<String, Object>();
+		info.put("name", TorrentParser.getInstance().getName());
+		info.put("piece length", new Integer(this.pieceLength.intValue()));
+		info.put("pieces", TorrentParser.getInstance().getAllHashes());
+		
+		
+		if (this.filenames.size() == 1)
+			info.put("length", new Long(this.fileLengths.get(this.filenames.get(0))));
+		else {
+			List<Map<String, Object>> l = new ArrayList<Map<String, Object>>();
+			for (int i = 0; i < this.filenames.size(); i++)
+			{
+				Map<String, Object> file = new HashMap<String, Object>();
+				
+				file.put("path", TorrentParser.getInstance().getPathLists().get(i));
+				file.put("length", this.fileLengths.get(this.filenames.get(i)) );
+				l.add(file);
+			}
+			info.put("files", l);
+		}		
+		return info;
 	}
 
 }

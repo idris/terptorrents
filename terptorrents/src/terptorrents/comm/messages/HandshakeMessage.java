@@ -8,21 +8,21 @@ import terptorrents.exceptions.InvalidProtocolException;
 
 public class HandshakeMessage extends Message {
 	private static final String pstr = "BitTorrent protocol";
-	private String infoHash;
-	private String peerId;
+	private byte[] infoHash;
+	private byte[] peerId;
 
 	public HandshakeMessage() {}
 
-	public HandshakeMessage(String infoHash, String peerId) {
+	public HandshakeMessage(byte[] infoHash, byte[] peerId) {
 		this.infoHash = infoHash;
 		this.peerId = peerId;
 	}
 
-	public String getInfoHash() {
+	public byte[] getInfoHash() {
 		return infoHash;
 	}
 
-	public String getPeerId() {
+	public byte[] getPeerId() {
 		return peerId;
 	}
 
@@ -47,10 +47,12 @@ public class HandshakeMessage extends Message {
 
 		dis.readLong(); // reserved
 		byte[] twentyBytes = new byte[20];
+		
+		//TODO infoHash MUST BE A DEEP COPY
 		dis.readFully(twentyBytes); // info_hash
-		infoHash = new String(twentyBytes);
+		infoHash = twentyBytes;
 		dis.readFully(twentyBytes); // peer_id
-		peerId = new String(twentyBytes);
+		peerId = twentyBytes;
 	}
 
 	@Override
@@ -58,7 +60,7 @@ public class HandshakeMessage extends Message {
 		out.writeByte(pstr.length()); // pstrlen
 		out.writeBytes(pstr); // pstr
 		out.writeLong(0); // reserved
-		out.writeBytes(infoHash); // info_hash
-		out.writeBytes(peerId); // peer_id
+		out.write(infoHash); // info_hash
+		out.write(peerId); // peer_id
 	}
 }

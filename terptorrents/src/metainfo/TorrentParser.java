@@ -27,8 +27,15 @@ public class TorrentParser {
 	private Map topLevelMap;
 	private MetaFile torrent; //only instantiated after calling parse()
 	private MessageDigest digest;
+	private String name;
+	private byte[] allHashes;
+	private List pathLists;
 	
 	
+	public byte[] getAllHashes() {
+		return allHashes;
+	}
+
 	private TorrentParser(String filename) throws IOException{
 		try {
 			stream=new FileInputStream(filename);
@@ -41,7 +48,9 @@ public class TorrentParser {
 		} catch (NoSuchAlgorithmException e) {
 			throw new IOException("Parser: problem instantiating MessageDigest");
 		}
+		pathLists=new ArrayList<List<String>>();
 		parse();
+		
 	}
 	
 	public static void instantiate(String fileName) throws IOException {
@@ -83,13 +92,15 @@ public class TorrentParser {
 		filesBE=(BEValue)(infoDictionary.get("files"));
 		if(filesBE!=null) files = filesBE.getList();
 		else files=null;
-		String name = ((BEValue)(infoDictionary.get("name"))).getString(); //can be filename or directory name
+		this.name = ((BEValue)(infoDictionary.get("name"))).getString(); //can be filename or directory name
 		
 		/* get concatenated SHA hash values from info dictionary */
-		byte[] allHashes=((BEValue)(infoDictionary.get("pieces"))).getBytes();
+		allHashes=((BEValue)(infoDictionary.get("pieces"))).getBytes();
+		
+		
 		Map<Integer,byte[]> pieceHashMap;
-		String infoHash=computeInfoHash(infoBE);
-		String urlInfoHash=URLEncoder.encode(infoHash,"UTF-8");
+		//String infoHash=computeInfoHash(infoBE);
+		//String urlInfoHash=URLEncoder.encode(infoHash,"UTF-8");
 		
 		if(files==null){ // single file case
 			Long lastPieceLength=0L;
@@ -109,7 +120,7 @@ public class TorrentParser {
 			// instantiate MetaFile
 			torrent = new MetaFile(announce, creationDate, comment,
 					createdBy, pieceLength, singleFilePathSet,singleFileList,
-					singleFileLengthMap,pieceHashMap,infoHash,urlInfoHash);
+					singleFileLengthMap,pieceHashMap);
 			
 		}
 		
@@ -117,6 +128,7 @@ public class TorrentParser {
 		//TODO: multi-file case
 		else{
 			List fileList=((BEValue)(infoDictionary.get("files"))).getList();
+
 			List<String>fileNames=getMultiFileNames(fileList);
 			Set<String>filePaths=getMultiFilePaths(fileList);
 			Long totalLength=0L;
@@ -133,7 +145,7 @@ public class TorrentParser {
 			pieceHashMap=getPieceHashes(allHashes, numPieces);
 			torrent = new MetaFile(announce, creationDate, comment,
 					createdBy, pieceLength, filePaths,fileNames,
-					fileLengthMap,pieceHashMap,infoHash,urlInfoHash);
+					fileLengthMap,pieceHashMap);
 		}
 		
 	}
@@ -148,11 +160,14 @@ public class TorrentParser {
 		List<String> filePaths = new ArrayList<String>();
 		for(Object fileMap : fileMaps){
 			List pathList=((BEValue)(((BEValue)fileMap).getMap().get("path"))).getList();
+			ArrayList<String> paths = new ArrayList<String>();
 			String addedPath="";
 			for(Object pathListElt : pathList){
 				String newString=((BEValue)pathListElt).getString();
+				paths.add(newString);
 				addedPath=addedPath.concat(newString+"/");
 			}
+			this.pathLists.add(paths);
 			if(addedPath!="")addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
 			System.out.println(addedPath);
@@ -206,25 +221,18 @@ public class TorrentParser {
 		return returnValue;
 	}
 	
-	private String computeInfoHash(BEValue infoHash) throws InvalidBEncodingException{
-			digest.update(infoHash.getBytes());
-			byte[] hash = digest.digest();
-			try {
-				return new String(hash,"UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-				System.exit(0);
-			}
-			return null; //control never reaches this point
+	
+	public List getPathLists(){
+		return pathLists;
 	}
-	
-	
 	
 	public MetaFile getMetaFile(){
 		return torrent;
 	}
 	
-	
+	public String getName() {
+		return this.name;
+	}
 	
 	
 	

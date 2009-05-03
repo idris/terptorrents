@@ -11,11 +11,13 @@ import java.util.Map;
 
 import metainfo.*;
 
+import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.exceptions.TrackerResponseException;
 import terptorrents.io.IO;
 import terptorrents.models.Peer;
 import terptorrents.models.PeerList;
+import terptorrents.util.TerpURL;
 
 public class TrackerCommunicator implements Runnable {
 	private static final String EVENT_STARTED = "started";
@@ -130,26 +132,20 @@ public class TrackerCommunicator implements Runnable {
 	}
 
 	private String generateQueryString(String event) {
-		long left = IO.getInstance().bytesRemaining(); // TODO: get number of bytes remaining from IO
-
-		String str = "info_hash=" + infoHash +
-		"peer_id" + peerId +
-		"port" + port +
-		"uploaded" + stats.uploaded.get() +
-		"downloaded" + stats.downloaded.get() +
-		"left" + left +
-		"compact" + (compact ? "1" : "0");
-//		"no_peer_id" + no_peer_id +
+		String str = "?info_hash=" + TorrentParser.getInstance().getMetaFile().getURLInfoHash() +
+		"&peer_id=" + TerpURL.urlencode(Main.PEER_ID) +
+		"&port=" + Main.PORT +
+		"&uploaded=" + Stats.getInstance().downloaded +
+		"&downloaded=" + Stats.getInstance().uploaded +
+		"&left=" + IO.getInstance().bytesRemaining() +
+		"&compact=1";
+		
 		if(event != null) {
-			str += "event" + event;
+			str += "&event=" + event;
 		}
-//		"ip" + ip +
-//		"numwant" + numwant +
-//		"key" + key +
 		if(trackerId != null) {
-			str += "trackerid" + trackerId;
+			str += "&trackerid=" + trackerId;
 		}
-
 		return str;
 	}
 
