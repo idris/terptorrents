@@ -10,7 +10,7 @@ import java.util.Comparator;
  *
  */
 public class UploadSpeedComparator implements Comparator<PeerConnection> {
-	@Override
+	
 	public int compare(PeerConnection o1, PeerConnection o2) {
 		if(o1.getUploadRate() == o2.getUploadRate())
 			return 0;

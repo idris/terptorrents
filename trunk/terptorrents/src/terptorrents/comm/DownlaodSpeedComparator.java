@@ -11,7 +11,6 @@ import java.util.Comparator;
  */
 public class DownlaodSpeedComparator implements Comparator<PeerConnection> {
 
-	@Override
 	public int compare(PeerConnection o1, PeerConnection o2) {
 		if(o1.getDownloadRate() == o2.getDownloadRate())
 			return 0;
