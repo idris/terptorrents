@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 import terptorrents.Main;
 import terptorrents.models.Peer;
@@ -24,15 +25,16 @@ public class ConnectionPool {
 	/**
 	 * connections I have initiated
 	 */
-	private final ArrayBlockingQueue<PeerConnection> outgoingConnections = 
-		new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
+	private final Vector<PeerConnection> outgoingConnections = 
+		new Vector<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
 	/**
 	 * connections initiated by other peers
 	 */
-	private final ArrayBlockingQueue<PeerConnection> incomingConnections = 
-		new ArrayBlockingQueue<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
+	private final Vector<PeerConnection> incomingConnections = 
+		new Vector<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
+	private final Semaphore incomingSlots = new Semaphore(Main.MAX_PEER_CONNECTIONS);
 
 	private ConnectionPool() throws IOException {
 		// use newInstance to instantiate this singleton.
@@ -42,7 +44,13 @@ public class ConnectionPool {
 			try {
 				outgoingConnections.add(new PeerConnection(peer));
 			} catch(IOException ex) {
-				// oh well..
+				// throw it out
+				if(Main.DEBUG) {
+					System.err.println("********** Failed to Connect: " + peer.toString());
+//					ex.printStackTrace();
+				}
+				peer.setConnection(null);
+				PeerList.getInstance().removePeer(peer);
 			}
 		}
 	}
@@ -57,7 +65,16 @@ public class ConnectionPool {
 	}
 
 	public void addIncomingConnection(PeerConnection conn) throws InterruptedException {
-		incomingConnections.put(conn);
+		incomingConnections.add(conn);
+	}
+
+	public boolean acquireIncomingSlot() throws InterruptedException {
+		incomingSlots.acquire();
+		return true;
+	}
+
+	public void releaseIncomingSlot() {
+		incomingSlots.release();
 	}
 
 	public synchronized void removeConnection(PeerConnection conn) {
@@ -72,6 +89,7 @@ public class ConnectionPool {
 			}
 		} else {
 			incomingConnections.remove(conn);
+			releaseIncomingSlot();
 		}
 	}
 
@@ -95,6 +113,7 @@ public class ConnectionPool {
 	public PeerConnection getPlannedOptimisticUnchokedPeerConnection() {
 		Vector<PeerConnection> PlannedOptimisticUnchokedPeerCandidates = 
 			getChokedAndInterested();
+		if(PlannedOptimisticUnchokedPeerCandidates.isEmpty()) return null;
 		Random rand = new Random();
 		return PlannedOptimisticUnchokedPeerCandidates.get(rand.nextInt() %
 				PlannedOptimisticUnchokedPeerCandidates.size());
