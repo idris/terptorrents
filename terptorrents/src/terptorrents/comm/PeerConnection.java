@@ -53,6 +53,9 @@ public class PeerConnection {
 				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
 		outgoingMessages.add(handshake);
 
+		BitfieldMessage bitfieldMessage = new BitfieldMessage();
+		outgoingMessages.add(bitfieldMessage);
+
 		Thread outThread = new Thread(new PeerConnectionOut(this));
 		outThread.setDaemon(true);
 		outThread.start();

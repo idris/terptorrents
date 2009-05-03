@@ -6,7 +6,7 @@ import java.net.*;
 import terptorrents.comm.PeerConnection;
 
 public class Peer {
-	private final String id;
+	private final byte[] id;
 	private final InetSocketAddress address;
 
 	
@@ -42,13 +42,13 @@ public class Peer {
 		return address;
 	}
 
-	public Peer(String id, String host, int port) throws IOException {
+	public Peer(byte[] id, String host, int port) throws IOException {
 		this.id = id;
 		InetAddress addr = InetAddress.getByName(host);
 		this.address = new InetSocketAddress(addr, port);
 	}
 
-	public String getId() {
+	public byte[] getId() {
 		return id;
 	}
 

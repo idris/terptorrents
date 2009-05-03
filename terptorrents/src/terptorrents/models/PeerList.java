@@ -19,7 +19,7 @@ import java.util.Vector;
 public class PeerList {
 	private static final PeerList singleton = new PeerList();
 	private Vector<Peer> peers = new Vector<Peer>();
-	private Map<String, Peer> peersById = Collections.synchronizedMap(new Hashtable<String, Peer>());
+	private Map<byte[], Peer> peersById = Collections.synchronizedMap(new Hashtable<byte[], Peer>());
 	private final Random random = new Random();
 
 	private PeerList() {}
