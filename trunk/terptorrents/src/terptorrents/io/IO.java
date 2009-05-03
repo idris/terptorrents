@@ -89,6 +89,7 @@ public class IO {
 				throw new InternalError("checkFilesIntegrity() function failed. Requested piece does not exists");
 			}
 		}
+		dprint("");
 	}
 	
 	private void prepareFolders(MetaFile m) {
