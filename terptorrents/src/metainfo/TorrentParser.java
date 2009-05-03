@@ -150,10 +150,6 @@ public class TorrentParser {
 		
 	}
 	
-	//TODO: multi-file case
-	private Map<String,Long> getMultiFileLengths(Map infoHash){
-		return null;
-	}
 	
 	/* Returns a list of single strings as full paths with filenames, IE  "sam/jon/idris/sergey.jpg"  */
 	private List<String> getMultiFileNames(List fileMaps) throws InvalidBEncodingException{
@@ -170,7 +166,7 @@ public class TorrentParser {
 			this.pathLists.add(paths);
 			if(addedPath!="")addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
-			System.out.println(addedPath);
+			//System.out.println(addedPath);
 		}
 		return filePaths;
 	}
@@ -188,7 +184,7 @@ public class TorrentParser {
 				}
 				pathListIndex++;
 			}
-			System.out.println("addedPath"+addedPath);
+			//System.out.println("addedPath"+addedPath);
 			//addedPath=addedPath.substring(0, addedPath.length()-1);
 			filePaths.add(addedPath);
 		}
