@@ -467,21 +467,72 @@ public class IO {
 		/* print filenames to choose from */
 		List<String> files = TorrentParser.getInstance().getMetaFile().getFilenames();
 		System.out.println("Choose files you don't want to download: ");
+		/* print filename and its number STARTING FROM ONE */
 		for (int i = 0; i < files.size(); i++) {
 			System.out.println("" + (i+1) + ". " + files.get(i));
 		}
 		System.out.print("Enter file numbers separated by space: ");
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		try {
-			Pattern p = Pattern.compile("(//d)");
-			Matcher m = p.matcher(in.readLine());			
-			while (m.find()) {
-				System.out.println("Match found: " + m.group());
+			/* get user input */
+			List<Integer> userInput = this.getIntegers(in.readLine());
+			int lastFile = this.files.length;
+			Set<Integer> filesToExclude = new HashSet<Integer>();
+			for (Integer i: userInput) {
+				if (i <= lastFile && i > 0) filesToExclude.add(i-1);
 			}
-			System.out.println("Done parsing");
+			/* exclude pieces we do not need */
+			this.excludeFiles(filesToExclude);
 		} catch (IOException e) {
-			System.out.println("Sorry, Could not parse your input. Downloading all files.");
-		}		
+			System.out.println("Sorry, could not read a string from you. Downloading all pieces");
+		}
+	}
+	
+	private void excludeFiles(Set<Integer> files) throws IOException {
+		FileTuple ft;
+		for (int i = 0 ; i < mask.length; i++) {
+			/* for each piece find start and end file */
+			ft = findFiles(i);
+			/* if piece is entirely inside one file */
+			if (ft.startFile == ft.endFile) {
+				if (files.contains(ft.startFile)) piecesWeDonNotWant.add(i);
+			} else if (ft.startFile == ft.endFile +1) { //two consecutive files
+				if (files.contains(ft.startFile) && files.contains(ft.endFile))
+						piecesWeDonNotWant.add(i);
+			} else if (ft.startFile != -1 && ft.endFile != -1) {
+				//two non conseq files
+				boolean downloadPiece = false;
+				for (int file = ft.startFile; file <= ft.endFile; file++) {
+					if (!files.contains(file)) {
+						//some file is inside a piece
+						downloadPiece = true;
+						break;
+					}
+				}
+				if (!downloadPiece) piecesWeDonNotWant.add(i);
+			} else if (ft.startFile != -1 && ft.endFile == -1) {
+				//last piece
+				boolean downloadPiece = false;
+				for (int file = ft.startFile; file < this.files.length; file++) {
+					if (!files.contains(file)) {
+						//some file is inside a piece
+						downloadPiece = true;
+						break;
+					}
+				}
+				if (!downloadPiece) piecesWeDonNotWant.add(i);
+			}
+		}
+	}
+	
+	private class FileTuple{int startFile; int endFile;};
+	private FileTuple findFiles(int piece) throws IOException {
+		long startOffset = pieceSize*piece;
+		long endOffset = startOffset + pieceSize;
+		FileTuple ft = new FileTuple();
+		ft.startFile = this.findFile(startOffset, new LongContainer());
+		ft.endFile = this.findFile(endOffset, new LongContainer());
+		return ft;
 	}
 	
 	private List<Integer> getIntegers(String s) {
