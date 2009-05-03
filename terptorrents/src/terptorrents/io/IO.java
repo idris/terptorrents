@@ -25,12 +25,13 @@ public class IO {
 	private final MessageDigest digest;
 	private final Map<Integer, byte[]> pieceHashes;
 	private volatile boolean mask[];
-	private MyIOBitSet ioBitSet = new MyIOBitSet();
+	private MyIOBitSet ioBitSet;
 
 	
 	private IO(MetaFile m) throws IOException {
 		dprint("Starting...");	
 		/* create folders structure */
+		this.ioBitSet = new MyIOBitSet();
 		prepareFolders(m);
 		/* create dummy files to download, if necessary */
 		createFiles(m);
@@ -371,12 +372,12 @@ public class IO {
 	 * be irregular
 	 */
 	public int getPieceSize() {
-		return this.getPieceSize();
+		return this.pieceSize;
 	}
 	
 	/* returns irregular piece size */
 	public int getLastPieceSize() {
-		return this.getLastPieceSize();
+		return this.irregPieceSize;
 	}
 	
 	/* closes all open files for wirte */
@@ -425,36 +426,38 @@ public class IO {
 
 		public int totalNumOfPieces() {
 			return mask.length;
-		}		
+		}	
+		
+		private class EmptyPiecesIterator implements Iterator<Integer> {
+
+			private int emptyIndex = 0; /* -1 indicates that there is no empty pieces */
+			
+			private void seekNextEmptyPiece() {
+				while (emptyIndex < mask.length 
+						&& mask[emptyIndex] == true) 
+					emptyIndex++;
+				if (emptyIndex == mask.length) emptyIndex = -1;
+			}
+
+			public boolean hasNext() {
+				if (emptyIndex == -1) return false;
+				return true;
+			}
+
+			public Integer next() {
+				int nextEmptyPiece = emptyIndex;
+				seekNextEmptyPiece();
+				return nextEmptyPiece;
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException("You should never try to remove anything from IO bitmask");
+			}
+			
+		}
 	}
 	
-	private class EmptyPiecesIterator implements Iterator<Integer> {
 
-		private int emptyIndex = 0; /* -1 indicates that there is no empty pieces */
-		
-		private void seekNextEmptyPiece() {
-			while (emptyIndex < mask.length 
-					&& mask[emptyIndex] == true) 
-				emptyIndex++;
-			if (emptyIndex == mask.length) emptyIndex = -1;
-		}
-
-		public boolean hasNext() {
-			if (emptyIndex == -1) return false;
-			return true;
-		}
-
-		public Integer next() {
-			int nextEmptyPiece = emptyIndex;
-			seekNextEmptyPiece();
-			return nextEmptyPiece;
-		}
-
-		public void remove() {
-			throw new UnsupportedOperationException("You should never try to remove anything from IO bitmask");
-		}
-		
-	}
 	
 	private void dprint(String message) {
 		if (Main.DEBUG)

@@ -38,7 +38,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debuggin purpose
-		torrentFile = "beyonce.torrent";
+		torrentFile = "maryland.jpg.torrent";
 		//parseCommand(args);
 		
 		
