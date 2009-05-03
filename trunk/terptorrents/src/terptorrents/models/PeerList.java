@@ -54,7 +54,7 @@ public class PeerList {
 		peers.remove(p);
 	}
 
-	public Peer getPeer(String peerId) {
+	public Peer getPeer(byte[] peerId) {
 		return peersById.get(peerId);
 	}
 }

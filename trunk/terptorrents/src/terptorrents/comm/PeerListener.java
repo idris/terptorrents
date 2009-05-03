@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 import metainfo.TorrentParser;
 
@@ -49,7 +50,10 @@ public class PeerListener implements Runnable {
 				//TODO check the number of active connections, drop sockets if it is over limit
 
 				HandshakeMessage handshake = getHandshake(socket);
-				if(handshake.getInfoHash() != TorrentParser.getInstance().getMetaFile().getInfoHash()) {
+				
+				//XXX always do DEEP comparison  
+				if (!Arrays.equals(handshake.getInfoHash(), 
+						TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
 					throw new BadHandshakeException();
 				}
 

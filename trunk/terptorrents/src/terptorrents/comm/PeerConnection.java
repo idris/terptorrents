@@ -50,8 +50,7 @@ public class PeerConnection {
 		lastReceived = new Date();
 
 		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
-				getInstance().getMetaFile().getInfoHash(), 
-				Main.PEER_ID.toString());
+				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
 		outgoingMessages.add(handshake);
 
 		Thread outThread = new Thread(new PeerConnectionOut(this));

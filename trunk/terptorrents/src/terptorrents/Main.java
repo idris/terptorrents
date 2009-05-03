@@ -22,9 +22,9 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 3;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
 	public static final int MAX_PEER_CONNECTIONS = 40;
-	public static byte [] PEER_ID;
+	public static byte [] PEER_ID = {34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52};
+	public static final int PORT = 6881;
 	
-	private static final int PORT = 6881;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 10000;
 	/* ****************************************************** */
 	
