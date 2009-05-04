@@ -6,6 +6,7 @@ package terptorrents.models;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import terptorrents.Main;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
@@ -50,6 +51,7 @@ public class LocalPiece extends Piece {
 	@Override
 	public synchronized byte [] requestBlock(int pieceIndex, int blockBegin, 
 			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound{
+		Main.dprint("LocalPiece: Requesting message #" + pieceIndex);
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){
