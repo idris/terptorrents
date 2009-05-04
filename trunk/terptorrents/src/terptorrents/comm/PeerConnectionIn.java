@@ -2,6 +2,7 @@ package terptorrents.comm;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Date;
 
@@ -52,8 +53,14 @@ class PeerConnectionIn implements Runnable {
 		while(!connection.disconnect) {
 			try {
 				readMessage();
-			} catch(Exception ex) {
-				
+			} catch(EOFException ex) {
+				ex.printStackTrace();
+				connection.disconnect = true;
+			} catch(IOException ex) {
+				ex.printStackTrace();
+				connection.disconnect = true;
+			} catch(UnknownMessageException ex) {
+				ex.printStackTrace();
 			}
 		}
 
@@ -62,17 +69,20 @@ class PeerConnectionIn implements Runnable {
 
 	private Message readHandshake() throws IOException {
 		int length = in.readByte();
+		System.out.println("READING HANDSHAKE");
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(in, length);
+		System.out.println("DONE READING HANDSHAKE");
+		connection.handshook = true;
 		return handshake;
 	}
 
 	private Message readMessage() throws IOException, UnknownMessageException {
 		int one, two, three, four;
-		one = in.readByte();
-		two = in.readByte();
-		three = in.readByte();
-		four = in.readByte();
+		one = in.read();
+		two = in.read();
+		three = in.read();
+		four = in.read();
 //		int length = in.readInt();
 		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
 
@@ -80,7 +90,7 @@ class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Length is negative");
 		}
 
-		System.out.println("=== NEW MESSAGE: length " + length + " ===");
+		System.out.println("=== INCOMING MESSAGE: length " + length + " ===");
 
 		connection.lastReceived = new Date();
 
