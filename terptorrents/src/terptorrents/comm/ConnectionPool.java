@@ -214,6 +214,8 @@ public class ConnectionPool {
 		
 		ArrayList<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection: allConnections){
+			/* if peer has never been unchoked the data is null */
+			if(peerConnection.getLastUnchokedDate() == null) continue;
 			if(System.currentTimeMillis() - peerConnection.
 					getLastUnchokedDate().getTime() < 20000){
 				recentlyUnchoked.add(peerConnection);

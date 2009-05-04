@@ -148,7 +148,7 @@ public class PeerConnection {
 	public void setChoking(boolean choking) {
 		this.choking = choking;
 		if(choking == false) {
-			lastUnchoked = new Date();
+			lastUnchoked = new Date(System.currentTimeMillis());
 		}
 	}
 

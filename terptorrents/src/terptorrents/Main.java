@@ -94,7 +94,7 @@ public class Main {
 			
 			while(true){
 				if (IO.getInstance().isComplete())
-					System.out.print("***** FILE DOWNLOAD COMPLETE *****");
+					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
 				try {
 					Thread.sleep(Main.TIME_TO_CHECK_IF_FILE_IS_COMPLETE);
 				} catch (InterruptedException e) {
