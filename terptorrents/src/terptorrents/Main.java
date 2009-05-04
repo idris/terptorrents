@@ -68,7 +68,8 @@ public class Main {
 			/*start connection pool*/
 			dprint("Instantiating ConnectionPool");
 			ConnectionPool.newInstance();
-
+			
+			
 			/*start peer listener*/
 			dprint("Starting peer listener");
 			Thread peerListener = new Thread(new PeerListener(PORT));
