@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.messages.KeepaliveMessage;
 import terptorrents.comm.messages.Message;
@@ -43,7 +44,8 @@ class PeerConnectionOut implements Runnable {
 				ex.printStackTrace();
 			} catch(IOException ex) {
 				// oh noes!
-				ex.printStackTrace();
+				//ex.printStackTrace();
+				Main.dprint("Peer disconn from client");
 				connection.disconnect = true;
 			}
 		}
