@@ -95,7 +95,7 @@ public class IO {
 				throw new InternalError("checkFilesIntegrity() function failed. Requested piece does not exists");
 			}
 		}
-		dprint("");
+		if (Main.DEBUG) System.out.println();
 	}
 	
 	private void prepareFolders(MetaFile m) {
@@ -273,6 +273,11 @@ public class IO {
 					" is out of bounds");
 		if (piece.length > this.pieceSize)
 			throw new TerptorrentsIONoSuchPieceException("writePiece() Given piece is > than pieceSize");
+		/* if we downloaded this piece already, ignore it */
+		if (mask[i] == true) {
+			dprint("Piece #" + i + " is already written");
+			return true;
+		}
 		long startOffset = i*pieceSize;
 		long endOffset = startOffset + pieceSize;
 		LongContainer cont = new LongContainer();
@@ -417,7 +422,7 @@ public class IO {
 
 		public BitSet getUnsyncBitSet() {
 			BitSet s = new BitSet(mask.length);
-			for (int i = 0; i < 0; i++)
+			for (int i = 0; i < mask.length; i++)
 				if (mask[i]) s.set(i);
 			return s;
 		}
@@ -466,7 +471,7 @@ public class IO {
 	private void selectFilesForDownload() {
 		/* print filenames to choose from */
 		List<String> files = TorrentParser.getInstance().getMetaFile().getFilenames();
-		System.out.println("Choose files you don't want to download: ");
+		System.out.println("Choose files you don't want to download... ");
 		/* print filename and its number STARTING FROM ONE */
 		for (int i = 0; i < files.size(); i++) {
 			System.out.println("" + (i+1) + ". " + files.get(i));
@@ -482,10 +487,16 @@ public class IO {
 				if (i <= lastFile && i > 0) filesToExclude.add(i-1);
 			}
 			/* exclude pieces we do not need */
-			this.excludeFiles(filesToExclude);
+			if (!filesToExclude.isEmpty()) {
+				System.out.print("Following files were excluded:");
+				for (Integer i : filesToExclude)
+					System.out.print(" " + i + 1);
+				this.excludeFiles(filesToExclude);
+			} else System.out.println("Downloading all files");
 		} catch (IOException e) {
 			System.out.println("Sorry, could not read a string from you. Downloading all pieces");
 		}
+		dprint("Following pieces were excluded from download: " + piecesWeDonNotWant);
 	}
 	
 	private void excludeFiles(Set<Integer> files) throws IOException {
@@ -496,11 +507,11 @@ public class IO {
 			/* if piece is entirely inside one file */
 			if (ft.startFile == ft.endFile) {
 				if (files.contains(ft.startFile)) piecesWeDonNotWant.add(i);
-			} else if (ft.startFile == ft.endFile +1) { //two consecutive files
+			} else if (ft.endFile != -1 && ft.startFile == ft.endFile +1) { //two consecutive files
 				if (files.contains(ft.startFile) && files.contains(ft.endFile))
 						piecesWeDonNotWant.add(i);
 			} else if (ft.startFile != -1 && ft.endFile != -1) {
-				//two non conseq files
+				//two non consecutive files
 				boolean downloadPiece = false;
 				for (int file = ft.startFile; file <= ft.endFile; file++) {
 					if (!files.contains(file)) {
@@ -542,7 +553,6 @@ public class IO {
 		while (m.find()) {
 			Integer added=new Integer(s.substring(m.start(), m.end()));
 			returnValue.add(added);
-			System.out.println(added);
 		}
 		return returnValue;
 	}
