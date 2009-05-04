@@ -60,11 +60,11 @@ public class PeerConnection {
 		BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
 		outgoingMessages.add(bitfieldMessage);
 
-		Thread outThread = new Thread(new PeerConnectionOut(this));
+		Thread outThread = new Thread(new PeerConnectionOut(this), "OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();
 
-		Thread inThread = new Thread(new PeerConnectionIn(this));
+		Thread inThread = new Thread(new PeerConnectionIn(this), "IN_" + peer.getAddress().toString());
 		inThread.setDaemon(true);
 		inThread.start();
 	}
