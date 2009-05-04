@@ -44,8 +44,9 @@ public class LocalPiece extends Piece {
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){
 			try {
+				data = new byte[getSize()];
 				System.arraycopy(IO.getInstance().getPiece(pieceIndex), 0, 
-						data, 0, IO.getInstance().getPieceSize());
+						data, 0, getSize());
 			} catch (IOException e) {
 				if(terptorrents.Main.DEBUG)
 					e.printStackTrace();
