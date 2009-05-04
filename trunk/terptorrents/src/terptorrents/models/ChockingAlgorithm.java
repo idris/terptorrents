@@ -59,8 +59,8 @@ public class ChockingAlgorithm implements Runnable {
 				}
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){
 					if(!unchokedPeers.contains(peersToUnchoke.get( 
-							Main.NUM_PEERS_TO_UNCHOKE))){
-						peersToUnchoke.get( Main.NUM_PEERS_TO_UNCHOKE).
+							Math.min(Main.NUM_PEERS_TO_UNCHOKE, peersToUnchoke.size())))){
+						peersToUnchoke.get( Math.min(Main.NUM_PEERS_TO_UNCHOKE, peersToUnchoke.size())).
 						sendMessage(new UnchokeMessage());
 					}
 				}else{
