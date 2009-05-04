@@ -40,9 +40,9 @@ public class PeerConnection {
 	boolean handshook = false;
 
 	final LinkedBlockingQueue<Message> outgoingMessages = new LinkedBlockingQueue<Message>();
-	//	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
-	//	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
-	//	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
+//	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
+//	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
+//	final Stack<RequestMessage> outgoingRequests = new Stack<RequestMessage>();
 
 
 	public PeerConnection(Peer peer) throws IOException {
@@ -53,8 +53,13 @@ public class PeerConnection {
 		socket.connect(new InetSocketAddress(peer.getAddress().getAddress(), peer.getAddress().getPort()), CONNECT_TIMEOUT);
 		lastReceived = new Date();
 
-		sendHandShakeAndBitfield();
-		
+		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
+				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
+		outgoingMessages.add(handshake);
+
+		BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
+		outgoingMessages.add(bitfieldMessage);
+
 		Thread outThread = new Thread(new PeerConnectionOut(this), "OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();
@@ -77,7 +82,8 @@ public class PeerConnection {
 		this.socket = socket;
 
 		lastReceived = new Date();
-		sendHandShakeAndBitfield();
+
+		handshook = true;
 
 		Thread inThread = new Thread(new PeerConnectionIn(this));
 		inThread.setDaemon(true);
@@ -94,7 +100,7 @@ public class PeerConnection {
 			return;
 		}
 		outgoingMessages.add(message);
-		/*
+/*
 		if(message instanceof PieceMessage) {
 			outgoingPieces.add((PieceMessage)message);
 		} else if(message instanceof RequestMessage) {
@@ -102,7 +108,7 @@ public class PeerConnection {
 		} else {
 			outgoingMessages.add(message);
 		}
-		 */
+*/
 	}
 
 	public void addPeerRequest(RequestMessage requestMessage) {
@@ -203,22 +209,9 @@ public class PeerConnection {
 			disconnect = true;
 			socket.close();
 		} catch(IOException ex) {
-
+			
 		}
 		ConnectionPool.getInstance().removeConnection(this);
 		peer.setConnection(null);
-	}
-	/**
-	 * 
-	 */
-	private void sendHandShakeAndBitfield() {
-		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
-				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
-		outgoingMessages.add(handshake);
-		handshook = true;
-		if(!(IO.getInstance().getBitSet().getNumEmptyPieces() == IO.getInstance().getBitSet().totalNumOfPieces())){
-			BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
-			outgoingMessages.add(bitfieldMessage);
-		}
 	}
 }
