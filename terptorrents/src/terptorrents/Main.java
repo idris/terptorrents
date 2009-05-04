@@ -127,8 +127,8 @@ public class Main {
 			System.out.println("Specified .torrent file does not exists");		
 	}
 
-	private static void dprint(String message) {
-		System.out.println("MAIN: " + message);
+	public static void dprint(String message) {
+		System.out.println(message);
 	}
 	
 	private static void generatePeerID(){

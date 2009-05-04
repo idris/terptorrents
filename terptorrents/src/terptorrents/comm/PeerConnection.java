@@ -211,7 +211,6 @@ public class PeerConnection {
 		} catch(IOException ex) {
 			
 		}
-
 		ConnectionPool.getInstance().removeConnection(this);
 		peer.setConnection(null);
 	}
