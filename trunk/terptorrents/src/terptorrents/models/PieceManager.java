@@ -78,8 +78,7 @@ public class PieceManager {
 
 		for(int i = 0; i < peerBitField.size(); i++){
 			if(peerBitField.get(i) && pieces[i] instanceof PeerPiece){
-				for(int j = 0; j < 10; j++)
-					peer.getConnection().sendMessage(new InterestedMessage());
+				peer.getConnection().sendMessage(new InterestedMessage());
 				break;
 			}
 		}
