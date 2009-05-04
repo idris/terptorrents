@@ -1,5 +1,6 @@
 package terptorrents.comm;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -32,7 +33,9 @@ class PeerConnectionIn implements Runnable {
 
 	public PeerConnectionIn(PeerConnection connection) throws IOException {
 		this.connection = connection;
-		this.in = new DataInputStream(connection.socket.getInputStream());
+		this.in = new DataInputStream(
+				new BufferedInputStream(
+						connection.socket.getInputStream()));
 	}
 
 	public void run() {

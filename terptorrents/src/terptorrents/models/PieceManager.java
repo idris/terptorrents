@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import terptorrents.Main;
+import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.NotInterestedMessage;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
@@ -46,9 +47,11 @@ public class PieceManager {
 
 	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer) throws
 	TerptorrentsModelsCanNotRequstFromThisPeer{
+		PeerConnection conn = peer.getConnection();
+		if(conn == null) throw new TerptorrentsModelsCanNotRequstFromThisPeer();
 		int requestedBytes = 0;
 		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
-		if(peer.getConnection().peerChoking() || !peer.getConnection().amInterested())
+		if(conn.peerChoking() || !conn.amInterested())
 			throw new TerptorrentsModelsCanNotRequstFromThisPeer();
 		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 		while(peerPieceList.get(0).getNumPeer() == 0)

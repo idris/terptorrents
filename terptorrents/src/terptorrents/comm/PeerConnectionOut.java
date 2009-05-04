@@ -1,5 +1,6 @@
 package terptorrents.comm;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,9 @@ class PeerConnectionOut implements Runnable {
 
 	public PeerConnectionOut(PeerConnection connection) throws IOException {
 		this.connection = connection;
-		this.out = new DataOutputStream(connection.socket.getOutputStream());
+		this.out = new DataOutputStream(
+				new BufferedOutputStream(
+				connection.socket.getOutputStream()));
 	}
 
 	public void run() {
@@ -40,6 +43,7 @@ class PeerConnectionOut implements Runnable {
 				ex.printStackTrace();
 			} catch(IOException ex) {
 				// oh noes!
+				ex.printStackTrace();
 				connection.disconnect = true;
 			}
 		}
@@ -49,6 +53,7 @@ class PeerConnectionOut implements Runnable {
 
 	private void writeMessage(Message message) throws IOException {
 		long start = System.currentTimeMillis();
+		//out.flush();
 		message.write(out);
 		out.flush();
 		if(message instanceof PieceMessage) {

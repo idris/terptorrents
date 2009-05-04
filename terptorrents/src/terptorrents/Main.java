@@ -15,12 +15,12 @@ import metainfo.*;
 public class Main {
 	/* ****************************************************** */
 	public static boolean DEBUG = true;	
-	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 27;
+	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
-	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 12;
+	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
 	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
 	public static final int NUM_PEERS_TO_UNCHOKE = 3;
-	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
+	public static final int CHOCKING_ALGORITHM_INTERVAL = 5000;
 	public static final int MAX_PEER_CONNECTIONS = 40;
 	public static byte [] PEER_ID = {34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52,34, 23, 23, 23, 52};
 	public static final int PORT = 6881;
