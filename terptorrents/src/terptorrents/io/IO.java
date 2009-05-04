@@ -248,7 +248,7 @@ public class IO {
 	
 	/* return file which have specified byte of data */
 	private class LongContainer{ long l = 0;};
-	private int findFile(long offset, LongContainer cont) throws IOException {
+	private synchronized int findFile(long offset, LongContainer cont) throws IOException {
 		long totalLength = 0;
 		for (int i = 0; i < files.length; i++) {
 			totalLength += files[i].length();
