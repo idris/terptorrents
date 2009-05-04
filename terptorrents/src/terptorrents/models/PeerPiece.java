@@ -1,6 +1,5 @@
 package terptorrents.models;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.TreeMap;
@@ -15,12 +14,12 @@ import terptorrents.*;
 public class PeerPiece extends Piece {
 	private HashSet<Peer> peerSet;
 	private TreeMap<Integer, Integer> freeBlock; 
-	private ByteArrayOutputStream data;
+	private byte[] data;
 
 	public PeerPiece(boolean isLastPiece, int index){
 		super(isLastPiece, index);
 		peerSet = new HashSet<Peer>();
-		data = new ByteArrayOutputStream(getSize());
+		data = new byte[getSize()];
 		freeBlock = new TreeMap<Integer, Integer>();
 		initFreeBlock();
 	}
@@ -105,16 +104,11 @@ public class PeerPiece extends Piece {
 			}
 		}
 		boolean res = false;
-		this.data.write(data, blockBegin, blockLength);
+		System.arraycopy(this.data, blockBegin, data, 0, blockLength);
+		//this.data.write(data, blockBegin, blockLength);
 		if(Have_Piece()){
 			try {
-				if(IO.getInstance().writePiece(pieceIndex, this.data.toByteArray())){
-					try {
-						this.data.close();
-					} catch (IOException e) {
-						if(terptorrents.Main.DEBUG)
-							e.printStackTrace();
-					}
+				if(IO.getInstance().writePiece(pieceIndex, this.data)){
 					res = true;
 				}else{
 					initFreeBlock();
