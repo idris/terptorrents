@@ -53,8 +53,8 @@ class PeerConnectionOut implements Runnable {
 
 	private void writeMessage(Message message) throws IOException {
 		long start = System.currentTimeMillis();
-		message.write(out);
 		out.flush();
+		message.write(out);
 		if(message instanceof PieceMessage) {
 			connection.uploadRate =  ((PieceMessage)message).getLength() / ((System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
