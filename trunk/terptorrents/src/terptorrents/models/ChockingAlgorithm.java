@@ -47,15 +47,22 @@ public class ChockingAlgorithm implements Runnable {
 				Vector<PeerConnection> unchokedPeers = 
 					ConnectionPool.getInstance().getUnchoked();
 
-				for(int i = 0 ; i < Math.min(peersToUnchoke.size(), Main.NUM_PEERS_TO_UNCHOKE); i++){
+				int minPeersToUnchoke = Math.min(peersToUnchoke.size(), Main.NUM_PEERS_TO_UNCHOKE);
+				for(int i = 0 ; i < minPeersToUnchoke; i++){
 					if(!unchokedPeers.contains(peersToUnchoke.get(i))){
 						peersToUnchoke.get(i).sendMessage(new UnchokeMessage());
 					}
 				}
+				
+				/* Sergey: boundary condition check added */
 				for(PeerConnection unchokedPeer : unchokedPeers){
-					if(!peersToUnchoke.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
-							contains(peersToUnchoke))
+					int numPeersToUnchoke = peersToUnchoke.size();
+					int min = Math.min(Main.NUM_PEERS_TO_UNCHOKE, numPeersToUnchoke);
+					if (numPeersToUnchoke != 0
+							&& !peersToUnchoke.subList(0, min).contains(peersToUnchoke)) {						
 						unchokedPeer.sendMessage(new ChokeMessage());
+					}
+					
 				}
 				/* unchoke peer based on the rank 4th one or the lat one*/
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){

@@ -128,7 +128,7 @@ public class Main {
 	}
 
 	public static void dprint(String message) {
-		System.out.println(message);
+		System.out.println("Debug : " + message);
 	}
 	
 	private static void generatePeerID(){
