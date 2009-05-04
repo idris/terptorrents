@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import terptorrents.Main;
-import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.NotInterestedMessage;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;

@@ -44,6 +44,7 @@ public class PeerPiece extends Piece {
 		int i = 0;
 		for(int key : mergedBlock.keySet()){
 			res [i] = new BlockRange(key, mergedBlock.get(key), getIndex());
+			i++;
 		}
 		return res;
 	}
