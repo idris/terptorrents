@@ -68,8 +68,8 @@ class PeerConnectionIn implements Runnable {
 	}
 
 	private Message readHandshake() throws IOException {
-		int length = in.readByte();
-		System.out.println("READING HANDSHAKE");
+		int length = in.read();
+		System.out.println("READING HANDSHAKE from " + connection.peer.toString());
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(in, length);
 		System.out.println("DONE READING HANDSHAKE");
