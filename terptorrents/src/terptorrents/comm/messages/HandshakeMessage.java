@@ -54,7 +54,7 @@ public class HandshakeMessage extends Message {
 		dis.readFully(twentyBytes); // info_hash
 		
 		infoHash = twentyBytes;
-
+		twentyBytes=new byte[20];
 		if(!Arrays.equals(infoHash, TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
 			throw new BadHandshakeException();
 		}
