@@ -51,7 +51,7 @@ class PeerConnectionOut implements Runnable {
 		connection.teardown();
 	}
 
-	private void writeMessage(Message message) throws IOException {
+	private synchronized void writeMessage(Message message) throws IOException {
 		long start = System.currentTimeMillis();
 		message.write(out);
 		out.flush();
