@@ -55,8 +55,6 @@ public class PeerConnection {
 
 		sendHandShakeAndBitfield();
 
-		sendMessage(new RequestMessage(0, 0, Main.MAX_REQUEST_BLOCK_SIZE));
-
 		Thread outThread = new Thread(new PeerConnectionOut(this), "OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();

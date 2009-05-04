@@ -69,6 +69,6 @@ public class RequestMessage extends Message {
 
 	@Override
 	public String toString() {
-		return "RequestMessage: (piece index: " + index + ")";
+		return "RequestMessage: (" + index + "," + begin +"," + length + ")";
 	}
 }
