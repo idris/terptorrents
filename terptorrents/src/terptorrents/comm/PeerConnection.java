@@ -53,12 +53,9 @@ public class PeerConnection {
 		socket.connect(new InetSocketAddress(peer.getAddress().getAddress(), peer.getAddress().getPort()), CONNECT_TIMEOUT);
 		lastReceived = new Date();
 
-		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
-				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
-		outgoingMessages.add(handshake);
+		sendHandShakeAndBitfield();
 
-		BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
-		outgoingMessages.add(bitfieldMessage);
+		sendMessage(new RequestMessage(0, 0, Main.MAX_REQUEST_BLOCK_SIZE));
 
 		Thread outThread = new Thread(new PeerConnectionOut(this), "OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
@@ -85,6 +82,8 @@ public class PeerConnection {
 
 		handshook = true;
 
+		sendHandShakeAndBitfield();
+
 		Thread inThread = new Thread(new PeerConnectionIn(this));
 		inThread.setDaemon(true);
 		inThread.start();
@@ -94,6 +93,14 @@ public class PeerConnection {
 		outThread.start();
 	}
 
+	private void sendHandShakeAndBitfield() {
+		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
+				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
+		outgoingMessages.add(handshake);
+
+		BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.getInstance().getBitSet().getUnsyncBitSet());
+		outgoingMessages.add(bitfieldMessage);
+	}
 
 	public void sendMessage(Message message) {
 		if(disconnect) {
