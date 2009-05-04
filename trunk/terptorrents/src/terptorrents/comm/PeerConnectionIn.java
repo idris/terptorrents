@@ -69,6 +69,7 @@ class PeerConnectionIn implements Runnable {
 
 	private Message readHandshake() throws IOException {
 		int length = in.read();
+		if(length < 0) throw new EOFException();
 		System.out.println("READING HANDSHAKE from " + connection.peer.toString());
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(in, length);
@@ -87,7 +88,7 @@ class PeerConnectionIn implements Runnable {
 		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
 
 		if(length < 0) {
-			throw new UnknownMessageException("Length is negative");
+			if(length < 0) throw new EOFException();
 		}
 
 		System.out.println("=== INCOMING MESSAGE: length " + length + " ===");
