@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.BitSet;
 
 import terptorrents.comm.PeerConnection;
+import terptorrents.io.IO;
 import terptorrents.models.PieceManager;
 import terptorrents.util.BitSetUtil;
 
@@ -27,9 +28,10 @@ public class BitfieldMessage extends Message {
 
 	@Override
 	public int getLength() {
+		int bitfieldLength = IO.getInstance().getBitSet().totalNumOfPieces();
 		return super.getLength() + 
-		((bitfield.size() % 8 == 0) ? (bitfield.size() / 8) : 
-			(bitfield.size()/ 8 + 1));
+		((bitfieldLength % 8 == 0) ? (bitfieldLength / 8) : 
+			(bitfieldLength/ 8 + 1));
 	}
 
 	@Override

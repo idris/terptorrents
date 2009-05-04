@@ -53,7 +53,6 @@ class PeerConnectionOut implements Runnable {
 
 	private void writeMessage(Message message) throws IOException {
 		long start = System.currentTimeMillis();
-		//out.flush();
 		message.write(out);
 		out.flush();
 		if(message instanceof PieceMessage) {

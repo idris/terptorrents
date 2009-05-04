@@ -49,7 +49,7 @@ public class ConnectionPool {
 				// throw it out
 				if(Main.DEBUG) {
 					System.err.println("********** Failed to Connect: " + peer.toString());
-					ex.printStackTrace();
+//					ex.printStackTrace();
 				}
 				peer.setConnection(null);
 				PeerList.getInstance().removePeer(peer);
