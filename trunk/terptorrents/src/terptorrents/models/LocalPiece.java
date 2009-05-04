@@ -3,9 +3,7 @@
  */
 package terptorrents.models;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-
 import terptorrents.Main;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
@@ -17,7 +15,7 @@ import terptorrents.io.IO;
  *
  */
 public class LocalPiece extends Piece {
-	private ByteArrayInputStream data;
+	private byte [] data;
 	private int numRequest;
 	
 	public LocalPiece(boolean isLastPiece, int index){
@@ -38,16 +36,6 @@ public class LocalPiece extends Piece {
 		return !(data == null);
 	}
 	
-	public void clearBuffer(){
-		try {
-			data.close();
-		} catch (IOException e) {
-			if(terptorrents.Main.DEBUG)
-				e.printStackTrace();
-		}
-		data = null;
-	}
-	
 	@Override
 	public synchronized byte [] requestBlock(int pieceIndex, int blockBegin, 
 			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound{
@@ -56,7 +44,8 @@ public class LocalPiece extends Piece {
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){
 			try {
-				data = new ByteArrayInputStream(IO.getInstance().getPiece(pieceIndex));
+				System.arraycopy(IO.getInstance().getPiece(pieceIndex), 0, 
+						data, 0, IO.getInstance().getPieceSize());
 			} catch (IOException e) {
 				if(terptorrents.Main.DEBUG)
 					e.printStackTrace();
@@ -67,7 +56,9 @@ public class LocalPiece extends Piece {
 		}
 		numRequest++;
 		byte [] res = new byte[blockLength];
-		this.data.read(res, blockBegin, blockLength);
+		
+		System.arraycopy(data, blockBegin, res, 0, blockLength);
+		
 		return res;
 	}
 
@@ -76,5 +67,9 @@ public class LocalPiece extends Piece {
 			int begin, int length, byte [] data) 
 	throws TerptorrentsModelsPieceNotWritable {
 		throw new TerptorrentsModelsPieceNotWritable();
+	}
+
+	public void clearBuffer() {
+		data = null;
 	}
 }
