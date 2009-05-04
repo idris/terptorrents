@@ -80,8 +80,7 @@ class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Length is negative");
 		}
 
-		System.out.println("=== NEW MESSAGE: " + length + " ===");
-		System.out.println("first byte: " + one);
+		System.out.println("=== NEW MESSAGE: length " + length + " ===");
 
 		connection.lastReceived = new Date();
 
@@ -90,7 +89,6 @@ class PeerConnectionIn implements Runnable {
 		}
 
 		byte id = in.readByte();
-		System.out.println("Message ID: " + id);
 
 		Message m;
 		switch(id) {
@@ -132,6 +130,8 @@ class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
+		System.out.println("Received Message: " + m.toString() + " - from " + connection.peer.toString());
+
 		if(m instanceof PieceMessage) {
 			long start = System.currentTimeMillis();
 			m.read(in, length);
@@ -142,8 +142,6 @@ class PeerConnectionIn implements Runnable {
 			m.read(in, length);
 		}
 		m.onReceive(connection);
-
-		System.out.println("TYPE: " + m.getClass().getName());
 
 		return m;
 	}
