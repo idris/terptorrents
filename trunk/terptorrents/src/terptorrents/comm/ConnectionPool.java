@@ -49,7 +49,7 @@ public class ConnectionPool {
 				// throw it out
 				if(Main.DEBUG) {
 					System.err.println("********** Failed to Connect: " + peer.toString());
-//					ex.printStackTrace();
+					ex.printStackTrace();
 				}
 				peer.setConnection(null);
 				PeerList.getInstance().removePeer(peer);
@@ -85,6 +85,8 @@ public class ConnectionPool {
 			Set<Peer> newPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS - outgoingConnections.size());
 			for(Peer p: newPeers) {
 				try {
+					if(p.equals(conn.getPeer())) continue;
+
 					outgoingConnections.add(new PeerConnection(p));
 				} catch(IOException ex) {
 					PeerList.getInstance().removePeer(p);

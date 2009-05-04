@@ -30,7 +30,7 @@ public abstract class Message {
 		int length = getLength();
 		out.writeInt(length);
 		if(length > 1) {
-			out.writeByte(getId());
+			out.writeByte(getId() & 0xFF);
 		}
 	}
 
