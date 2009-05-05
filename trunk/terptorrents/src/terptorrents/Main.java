@@ -22,7 +22,7 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 3;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 5000;
 	public static final int MAX_PEER_CONNECTIONS = 40;
-	public static byte [] PEER_ID = "-TR1340-2y3msotbwq50".getBytes();
+	public static byte [] PEER_ID = "-TR1340-TerpTorrents".getBytes();
 	public static final int PORT = 6881;
 	public static boolean ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 10000;

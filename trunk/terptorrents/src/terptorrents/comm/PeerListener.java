@@ -2,6 +2,7 @@ package terptorrents.comm;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -48,9 +49,10 @@ public class PeerListener implements Runnable {
 					HandshakeMessage handshake = getHandshake(socket);
 
 					// find (or create) the peer
-					Peer peer = PeerList.getInstance().getPeer(handshake.getPeerId());
+					Peer peer = PeerList.getInstance().getPeer(new InetSocketAddress(socket.getInetAddress(), socket.getPort()));
 					if(peer == null) {
 						peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+						PeerList.getInstance().addPeer(peer);
 					}
 					if(peer.getConnection() != null) {
 						// already connected to peer

@@ -56,7 +56,7 @@ class PeerConnectionOut implements Runnable {
 		message.write(out);
 		out.flush();
 		if(message instanceof PieceMessage) {
-			connection.uploadRate =  ((PieceMessage)message).getLength() / ((System.currentTimeMillis() - start) / 1000);
+			connection.uploadRate =  ((PieceMessage)message).getLength() / ((double)(System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
 		}
 
