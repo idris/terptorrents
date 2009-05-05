@@ -3,6 +3,8 @@
  */
 package terptorrents.models;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Vector;
 
 import terptorrents.Main;
@@ -23,13 +25,15 @@ public class ChockingAlgorithm implements Runnable {
 
 	public void run() {
 		while(true){
-
+			HashSet<BlockRange> RequestedBlock = new HashSet<BlockRange>();
 			/*send request message*/
 			for(PeerConnection peerCon: ConnectionPool.
 					getInstance().getNonChokingAndInsterested()){
 				try {
-					for(BlockRange br : PieceManager.getInstance().
-							getBlockRangeToRequest(peerCon.getPeer())){
+					ArrayList<BlockRange> blockRanges = PieceManager.getInstance().
+					getBlockRangeToRequest(peerCon.getPeer(), RequestedBlock);
+					for(BlockRange br : blockRanges){
+						RequestedBlock.add(br);
 						peerCon.sendMessage(new RequestMessage(
 								br.getPieceIndex(), br.getBegin(), 
 								br.getLength()));

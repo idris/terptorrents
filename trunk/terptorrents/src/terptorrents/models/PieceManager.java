@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
@@ -45,8 +46,9 @@ public class PieceManager {
 	}
 
 
-	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer) throws
-	TerptorrentsModelsCanNotRequstFromThisPeer{
+	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer, 
+			HashSet<BlockRange> RequestedBlock) throws
+			TerptorrentsModelsCanNotRequstFromThisPeer{
 		PeerConnection conn = peer.getConnection();
 		if(conn == null) throw new TerptorrentsModelsCanNotRequstFromThisPeer();
 		int requestedBytes = 0;
@@ -56,17 +58,17 @@ public class PieceManager {
 		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 		while(peerPieceList.get(0).getNumPeer() == 0)
 			peerPieceList.remove(0);
-		int i = 0;
-		while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE){
-			assert pieces[i] instanceof PeerPiece;
-			BlockRange [] blockRanges = 
-				((PeerPiece)(pieces[i])).getBlockRangeToRequest();
+		Iterator<PeerPiece> i = peerPieceList.iterator();
+		while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
+				&& i.hasNext()){
+			BlockRange [] blockRanges = i.next().getBlockRangeToRequest();
 			int j = 0;
-			i++;
 			while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
 					&& j < blockRanges.length){
-				res.add(blockRanges[j]);
-				requestedBytes += blockRanges[j].getLength();
+				if(!RequestedBlock.contains(blockRanges[j])){
+					res.add(blockRanges[j]);
+					requestedBytes += blockRanges[j].getLength();
+				}
 				j++;
 			}
 		}
@@ -105,14 +107,14 @@ public class PieceManager {
 		if(pieces[pieceIndex] instanceof PeerPiece){
 			if(!peer.getConnection().amInterested())
 				peer.getConnection().sendMessage(new InterestedMessage());
-			
+
 			((PeerPiece)(pieces[pieceIndex])).addPeer(peer);
 			if(!peerPieceList.contains(peer))
 				peerPieceList.add((PeerPiece)pieces[pieceIndex]);
 		}else
 			throw new TerptorrentsModelsPieceNotWritable();
 	}
-	
+
 	/**
 	 * this function can be expensive
 	 * @param peer

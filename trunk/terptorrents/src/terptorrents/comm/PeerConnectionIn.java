@@ -85,6 +85,7 @@ class PeerConnectionIn implements Runnable {
 		four = in.read();
 		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
 */
+		//TODO this io exception needs to be handled
 		int length = in.readInt();
 
 		if(length < 0) {
