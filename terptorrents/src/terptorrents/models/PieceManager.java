@@ -188,8 +188,8 @@ public class PieceManager {
 		IOBitSet bitMap = IO.getInstance().getBitSet();
 		int numPieces = bitMap.totalNumOfPieces();
 
-		Piece.setLastPieceSize(IO.getInstance().getPieceSize());
-		Piece.setSize(IO.getInstance().getLastPieceSize());
+		Piece.setLastPieceSize(IO.getInstance().getLastPieceSize());
+		Piece.setSize(IO.getInstance().getPieceSize());
 
 		peerPieceList = new ArrayList<PeerPiece>();
 		localPieceList = new ArrayList<LocalPiece>();
