@@ -27,12 +27,7 @@ public class Peer {
 		if (getClass() != obj.getClass())
 			return false;
 		Peer other = (Peer) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
+		return address.equals(other.address);
 	}
 
 	private PeerConnection connection = null;
