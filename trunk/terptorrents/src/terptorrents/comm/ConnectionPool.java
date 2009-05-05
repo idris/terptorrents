@@ -165,8 +165,9 @@ public class ConnectionPool {
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
 		ArrayList<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection : allConnections){
-			if( peerConnection != null &&
-					peerConnection.peerInterested() && System.currentTimeMillis() - 
+			if( peerConnection != null 
+					&& peerConnection.getLastPieceRecievedDate() != null
+					&& peerConnection.peerInterested() && System.currentTimeMillis() - 
 						peerConnection.getLastPieceRecievedDate().getTime() 
 						< 30000){
 					list.add(peerConnection);
