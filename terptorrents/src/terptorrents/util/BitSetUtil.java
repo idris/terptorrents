@@ -17,8 +17,8 @@ public final class BitSetUtil {
 		return bits;
 	}
 
-	public static byte[] toByteArray(BitSet bits) {
-		byte[] bytes = new byte[bits.length()/8+1];
+	public static byte[] toByteArray(BitSet bits, int numBytes) {
+		byte[] bytes = new byte[numBytes];
 		for (int i=0; i<bits.length(); i++) {
 			if (bits.get(i)) {
 				bytes[bytes.length-i/8-1] |= 1 << (i%8);

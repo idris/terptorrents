@@ -53,10 +53,8 @@ class PeerConnectionIn implements Runnable {
 		while(!connection.disconnect) {
 			try {
 				readMessage();
-			} catch(EOFException ex) {
-				ex.printStackTrace();
-				connection.disconnect = true;
 			} catch(IOException ex) {
+				System.err.println("IOException with peer " + connection.peer.toString());
 				ex.printStackTrace();
 				connection.disconnect = true;
 			} catch(UnknownMessageException ex) {
@@ -79,13 +77,15 @@ class PeerConnectionIn implements Runnable {
 	}
 
 	private Message readMessage() throws IOException, UnknownMessageException {
+/*
 		int one, two, three, four;
 		one = in.read();
 		two = in.read();
 		three = in.read();
 		four = in.read();
-//		int length = in.readInt();
 		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
+*/
+		int length = in.readInt();
 
 		if(length < 0) {
 			if(length < 0) throw new EOFException();
@@ -146,7 +146,7 @@ class PeerConnectionIn implements Runnable {
 		if(m instanceof PieceMessage) {
 			long start = System.currentTimeMillis();
 			m.read(in, length);
-			connection.downloadRate =  (((PieceMessage)m).getLength() - 1) / ((System.currentTimeMillis() - start) / 1000);
+			connection.downloadRate =  (((PieceMessage)m).getLength() - 1) / ((double)(System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().downloaded.addAndGet(((PieceMessage)m).getBlockLength());
 			connection.lastPieceReceived = new Date();
 		} else {

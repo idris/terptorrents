@@ -29,7 +29,7 @@ public class BitfieldMessage extends Message {
 	@Override
 	public int getLength() {
 		int bitfieldLength = IO.getInstance().getBitSet().totalNumOfPieces();
-		return super.getLength() + 
+		return 1 + 
 		((bitfieldLength % 8 == 0) ? (bitfieldLength / 8) : 
 			(bitfieldLength/ 8 + 1));
 	}
@@ -50,6 +50,6 @@ public class BitfieldMessage extends Message {
 	@Override
 	public void write(DataOutputStream out) throws IOException {
 		super.write(out);
-		out.write(BitSetUtil.toByteArray(bitfield));
+		out.write(BitSetUtil.toByteArray(bitfield, getLength()-1));
 	}
 }
