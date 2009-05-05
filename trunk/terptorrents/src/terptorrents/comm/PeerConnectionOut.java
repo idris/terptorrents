@@ -59,8 +59,9 @@ class PeerConnectionOut implements Runnable {
 			connection.uploadRate =  ((PieceMessage)message).getLength() / ((double)(System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
 		}
+		Main.dprint("<= " + message.toString() + " SENT to " + connection.peer.getAddress().toString());
 
-		System.out.println("=== SENT MESSAGE to " + connection.peer.getAddress().toString() + " ===\n" + message.toString());
+		//System.out.println("=== SENT MESSAGE to " + connection.peer.getAddress().toString() + " ===\n" + message.toString());
 
 		message.onSend(connection);
 	}
