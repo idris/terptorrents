@@ -14,18 +14,25 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	public static boolean DEBUG = true;	
+	private static final String ID_PREFIX = "TerpTorrent "; 
+	public static byte [] 	PEER_ID;
+	
+	public static boolean 	DEBUG = true;	
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
 	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
 	public static final int NUM_PEERS_TO_UNCHOKE = 3;
-	public static final int CHOCKING_ALGORITHM_INTERVAL = 5000;
+	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
 	public static final int MAX_PEER_CONNECTIONS = 40;
-	public static byte [] PEER_ID = "-TR1340-TerpTorrents".getBytes();
 	public static final int PORT = 6881;
-	public static boolean ENABLE_SELECTIVE_DOWNLOAD = false;
+	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 10000;
+	
+	/* ID prefix can not exceed 20 bytes, however it MUST always be less
+	 * than 20
+	 */
+	
 	/* ****************************************************** */
 	
 	
@@ -90,6 +97,8 @@ public class Main {
 			while(true){
 				if (IO.getInstance().isComplete())
 					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
+				else
+					System.out.println("***** Remaining data to download: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
 				try {
 					Thread.sleep(Main.TIME_TO_CHECK_IF_FILE_IS_COMPLETE);
 				} catch (InterruptedException e) {
@@ -130,9 +139,13 @@ public class Main {
 	
 	private static void generatePeerID(){
 		PEER_ID = new byte[20];
+		byte[] peerPrefix = Main.ID_PREFIX.getBytes();
+		byte[] randomID = new byte[20 - peerPrefix.length];
+		System.arraycopy(peerPrefix, 0, PEER_ID, 0, peerPrefix.length);
 		Random r = new Random(System.currentTimeMillis());
-		r.nextBytes(PEER_ID);
-		dprint("Client ID: " + PEER_ID);
+		r.nextBytes(randomID);
+		System.arraycopy(randomID, 0, PEER_ID, peerPrefix.length, randomID.length);
+		dprint("Client ID: " + new String(PEER_ID));
 	}
 
 }
