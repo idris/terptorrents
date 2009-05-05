@@ -78,9 +78,9 @@ public class PeerPiece extends Piece {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 
-		Main.dprint("BlockReceived: " + " PieceIndex: " + pieceIndex + 
+		Main.dprint("BlockReceived. PieceIndex: " + pieceIndex + 
 				" blockBegin: " + blockBegin + " blockLength: " + 
-				blockLength + "\n");
+				blockLength);
 		
 		int oldBlockLength = blockLength;
 		int oldBlockBegin = blockBegin;
@@ -131,7 +131,7 @@ public class PeerPiece extends Piece {
 			}
 			*/
 			
-			Main.dprint("Received Piece " + pieceIndex + "\n");
+			Main.dprint("Received Piece " + pieceIndex);
 			
 			try {
 				if(IO.getInstance().writePiece(pieceIndex, this.data)){
