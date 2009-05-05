@@ -113,10 +113,26 @@ public class PeerPiece extends Piece {
 			}
 		}
 		boolean res = false;
+		
 		//System.arraycopy(src, srcPos, dest, destPos, length)
 		System.arraycopy(data, 0, this.data, oldBlockBegin, oldBlockLength);
 		if(Have_Piece()){
+			/*
+	        try {
+				FileOutputStream writer = new FileOutputStream("pieceDump.txt");
+				writer.write(this.data);
+				writer.close();
+	        } catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			*/
+			
 			Main.dprint("Received Piece " + pieceIndex + "\n");
+			
 			try {
 				if(IO.getInstance().writePiece(pieceIndex, this.data)){
 					res = true;

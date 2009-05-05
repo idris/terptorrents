@@ -51,22 +51,24 @@ public class ChockingAlgorithm implements Runnable {
 				Vector<PeerConnection> unchokedPeers = 
 					ConnectionPool.getInstance().getUnchoked();
 
-				int minPeersToUnchoke = Math.min(peersToUnchoke.size(), Main.NUM_PEERS_TO_UNCHOKE);
+				int minPeersToUnchoke = Math.min(peersToUnchoke.size(), 
+						Main.NUM_PEERS_TO_UNCHOKE);
 				for(int i = 0 ; i < minPeersToUnchoke; i++){
 					if(!unchokedPeers.contains(peersToUnchoke.get(i))){
 						peersToUnchoke.get(i).sendMessage(new UnchokeMessage());
 					}
 				}
-				
+
 				/* Sergey: boundary condition check added */
 				for(PeerConnection unchokedPeer : unchokedPeers){
 					int numPeersToUnchoke = peersToUnchoke.size();
 					int min = Math.min(Main.NUM_PEERS_TO_UNCHOKE, numPeersToUnchoke);
 					if (numPeersToUnchoke != 0
-							&& !peersToUnchoke.subList(0, min).contains(peersToUnchoke)) {						
+							&& !peersToUnchoke.subList(0, min).
+							contains(peersToUnchoke)) {						
 						unchokedPeer.sendMessage(new ChokeMessage());
 					}
-					
+
 				}
 				/* unchoke peer based on the rank 4th one or the lat one*/
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){
@@ -80,7 +82,7 @@ public class ChockingAlgorithm implements Runnable {
 					}
 				}else{
 					PeerConnection pc = ConnectionPool.getInstance().
-							getPlannedOptimisticUnchokedPeerConnection();
+					getPlannedOptimisticUnchokedPeerConnection();
 					if (pc != null) 
 						pc.sendMessage(new UnchokeMessage());
 				}
@@ -100,13 +102,15 @@ public class ChockingAlgorithm implements Runnable {
 					ConnectionPool.getInstance().getUnchoked();
 
 
-				for(int i = 0; i < Math.min(uploaderList.size(), Main.NUM_PEERS_TO_UNCHOKE); i++){
+				for(int i = 0; i < Math.min(uploaderList.size(), 
+						Main.NUM_PEERS_TO_UNCHOKE); i++){
 					if(!unchokedPeers.contains(uploaderList.get(i))){
 						uploaderList.get(i).sendMessage(new UnchokeMessage());
 					}
 				}
 				for(PeerConnection unchokedPeer : unchokedPeers){
-					if(!uploaderList.subList(0, Math.min(uploaderList.size(), Main.NUM_PEERS_TO_UNCHOKE)).
+					if(!uploaderList.subList(0, Math.min(uploaderList.size(), 
+							Main.NUM_PEERS_TO_UNCHOKE)).
 							contains(uploaderList))
 						unchokedPeer.sendMessage(new ChokeMessage());
 				}
