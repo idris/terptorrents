@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.util.Date;
 
+import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.messages.BitfieldMessage;
 import terptorrents.comm.messages.CancelMessage;
@@ -54,11 +55,10 @@ class PeerConnectionIn implements Runnable {
 			try {
 				readMessage();
 			} catch(IOException ex) {
-				System.err.println("IOException with peer " + connection.peer.toString());
-				ex.printStackTrace();
+				Main.dprint("peer disconnected ---" + connection.peer.toString());
 				connection.disconnect = true;
 			} catch(UnknownMessageException ex) {
-				ex.printStackTrace();
+				Main.dprint("Unknown message received.");
 			}
 		}
 
@@ -85,7 +85,6 @@ class PeerConnectionIn implements Runnable {
 		four = in.read();
 		int length = (one & 0xF000) | (two & 0x0F00) | (three & 0x00F0) | four;
 */
-		//TODO this io exception needs to be handled
 		int length = in.readInt();
 
 		if(length < 0) {
