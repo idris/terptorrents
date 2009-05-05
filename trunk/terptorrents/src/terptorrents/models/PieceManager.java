@@ -56,7 +56,7 @@ public class PieceManager {
 		if(conn.peerChoking() || !conn.amInterested())
 			throw new TerptorrentsModelsCanNotRequstFromThisPeer();
 		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
-		while(peerPieceList.get(0).getNumPeer() == 0)
+		while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 			peerPieceList.remove(0);
 		Iterator<PeerPiece> i = peerPieceList.iterator();
 		while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
