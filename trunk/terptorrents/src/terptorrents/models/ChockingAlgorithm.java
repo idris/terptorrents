@@ -116,6 +116,9 @@ public class ChockingAlgorithm implements Runnable {
 				}
 				if(plannedOptimisticUnchokedPeer != null){
 					do{
+						// Sergey. Boundary checking 
+						int min = Math.min(uploaderList.size(), Main.NUM_PEERS_TO_UNCHOKE);
+						if (min == 0) break; //no one to unchoke
 						while(uploaderList.subList(0, Main.NUM_PEERS_TO_UNCHOKE).
 								contains(plannedOptimisticUnchokedPeer))
 							plannedOptimisticUnchokedPeer = 
