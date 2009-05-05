@@ -98,7 +98,7 @@ public class Main {
 				if (IO.getInstance().isComplete())
 					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
 				else
-					System.out.println("***** Remaining data to download: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
+					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
 				try {
 					Thread.sleep(Main.TIME_TO_CHECK_IF_FILE_IS_COMPLETE);
 				} catch (InterruptedException e) {
