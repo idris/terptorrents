@@ -50,6 +50,7 @@ public class PieceMessage extends Message {
 		begin = dis.readInt();
 
 		block = new byte[length - 9];
+		//TODO this exception needs to be handled
 		dis.readFully(block);
 	}
 
