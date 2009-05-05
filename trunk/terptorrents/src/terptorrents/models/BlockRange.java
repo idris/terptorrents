@@ -72,8 +72,4 @@ public class BlockRange {
 	public int getPieceIndex() {
 		return pieceIndex;
 	}
-	
-	
-	
-	
 }
