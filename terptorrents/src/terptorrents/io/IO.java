@@ -272,11 +272,21 @@ public class IO {
 			throw new TerptorrentsIONoSuchPieceException("Requested index:" + i + 
 					" is out of bounds");
 		if (piece.length > this.pieceSize)
-			throw new TerptorrentsIONoSuchPieceException("writePiece() Given piece is > than pieceSize");
+			throw new TerptorrentsIONoSuchPieceException(
+					"writePiece() Given piece is > than pieceSize");
 		/* if we downloaded this piece already, ignore it */
 		if (mask[i] == true) {
 			dprint("Piece #" + i + " is already written");
 			return true;
+		}
+		if (i == mask.length - 1 && piece.length != irregPieceSize){
+			dprint("Piece #" + i + " is irregular one, but its size " 
+					+ piece.length + " does not match with " + irregPieceSize);
+			return false;
+		} else if (i != mask.length - 1 && piece.length != pieceSize) {
+			dprint("Piece #" + i + " is regular piece, but its size " + 
+					piece.length + " does not match with " + pieceSize);
+			return false;
 		}
 		long startOffset = i*pieceSize;
 		long endOffset = startOffset + pieceSize;
