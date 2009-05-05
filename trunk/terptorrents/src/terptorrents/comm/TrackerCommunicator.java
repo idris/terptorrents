@@ -113,6 +113,7 @@ public class TrackerCommunicator implements Runnable {
 		trackerURL += generateQueryString(event);
 
 		URL url = new URL(trackerURL);
+		Main.dprint("Sending a request to tracker: " + url);
 		URLConnection conn = url.openConnection();
 		
 		
@@ -122,6 +123,8 @@ public class TrackerCommunicator implements Runnable {
 		while(reader.read(charBuf) > 0);*/
 		
 		try {
+			
+			Main.dprint("Waiting for tracker respond...");
 			handleResponse(conn.getInputStream());
 		} catch (TrackerResponseException e) {
 			e.printStackTrace();
