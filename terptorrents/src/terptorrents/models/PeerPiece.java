@@ -78,6 +78,13 @@ public class PeerPiece extends Piece {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 
+		Main.dprint("BlockReceived: " + " PieceIndex: " + pieceIndex + 
+				" blockBegin: " + blockBegin + " blockLength: " + 
+				blockLength + "\n");
+		
+		int oldBlockLength = blockLength;
+		int oldBlockBegin = blockBegin;
+		
 		while(blockLength > 0){
 			Entry<Integer, Integer> entry = freeBlock.floorEntry(blockBegin);
 			if(entry == null || entry.getKey() + entry.getValue() <= blockBegin){
@@ -93,8 +100,10 @@ public class PeerPiece extends Piece {
 				int firstBegin = currentBlockBegin; 
 				int firstLength = blockBegin - currentBlockBegin;
 				int secondBegin = blockBegin + blockLength; 
-				int secondLength = ((blockBegin + blockLength) >= (currentBlockBegin + currentBlockLength) ? 
-						0 : (currentBlockBegin + currentBlockLength - (blockBegin + blockLength))); 
+				int secondLength = ((blockBegin + blockLength) 
+						>= (currentBlockBegin + currentBlockLength) ? 
+						0 : (currentBlockBegin + currentBlockLength - 
+								(blockBegin + blockLength))); 
 				if(firstLength > 0)
 					freeBlock.put(firstBegin, firstLength);
 				if(secondLength > 0)
@@ -104,9 +113,10 @@ public class PeerPiece extends Piece {
 			}
 		}
 		boolean res = false;
-		System.arraycopy(this.data, blockBegin, data, 0, blockLength);
-		//this.data.write(data, blockBegin, blockLength);
+		//System.arraycopy(src, srcPos, dest, destPos, length)
+		System.arraycopy(data, 0, this.data, oldBlockBegin, oldBlockLength);
 		if(Have_Piece()){
+			Main.dprint("Received Piece " + pieceIndex + "\n");
 			try {
 				if(IO.getInstance().writePiece(pieceIndex, this.data)){
 					res = true;
@@ -131,10 +141,14 @@ public class PeerPiece extends Piece {
 	private void initFreeBlock(){
 		freeBlock.clear();
 		int end = getSize() / Main.MAX_REQUEST_BLOCK_SIZE;
-		for(int i = 0; i < end; i++){
+		
+		for(int i = 0; i < end; i++)
 			freeBlock.put(i * Main.MAX_REQUEST_BLOCK_SIZE, 
 					Main.MAX_REQUEST_BLOCK_SIZE);
-		}
+
+		if(getSize() % Main.MAX_REQUEST_BLOCK_SIZE != 0)
+			freeBlock.put(end * Main.MAX_REQUEST_BLOCK_SIZE, 
+					getSize() % Main.MAX_REQUEST_BLOCK_SIZE);
 	}
 
 	private TreeMap<Integer, Integer> mergeBlock(){
