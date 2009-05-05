@@ -279,6 +279,7 @@ public class IO {
 			dprint("Piece #" + i + " is already written");
 			return true;
 		}
+		/* piece lenght checking */
 		if (i == mask.length - 1 && piece.length != irregPieceSize){
 			dprint("Piece #" + i + " is irregular one, but its size " 
 					+ piece.length + " does not match with " + irregPieceSize);
