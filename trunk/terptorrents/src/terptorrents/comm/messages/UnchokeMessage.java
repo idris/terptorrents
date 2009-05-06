@@ -1,7 +1,6 @@
 package terptorrents.comm.messages;
 
 import terptorrents.comm.PeerConnection;
-import terptorrents.io.IO;
 
 public class UnchokeMessage extends Message {
 	@Override
