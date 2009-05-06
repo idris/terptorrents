@@ -129,7 +129,9 @@ public class PeerConnection {
 					requestMessage.getBegin(), data));
 		} catch(Exception ex) {
 			// something went wrong. maybe we didn't have the piece. oh well...
-			ex.printStackTrace();
+			//ex.printStackTrace();
+			Main.dprint("Ignoring. We don't have piece " + requestMessage + 
+					" Requested by " + peer.toString());
 		}
 	}
 

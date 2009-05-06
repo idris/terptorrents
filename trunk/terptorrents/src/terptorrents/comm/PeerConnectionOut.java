@@ -43,7 +43,7 @@ class PeerConnectionOut implements Runnable {
 				// keep on truckin'
 				ex.printStackTrace();
 			} catch(IOException ex) {
-				Main.dprint("Peer disconnected from client");
+				Main.dprint("ConnectionOUT. Peer disconnected. " + connection.peer.toString());
 				connection.disconnect = true;
 			}
 		}
