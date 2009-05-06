@@ -17,6 +17,7 @@ import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.HaveMessage;
 import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.NotInterestedMessage;
+import terptorrents.exceptions.IODeselectedPieceException;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
@@ -243,9 +244,13 @@ public class PieceManager {
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
 			try {
-				pieces[i] = (bitMap.havePiece(i)) ? 
-						new LocalPiece((i == numPieces - 1), i) : 
-							new PeerPiece((i == numPieces - 1), i);
+				try {
+					pieces[i] = (bitMap.havePiece(i)) ? 
+							new LocalPiece((i == numPieces - 1), i) : 
+								new PeerPiece((i == numPieces - 1), i);
+				} catch (IODeselectedPieceException e) {
+					pieces[i] = new LocalPiece((i == numPieces - 1), i) ;
+				}
 			} catch (TerptorrentsIONoSuchPieceException e) {
 				if(terptorrents.Main.DEBUG)
 					e.printStackTrace();

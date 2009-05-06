@@ -58,7 +58,7 @@ public class ChockingAlgorithm implements Runnable {
 //		}
 //	}
 
-	/*Idris: Stop here*/
+	/*XXX Idris: Stop here*/
 	
 	public void run() {
 		/*choking algorithm*/
