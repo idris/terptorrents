@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import terptorrents.Main;
+import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
+import terptorrents.comm.messages.HaveMessage;
 import terptorrents.comm.messages.InterestedMessage;
 import terptorrents.comm.messages.NotInterestedMessage;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
@@ -164,6 +166,15 @@ public class PieceManager {
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex].updateBlock(pieceIndex, blockBegin, 
 				blockLength, data)){
+			
+			/*send have messages*/
+			for(PeerConnection conn : ConnectionPool.getInstance().
+					getConnections()){
+				if(conn != null){
+					conn.sendMessage(new HaveMessage(pieceIndex));
+				}
+			}
+			
 			for(Peer peer:((PeerPiece)(pieces[pieceIndex])).getPeerSet()){
 				boolean peerHaveOtherPiece = false;
 				for(PeerPiece pp: peerPieceList){
