@@ -7,9 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import terptorrents.Main;
 import terptorrents.Stats;
-import terptorrents.comm.messages.KeepaliveMessage;
-import terptorrents.comm.messages.Message;
-import terptorrents.comm.messages.PieceMessage;
+import terptorrents.comm.messages.*;
 
 /**
  * 

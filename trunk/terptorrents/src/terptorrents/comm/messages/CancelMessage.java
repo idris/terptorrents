@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import terptorrents.comm.PeerConnection;
 
-public class CancelMessage extends Message {
+public class CancelMessage extends AbstractMessage {
 	private int index;
 	private int begin;
 	private int length;

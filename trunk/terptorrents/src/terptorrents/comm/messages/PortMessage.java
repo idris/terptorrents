@@ -8,7 +8,7 @@ import java.io.IOException;
  * not used yet
  *
  */
-public class PortMessage extends Message {
+public class PortMessage extends AbstractMessage {
 	private int port;
 
 	public PortMessage() {}

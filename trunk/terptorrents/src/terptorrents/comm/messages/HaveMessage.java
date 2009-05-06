@@ -8,7 +8,7 @@ import terptorrents.comm.PeerConnection;
 import terptorrents.models.Peer;
 import terptorrents.models.PieceManager;
 
-public class HaveMessage extends Message {
+public class HaveMessage extends AbstractMessage {
 	private int index;
 
 	public int getIndex() {

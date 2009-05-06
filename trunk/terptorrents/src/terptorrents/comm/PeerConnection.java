@@ -39,6 +39,9 @@ public class PeerConnection {
 	volatile boolean disconnect = false;
 	boolean handshook = false;
 
+	private final Thread inThread;
+	private final Thread outThread;
+
 	final LinkedBlockingQueue<Message> outgoingMessages = new LinkedBlockingQueue<Message>();
 	//	final Stack<PieceMessage> outgoingPieces = new Stack<PieceMessage>();
 	//	final Stack<RequestMessage> incomingRequests = new Stack<RequestMessage>();
@@ -55,12 +58,12 @@ public class PeerConnection {
 
 		sendHandShakeAndBitfield();
 
-		Thread outThread = new Thread(new PeerConnectionOut(this), 
+		outThread = new Thread(new PeerConnectionOut(this), 
 				"OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();
 
-		Thread inThread = new Thread(new PeerConnectionIn(this), 
+		inThread = new Thread(new PeerConnectionIn(this), 
 				"IN_" + peer.getAddress().toString());
 		inThread.setDaemon(true);
 		inThread.start();
@@ -84,12 +87,12 @@ public class PeerConnection {
 
 		sendHandShakeAndBitfield();
 
-		Thread inThread = new Thread(new PeerConnectionIn(this), 
+		inThread = new Thread(new PeerConnectionIn(this), 
 				"OUT_" + peer.getAddress().toString());
 		inThread.setDaemon(true);
 		inThread.start();
 
-		Thread outThread = new Thread(new PeerConnectionOut(this), 
+		outThread = new Thread(new PeerConnectionOut(this), 
 				"IN_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();
@@ -218,9 +221,14 @@ public class PeerConnection {
 		return (System.currentTimeMillis() - lastReceived.getTime()) > MAX_KEEPALIVE;
 	}
 
+	public void close() {
+		disconnect = true;
+	}
+
 	void teardown() {
 		try {
 			disconnect = true;
+			outThread.interrupt();
 			socket.close();
 		} catch(IOException ex) {
 
@@ -228,7 +236,7 @@ public class PeerConnection {
 		ConnectionPool.getInstance().removeConnection(this);
 		peer.setConnection(null);
 	}
-	
+
 	public String toString() {
 		return this.peer.toString();
 	}

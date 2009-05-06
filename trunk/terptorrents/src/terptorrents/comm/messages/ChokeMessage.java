@@ -2,7 +2,7 @@ package terptorrents.comm.messages;
 
 import terptorrents.comm.PeerConnection;
 
-public class ChokeMessage extends Message {
+public class ChokeMessage extends AbstractMessage {
 	@Override
 	public int getId() {
 		return 0;

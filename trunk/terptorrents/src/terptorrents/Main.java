@@ -14,10 +14,10 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	private static final String ID_PREFIX = "TerpTorrent "; 
-	public static byte [] 	PEER_ID;
-	
-	public static boolean 	DEBUG = true;	
+	private static final String ID_PREFIX = "TerpTorrent ";
+	public static byte [] PEER_ID;
+
+	public static boolean DEBUG = true;
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
@@ -40,14 +40,14 @@ public class Main {
 	/* ARGUMENTS: 
 	 * -d : debugging mode
 	 * last argument should be a .torrent file
-	 */		
+	 */
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "book2.torrent";
+		torrentFile = "maryland.jpg.torrent";
 		//parseCommand(args);
-		
-		
+
+
 		try {
 			/* Generate Client ID */
 			generatePeerID();

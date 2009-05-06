@@ -9,8 +9,9 @@ import terptorrents.Stats;
 import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
 import terptorrents.models.PieceManager;
+import terptorrents.models.RequestManager;
 
-public class PieceMessage extends Message {
+public class PieceMessage extends AbstractMessage {
 	private int index;
 	private int begin;
 	private byte[] block;
@@ -74,7 +75,8 @@ public class PieceMessage extends Message {
 								 new CancelMessage(index, begin, block.length));
 					 }
 				 }
-				
+			} else {
+				RequestManager.getInstance().requestBlocks(conn.getPeer(), 1);
 			}
 			
 		} catch(Exception ex) {
@@ -82,6 +84,7 @@ public class PieceMessage extends Message {
 				System.err.println("Following exception is caught: " + ex.getClass());
 			//ex.printStackTrace();
 		}
+		// TODO: request another piece
 	}
 
 	@Override

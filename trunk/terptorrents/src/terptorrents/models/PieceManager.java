@@ -4,26 +4,19 @@
  */
 package terptorrents.models;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.Vector;
 
 import terptorrents.Main;
 import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
-import terptorrents.comm.messages.HaveMessage;
-import terptorrents.comm.messages.InterestedMessage;
-import terptorrents.comm.messages.NotInterestedMessage;
-import terptorrents.exceptions.IODeselectedPieceException;
-import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
-import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
-import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
-import terptorrents.exceptions.TerptorrentsModelsPieceIndexOutOfBound;
-import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
-import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
+import terptorrents.comm.messages.*;
+import terptorrents.exceptions.*;
 import terptorrents.io.IOBitSet;
 import terptorrents.io.IO;
 
@@ -35,8 +28,8 @@ public class PieceManager {
 	private static PieceManager SINGLETON = null;
 
 	private Piece [] pieces;
-	private ArrayList<PeerPiece> peerPieceList;
-	private ArrayList<LocalPiece> localPieceList;
+	private Vector<PeerPiece> peerPieceList;
+	private Vector<LocalPiece> localPieceList;
 	private int currentRequestBufferSize;
 	private int numPieceReceived;
 	private boolean endGameTiggered;
@@ -58,8 +51,8 @@ public class PieceManager {
 		return endGameTiggered;
 	}
 
-	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer, 
-			HashSet<BlockRange> RequestedBlock, int size) throws
+	public Vector<BlockRange> getBlockRangeToRequest(Peer peer, 
+			Set<BlockRange> RequestedBlock, int size) throws
 			TerptorrentsModelsCanNotRequstFromThisPeer{
 		PeerConnection conn = peer.getConnection();
 		if(conn == null) 
@@ -70,7 +63,7 @@ public class PieceManager {
 			throw new TerptorrentsModelsCanNotRequstFromThisPeer(
 			"Peer is choking us or We are not intersted");
 
-		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
+		Vector<BlockRange> res = new Vector<BlockRange>();
 		if(numPieceReceived + Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME >= 
 			IO.getInstance().getBitSet().totalNumOfPieces()){
 			endGameTiggered = true;
@@ -236,8 +229,8 @@ public class PieceManager {
 		Piece.setLastPieceSize(IO.getInstance().getLastPieceSize());
 		Piece.setSize(IO.getInstance().getPieceSize());
 
-		peerPieceList = new ArrayList<PeerPiece>();
-		localPieceList = new ArrayList<LocalPiece>();
+		peerPieceList = new Vector<PeerPiece>();
+		localPieceList = new Vector<LocalPiece>();
 		currentRequestBufferSize = 0;
 		numPieceReceived = 0;
 		endGameTiggered = false;
