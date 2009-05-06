@@ -9,6 +9,10 @@ package terptorrents.exceptions;
  */
 public class TerptorrentsModelsCanNotRequstFromThisPeer extends Exception {
 
+	public TerptorrentsModelsCanNotRequstFromThisPeer(String string) {
+		super(string);
+	}
+
 	/**
 	 * 
 	 */
