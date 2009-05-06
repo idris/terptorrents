@@ -3,7 +3,6 @@
  */
 package terptorrents.models;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Vector;
 
@@ -21,44 +20,6 @@ import terptorrents.io.IO;
  */
 public class ChockingAlgorithm implements Runnable {
 	static int countOptimistic = 0;
-
-
-	/*XXX Idris Copy from here*/
-	static HashSet<BlockRange> requestedBlock = new HashSet<BlockRange>();
-
-	/**
-	 * Be careful, this function can return null
-	 * @param peer
-	 * @param numBlockRanges
-	 * @return
-	 */
-	static ArrayList<BlockRange> GetBlockRangeToReqeust(Peer peer, 
-			int numBlockRanges){
-		try {
-			ArrayList<BlockRange> blockRanges = PieceManager.getInstance().
-			getBlockRangeToRequest(peer, requestedBlock, numBlockRanges);
-			for(BlockRange br : blockRanges)
-				requestedBlock.add(br);
-			return blockRanges;
-		} catch (TerptorrentsModelsCanNotRequstFromThisPeer e) {
-			Main.dprint("Can not request from this peer EXCEPTION IS CAUGHT: "
-					+ peer.toString());
-			return null;
-		}
-	}
-	
-//	public void run(){
-//		while(true){
-//			requestedBlock.clear();
-//			try {
-//				Thread.sleep(Main.
-//				TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES);
-//			} catch (InterruptedException e) {
-//			}
-//		}
-//	}
-
-	/*XXX Idris: Stop here*/
 	
 	public void run() {
 		/*choking algorithm*/

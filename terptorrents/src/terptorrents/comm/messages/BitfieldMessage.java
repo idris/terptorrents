@@ -10,7 +10,7 @@ import terptorrents.io.IO;
 import terptorrents.models.PieceManager;
 import terptorrents.util.BitSetUtil;
 
-public class BitfieldMessage extends Message {
+public class BitfieldMessage extends AbstractMessage {
 	BitSet bitfield;
 
 	public BitfieldMessage() {

@@ -1,8 +1,11 @@
 package terptorrents.comm.messages;
 
+import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
+import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
+import terptorrents.models.RequestManager;
 
-public class UnchokeMessage extends Message {
+public class UnchokeMessage extends AbstractMessage {
 	@Override
 	public int getId() {
 		return 1;
@@ -16,5 +19,10 @@ public class UnchokeMessage extends Message {
 	@Override
 	public void onReceive(PeerConnection conn) {
 		conn.setChoked(false);
+		try {
+			RequestManager.getInstance().requestBlocks(conn.getPeer(), RequestManager.MAX_OUTSTANDING_REQUESTS);
+		} catch(TerptorrentsModelsCanNotRequstFromThisPeer ex) {
+			Main.dprint("Can not request from this peer EXCEPTION IS CAUGHT: " + conn.getPeer().toString());
+		}
 	}
 }

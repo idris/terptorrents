@@ -7,9 +7,11 @@ import java.util.Arrays;
 
 import metainfo.TorrentParser;
 
+import terptorrents.comm.PeerConnection;
+import terptorrents.comm.messages.Message;
 import terptorrents.exceptions.BadHandshakeException;
 
-public class HandshakeMessage extends Message {
+public class HandshakeMessage implements Message {
 	public static final String pstr = "BitTorrent protocol";
 	public static final int HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN = 49;
 	private byte[] infoHash;
@@ -28,16 +30,6 @@ public class HandshakeMessage extends Message {
 
 	public byte[] getPeerId() {
 		return peerId;
-	}
-
-	@Override
-	protected int getId() {
-		return 0;
-	}
-
-	@Override
-	protected int getLength() {
-		return HANDSHAKE_MESSAGE_LEN_EXCLUDING_PSTRLEN + pstr.length();
 	}
 
 	@Override
@@ -73,4 +65,10 @@ public class HandshakeMessage extends Message {
 		out.write(infoHash); // info_hash
 		out.write(peerId); // peer_id
 	}
+
+	@Override
+	public void onReceive(PeerConnection conn) {}
+
+	@Override
+	public void onSend(PeerConnection conn) {}
 }

@@ -1,6 +1,6 @@
 package terptorrents.comm.messages;
 
-public class KeepaliveMessage extends Message {
+public class KeepaliveMessage extends AbstractMessage {
 
 	@Override
 	protected int getId() {

@@ -5,8 +5,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import terptorrents.comm.PeerConnection;
+import terptorrents.models.BlockRange;
 
-public class RequestMessage extends Message {
+public class RequestMessage extends AbstractMessage {
 	private int index;
 	private int begin;
 	private int length;
@@ -17,6 +18,10 @@ public class RequestMessage extends Message {
 		this.index = index;
 		this.begin = begin;
 		this.length = length;
+	}
+
+	public RequestMessage(BlockRange br) {
+		this(br.getPieceIndex(), br.getBegin(), br.getLength());
 	}
 
 	@Override
@@ -62,7 +67,7 @@ public class RequestMessage extends Message {
 	public int getBegin() {
 		return begin;
 	}
-	
+
 	public int getBlockLength() {
 		return length;
 	}

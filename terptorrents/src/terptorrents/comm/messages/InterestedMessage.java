@@ -2,7 +2,7 @@ package terptorrents.comm.messages;
 
 import terptorrents.comm.PeerConnection;
 
-public class InterestedMessage extends Message {
+public class InterestedMessage extends AbstractMessage {
 
 	@Override
 	public int getId() {

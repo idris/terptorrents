@@ -8,19 +8,7 @@ import java.util.Date;
 
 import terptorrents.Main;
 import terptorrents.Stats;
-import terptorrents.comm.messages.BitfieldMessage;
-import terptorrents.comm.messages.CancelMessage;
-import terptorrents.comm.messages.ChokeMessage;
-import terptorrents.comm.messages.HandshakeMessage;
-import terptorrents.comm.messages.HaveMessage;
-import terptorrents.comm.messages.InterestedMessage;
-import terptorrents.comm.messages.KeepaliveMessage;
-import terptorrents.comm.messages.Message;
-import terptorrents.comm.messages.NotInterestedMessage;
-import terptorrents.comm.messages.PieceMessage;
-import terptorrents.comm.messages.PortMessage;
-import terptorrents.comm.messages.RequestMessage;
-import terptorrents.comm.messages.UnchokeMessage;
+import terptorrents.comm.messages.*;
 import terptorrents.exceptions.UnknownMessageException;
 
 
@@ -65,7 +53,7 @@ class PeerConnectionIn implements Runnable {
 		connection.teardown();
 	}
 
-	private Message readHandshake() throws IOException {
+	private HandshakeMessage readHandshake() throws IOException {
 		int length = in.read();
 		if(length < 0) throw new EOFException();
 		System.out.println("READING HANDSHAKE from " + connection.peer.toString());

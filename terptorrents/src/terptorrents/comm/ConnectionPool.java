@@ -184,9 +184,9 @@ public class ConnectionPool {
 	 * @return
 	 * 
 	 */
-	public Vector<PeerConnection> getUnchoked() {		
+	public Vector<PeerConnection> getUnchoked() {
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		ArrayList<PeerConnection> allConnections = getConnections();		
+		ArrayList<PeerConnection> allConnections = getConnections();
 		for(PeerConnection peerConnection: allConnections){
 			if(peerConnection != null && !peerConnection.amChoking())
 				list.add(peerConnection);
