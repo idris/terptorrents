@@ -15,6 +15,13 @@ public class HaveMessage extends Message {
 		return index;
 	}
 
+	public HaveMessage() {
+	}
+	
+	public HaveMessage(int index) {
+		this.index = index;
+	}
+
 	@Override
 	public int getId() {
 		return 4;
