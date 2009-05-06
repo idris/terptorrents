@@ -1,12 +1,14 @@
 package terptorrents.io;
 import java.util.*;
 
+import terptorrents.exceptions.IODeselectedPieceException;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 
 public interface IOBitSet {
 	
 	/* returns true if piece is available (downloaded) */
-	public boolean havePiece(int index) throws TerptorrentsIONoSuchPieceException;
+	public boolean havePiece(int index) throws TerptorrentsIONoSuchPieceException,
+		IODeselectedPieceException;
 	
 	/* returns total number of pieces in a current torrent */
 	public int totalNumOfPieces();
