@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.PeerConnection;
 import terptorrents.models.PieceManager;
@@ -65,7 +66,9 @@ public class PieceMessage extends Message {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
-			ex.printStackTrace();
+			if (Main.DEBUG)
+				System.err.println("Following exception is caught: " + ex.getClass());
+			//ex.printStackTrace();
 		}
 	}
 
