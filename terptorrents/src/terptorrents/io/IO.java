@@ -28,7 +28,7 @@ public class IO {
 	private final MessageDigest digest;
 	private final Map<Integer, byte[]> pieceHashes;
 	private volatile boolean mask[];
-	private HashSet<Integer> piecesWeDonNotWant = new HashSet<Integer>();
+	private HashSet<Integer> piecesWeDoNotWant = new HashSet<Integer>();
 	private MyIOBitSet ioBitSet;
 
 	
@@ -93,6 +93,8 @@ public class IO {
 			} catch (TerptorrentsIONoSuchPieceException e) {
 				dprint("Integrity Checking failed. Reason: " + e.getMessage());
 				throw new InternalError("checkFilesIntegrity() function failed. Requested piece does not exists");
+			} catch (IODeselectedPieceException e) {
+				//Ignore integrity checking of deselected pieces
 			}
 		}
 		if (Main.DEBUG) System.out.println();
@@ -165,11 +167,15 @@ public class IO {
 	/* returns a COPY of the piece that is stored in the file
 	 * for upload by brain
 	 */	
-	public synchronized byte[] getPiece(int i) throws IOException, TerptorrentsIONoSuchPieceException {
+	public synchronized byte[] getPiece(int i) throws IOException, 
+	TerptorrentsIONoSuchPieceException, IODeselectedPieceException {
 		if (DEBUG) dprint("Piece #" + i + " requested");
 		if (i < 0 || i >= mask.length) 
 			throw new TerptorrentsIONoSuchPieceException("Requested index:" + i + 
 					" is out of bounds");
+		if (piecesWeDoNotWant.contains(i))
+			throw new IODeselectedPieceException(
+					"Following piece bolong to a file we should ignore");
 		long startOffset = i*pieceSize;
 		long endOffset = startOffset + pieceSize;
 		LongContainer cont = new LongContainer();
@@ -274,6 +280,11 @@ public class IO {
 		if (piece.length > this.pieceSize)
 			throw new TerptorrentsIONoSuchPieceException(
 					"writePiece() Given piece is > than pieceSize");
+		if (piecesWeDoNotWant.contains(i)) {
+			//ignore deselected pieces
+			dprint("Following piece #" + i + " was deselected by user");
+			return true;
+		}
 		/* if we downloaded this piece already, ignore it */
 		if (mask[i] == true) {
 			dprint("Piece #" + i + " is already written");
@@ -385,7 +396,7 @@ public class IO {
 	/* return true is all pieces are available in a file */
 	public boolean isComplete() {
 			for (int i = 0; i < this.mask.length; i++) 
-				if (this.mask[i] == false) return false;
+				if (this.mask[i] == false && !piecesWeDoNotWant.contains(i)) return false;
 			return true;
 	}
 	
@@ -438,10 +449,12 @@ public class IO {
 			return s;
 		}
 
-		public boolean havePiece(int index)  {
+		public boolean havePiece(int index) throws IODeselectedPieceException  {
 			if (index < 0 || index > mask.length) 
 				throw new InternalError("requested piece: " 
 						+ index + " does not exists");
+			if (piecesWeDoNotWant.contains(index))
+				throw new IODeselectedPieceException("");
 			return mask[index];
 		}
 
@@ -499,15 +512,16 @@ public class IO {
 			}
 			/* exclude pieces we do not need */
 			if (!filesToExclude.isEmpty()) {
-				System.out.print("Following files were excluded:");
+				System.out.print("\nFollowing files were removed from download list:");
 				for (Integer i : filesToExclude)
-					System.out.print(" " + i + 1);
+					System.out.print(" " + (i + 1));
+				System.out.println();
 				this.excludeFiles(filesToExclude);
 			} else System.out.println("Downloading all files");
 		} catch (IOException e) {
 			System.out.println("Sorry, could not read a string from you. Downloading all pieces");
 		}
-		dprint("Following pieces were excluded from download: " + piecesWeDonNotWant);
+		dprint("Following pieces were excluded from download: " + piecesWeDoNotWant);
 	}
 	
 	private void excludeFiles(Set<Integer> files) throws IOException {
@@ -517,10 +531,10 @@ public class IO {
 			ft = findFiles(i);
 			/* if piece is entirely inside one file */
 			if (ft.startFile == ft.endFile) {
-				if (files.contains(ft.startFile)) piecesWeDonNotWant.add(i);
+				if (files.contains(ft.startFile)) piecesWeDoNotWant.add(i);
 			} else if (ft.endFile != -1 && ft.startFile == ft.endFile +1) { //two consecutive files
 				if (files.contains(ft.startFile) && files.contains(ft.endFile))
-						piecesWeDonNotWant.add(i);
+						piecesWeDoNotWant.add(i);
 			} else if (ft.startFile != -1 && ft.endFile != -1) {
 				//two non consecutive files
 				boolean downloadPiece = false;
@@ -531,7 +545,7 @@ public class IO {
 						break;
 					}
 				}
-				if (!downloadPiece) piecesWeDonNotWant.add(i);
+				if (!downloadPiece) piecesWeDoNotWant.add(i);
 			} else if (ft.startFile != -1 && ft.endFile == -1) {
 				//last piece
 				boolean downloadPiece = false;
@@ -542,7 +556,7 @@ public class IO {
 						break;
 					}
 				}
-				if (!downloadPiece) piecesWeDonNotWant.add(i);
+				if (!downloadPiece) piecesWeDoNotWant.add(i);
 			}
 		}
 	}
