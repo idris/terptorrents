@@ -7,6 +7,7 @@ package terptorrents.models;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -61,6 +62,8 @@ public class PieceManager {
 		while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 			peerPieceList.remove(0);
 		Iterator<PeerPiece> i = peerPieceList.iterator();
+		//TODO java.util.ConcurrentModificationException is thrown
+		try {
 		while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
 				&& i.hasNext()){
 			BlockRange [] blockRanges = i.next().getBlockRangeToRequest();
@@ -74,15 +77,21 @@ public class PieceManager {
 				j++;
 			}
 		}
+		} catch (ConcurrentModificationException e) {
+			Main.dprint("ConcurrentModificationException is caugh in " +
+					"PieceManager while iterating over piece List");
+		}
 		return res;
 	}
 
 	public void addPeer(BitSet peerBitField, Peer peer) {
 		assert peerBitField.length() == pieces.length;
-
+		assert peer != null;
+		
 		for(int i = 0; i < peerBitField.size(); i++){
 			if(peerBitField.get(i) && (pieces[i] instanceof PeerPiece)){
-				peer.getConnection().sendMessage(new InterestedMessage());
+				PeerConnection pc = peer.getConnection();
+				if (pc != null) pc.sendMessage(new InterestedMessage());
 				break;
 			}
 		}
@@ -139,9 +148,9 @@ public class PieceManager {
 	}
 
 	public byte [] requestBlock(int pieceIndex, int blockBegin, int blockLength)	
-	throws TerptorrentsModelsPieceNotReadable, 
-	TerptorrentsModelsBlockIndexOutOfBound, 
-	TerptorrentsModelsPieceIndexOutOfBound{
+			throws TerptorrentsModelsPieceNotReadable, 
+			TerptorrentsModelsBlockIndexOutOfBound, 
+			TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
