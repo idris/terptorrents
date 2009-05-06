@@ -55,7 +55,7 @@ class PeerConnectionIn implements Runnable {
 			try {
 				readMessage();
 			} catch(IOException ex) {
-				Main.dprint("peer disconnected ---" + connection.peer.toString());
+				Main.dprint("ConnectionIN. Peer disconnected. " + connection.peer.toString());
 				connection.disconnect = true;
 			} catch(UnknownMessageException ex) {
 				Main.dprint("Unknown message received.");
