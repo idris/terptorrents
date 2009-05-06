@@ -61,6 +61,7 @@ public class Peer {
 
 	@Override
 	public String toString() {
-		return new String(id) + "|" + address.toString();
+		//return new String(id) + "|" + address.toString();
+		return address.toString();
 	}
 }
