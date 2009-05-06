@@ -81,14 +81,14 @@ public class PieceManager {
 		assert peerBitField.length() == pieces.length;
 
 		for(int i = 0; i < peerBitField.size(); i++){
-			if(peerBitField.get(i) && pieces[i] instanceof PeerPiece){
+			if(peerBitField.get(i) && (pieces[i] instanceof PeerPiece)){
 				peer.getConnection().sendMessage(new InterestedMessage());
 				break;
 			}
 		}
 
 		for(int i = 0; i < pieces.length; i++){
-			if(pieces[i] instanceof PeerPiece && peerBitField.get(i)){
+			if((pieces[i] instanceof PeerPiece) && peerBitField.get(i)){
 				((PeerPiece)(pieces[i])).addPeer(peer); 
 				peerPieceList.add((PeerPiece)pieces[i]);
 			}
