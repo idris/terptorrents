@@ -52,11 +52,11 @@ public class PieceManager {
 			HashSet<BlockRange> RequestedBlock) throws
 			TerptorrentsModelsCanNotRequstFromThisPeer{
 		PeerConnection conn = peer.getConnection();
-		if(conn == null) throw new TerptorrentsModelsCanNotRequstFromThisPeer();
+		if(conn == null) throw new TerptorrentsModelsCanNotRequstFromThisPeer("Disconnected Peer");
 		int requestedBytes = 0;
 		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
 		if(conn.peerChoking() || !conn.amInterested())
-			throw new TerptorrentsModelsCanNotRequstFromThisPeer();
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer("Peer is choking us or We are not intersted");
 		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 		while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 			peerPieceList.remove(0);
