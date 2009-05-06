@@ -39,7 +39,9 @@ public class ChockingAlgorithm implements Runnable {
 								br.getLength()));
 					}
 				} catch (TerptorrentsModelsCanNotRequstFromThisPeer e) {
-					e.printStackTrace();
+					if (Main.DEBUG)
+						System.err.println("Can not request from this peer EXCEPTION IS CAUGHT: " + peerCon.getPeer().toString());
+					//e.printStackTrace();
 				}
 			}
 
