@@ -224,4 +224,8 @@ public class PeerConnection {
 		ConnectionPool.getInstance().removeConnection(this);
 		peer.setConnection(null);
 	}
+	
+	public String toString() {
+		return this.peer.toString();
+	}
 }

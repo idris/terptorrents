@@ -21,14 +21,21 @@ public class Main {
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
-	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
-	public static final int NUM_PEERS_TO_UNCHOKE = 3;
+	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 10;
+	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
-	public static final int MAX_PEER_CONNECTIONS = 40;
+	public static final int MAX_PEER_CONNECTIONS = 20;
 	public static final int PORT = 6881;
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
-	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 10000;
-	
+	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
+	/* time between retransmission of unreplied request messages for particular
+	 * block
+	 */
+	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
+	/* stop requesting blocks from the peers after some number of attempts
+	 * and try different peers
+	 */
+	public static final int MAX_NUM_RETRANSMISSIONs_OF_REQUEST_MESSAGES = 3;
 	/* ID prefix can not exceed 20 bytes, however it MUST always be less
 	 * than 20
 	 */
@@ -44,8 +51,8 @@ public class Main {
 	 */		
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
-		//TODO remove comment. It is OFF for debuggin purpose
-		torrentFile = "piratemaryland.jpg.torrent";
+		//TODO remove comment. It is OFF for debugging purpose
+		torrentFile = "book2.torrent";
 		//parseCommand(args);
 		
 		
@@ -74,7 +81,20 @@ public class Main {
 
 			/*start connection pool*/
 			dprint("Instantiating ConnectionPool");
-			ConnectionPool.newInstance();
+			/* start it in a thread, because it can take time to launch it
+			 * if a lot of peers returned by tracker */
+			Thread connectionPool = new Thread(new Runnable(){
+				public void run() {
+					try {
+						ConnectionPool.newInstance();
+					} catch (IOException e) {
+						Main.dprint("Connection pool died.");
+						e.printStackTrace();
+					}					
+				}				
+			});
+			connectionPool.setDaemon(true);
+			connectionPool.start();
 			
 			
 			/*start peer listener*/
