@@ -32,7 +32,7 @@ public class HandshakeMessage implements Message {
 		return peerId;
 	}
 
-	@Override
+
 	public void read(DataInputStream dis, int pstrlen) throws IOException {
 		if(pstrlen != HandshakeMessage.pstr.length()) throw new BadHandshakeException();
 
@@ -57,7 +57,7 @@ public class HandshakeMessage implements Message {
 		peerId = twentyBytes;
 	}
 
-	@Override
+
 	public void write(DataOutputStream out) throws IOException {
 		out.writeByte(pstr.length()); // pstrlen
 		out.writeBytes(pstr); // pstr
@@ -66,9 +66,9 @@ public class HandshakeMessage implements Message {
 		out.write(peerId); // peer_id
 	}
 
-	@Override
+	
 	public void onReceive(PeerConnection conn) {}
 
-	@Override
+
 	public void onSend(PeerConnection conn) {}
 }
