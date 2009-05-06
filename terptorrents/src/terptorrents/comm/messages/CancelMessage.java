@@ -10,6 +10,15 @@ public class CancelMessage extends Message {
 	private int index;
 	private int begin;
 	private int length;
+	
+	public CancelMessage() {
+	}
+	
+	public CancelMessage(int index, int begin, int length) {
+		this.index = index;
+		this.begin = begin;
+		this.length = length;
+	}
 
 	public int getIndex() {
 		return index;

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import terptorrents.Main;
 import terptorrents.Stats;
+import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
 import terptorrents.models.PieceManager;
 
@@ -65,6 +66,17 @@ public class PieceMessage extends Message {
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
+			if(PieceManager.getInstance().isEndGameTiggered()){
+				 for(PeerConnection peerCon: ConnectionPool.
+                         getInstance().getNonChokingAndInsterested()){
+					 if(conn != peerCon){
+						 peerCon.sendMessage(
+								 new CancelMessage(index, begin, block.length));
+					 }
+				 }
+				
+			}
+			
 		} catch(Exception ex) {
 			if (Main.DEBUG)
 				System.err.println("Following exception is caught: " + ex.getClass());
