@@ -17,7 +17,7 @@ public class PeerListener implements Runnable {
 
 	public PeerListener(int port){
 		int i;
-		for(i = 0; i < 10; i++){
+		for(i = 0; i < Main.MAX_NUM_OF_PORTS_TO_TRY; i++){
 			try {
 				this.serverSocket = new ServerSocket(port + i);
 				break;
