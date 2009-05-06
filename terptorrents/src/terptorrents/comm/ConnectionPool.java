@@ -119,8 +119,10 @@ public class ConnectionPool {
 			getChokedAndInterested();
 		if(PlannedOptimisticUnchokedPeerCandidates.isEmpty()) return null;
 		Random rand = new Random();
-		return PlannedOptimisticUnchokedPeerCandidates.get(rand.nextInt() %
-				PlannedOptimisticUnchokedPeerCandidates.size());
+		/* Sergey. nextInteger can return negative value. Checking added */
+		int randomPeerConnection = Math.abs(rand.nextInt()) %
+				PlannedOptimisticUnchokedPeerCandidates.size();
+		return PlannedOptimisticUnchokedPeerCandidates.get(randomPeerConnection);
 	}
 
 	/**
