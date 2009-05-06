@@ -38,6 +38,7 @@ public class PieceManager {
 	private ArrayList<LocalPiece> localPieceList;
 	private int currentRequestBufferSize;
 	private int numPieceReceived;
+	private boolean endGameTiggered;
 
 	public static  PieceManager getInstance() {
 		return SINGLETON;
@@ -49,45 +50,68 @@ public class PieceManager {
 	}
 
 
+	/**
+	 * @return the endGameTiggered
+	 */
+	public boolean isEndGameTiggered() {
+		return endGameTiggered;
+	}
+
 	public ArrayList<BlockRange> getBlockRangeToRequest(Peer peer, 
-			HashSet<BlockRange> RequestedBlock) throws
+			HashSet<BlockRange> RequestedBlock, int size) throws
 			TerptorrentsModelsCanNotRequstFromThisPeer{
 		PeerConnection conn = peer.getConnection();
-		if(conn == null) throw new TerptorrentsModelsCanNotRequstFromThisPeer("Disconnected Peer");
-		int requestedBytes = 0;
-		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
+		if(conn == null) 
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer
+			("Disconnected Peer");
+
 		if(conn.peerChoking() || !conn.amInterested())
-			throw new TerptorrentsModelsCanNotRequstFromThisPeer("Peer is choking us or We are not intersted");
-		Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
-		while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
-			peerPieceList.remove(0);
-		Iterator<PeerPiece> i = peerPieceList.iterator();
-		//TODO java.util.ConcurrentModificationException is thrown
-		try {
-		while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
-				&& i.hasNext()){
-			BlockRange [] blockRanges = i.next().getBlockRangeToRequest();
-			int j = 0;
-			while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE 
-					&& j < blockRanges.length){
-				if(!RequestedBlock.contains(blockRanges[j])){
-					res.add(blockRanges[j]);
-					requestedBytes += blockRanges[j].getLength();
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer(
+			"Peer is choking us or We are not intersted");
+
+		ArrayList<BlockRange> res = new ArrayList<BlockRange>();
+		if(numPieceReceived + Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME >= 
+			IO.getInstance().getBitSet().totalNumOfPieces()){
+			endGameTiggered = true;
+			for(PeerPiece pp: peerPieceList){
+				BlockRange [] blockRanges = pp.getBlockRangeToRequest();
+				for(int i = 0; i < blockRanges.length; i++)
+					res.add(blockRanges[i]);
+			}
+		}else{
+			Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
+			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
+				peerPieceList.remove(0);
+			Iterator<PeerPiece> i = peerPieceList.iterator();
+
+			int requestedBytes = 0;
+			try {
+				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE * size
+						&& i.hasNext()){
+					BlockRange [] blockRanges = i.next().getBlockRangeToRequest();
+					int j = 0;
+					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
+							&& j < blockRanges.length){
+						if(!RequestedBlock.contains(blockRanges[j])){
+							res.add(blockRanges[j]);
+							requestedBytes += blockRanges[j].getLength();
+						}
+						j++;
+					}
 				}
-				j++;
+			} catch (ConcurrentModificationException e) {
+				Main.dprint("ConcurrentModificationException is caugh in " +
+				"PieceManager while iterating over piece List");
 			}
 		}
-		} catch (ConcurrentModificationException e) {
-			Main.dprint("ConcurrentModificationException is caugh in " +
-					"PieceManager while iterating over piece List");
-		}
+
 		return res;
 	}
 
 	public void addPeer(BitSet peerBitField, Peer peer) {
 		assert peerBitField.length() == pieces.length;
 		assert peer != null;
-		
+
 		for(int i = 0; i < peerBitField.size(); i++){
 			if(peerBitField.get(i) && (pieces[i] instanceof PeerPiece)){
 				PeerConnection pc = peer.getConnection();
@@ -148,9 +172,9 @@ public class PieceManager {
 	}
 
 	public byte [] requestBlock(int pieceIndex, int blockBegin, int blockLength)	
-			throws TerptorrentsModelsPieceNotReadable, 
-			TerptorrentsModelsBlockIndexOutOfBound, 
-			TerptorrentsModelsPieceIndexOutOfBound{
+	throws TerptorrentsModelsPieceNotReadable, 
+	TerptorrentsModelsBlockIndexOutOfBound, 
+	TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex] instanceof PeerPiece)
@@ -175,7 +199,7 @@ public class PieceManager {
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
 		if(pieces[pieceIndex].updateBlock(pieceIndex, blockBegin, 
 				blockLength, data)){
-			
+
 			/*send have messages*/
 			for(PeerConnection conn : ConnectionPool.getInstance().
 					getConnections()){
@@ -183,7 +207,7 @@ public class PieceManager {
 					conn.sendMessage(new HaveMessage(pieceIndex));
 				}
 			}
-			
+
 			for(Peer peer:((PeerPiece)(pieces[pieceIndex])).getPeerSet()){
 				boolean peerHaveOtherPiece = false;
 				for(PeerPiece pp: peerPieceList){
@@ -215,6 +239,7 @@ public class PieceManager {
 		localPieceList = new ArrayList<LocalPiece>();
 		currentRequestBufferSize = 0;
 		numPieceReceived = 0;
+		endGameTiggered = false;
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
 			try {

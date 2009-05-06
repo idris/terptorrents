@@ -28,21 +28,12 @@ public class Main {
 	public static final int PORT = 6881;
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
-	/* time between retransmission of unreplied request messages for particular
-	 * block
-	 */
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
-	/* stop requesting blocks from the peers after some number of attempts
-	 * and try different peers
-	 */
-	public static final int MAX_NUM_RETRANSMISSIONs_OF_REQUEST_MESSAGES = 3;
-	/* ID prefix can not exceed 20 bytes, however it MUST always be less
-	 * than 20
-	 */
+	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME = 4;
+	public static final int MAX_NUM_OF_BLOCK_REQUESTS = 3;
 	
 	/* ****************************************************** */
-	
-	
+
 	private static String torrentFile;
 	private final static String USAGE = " <-d> <.torrent>";
 	/* ARGUMENTS: 
