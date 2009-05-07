@@ -7,8 +7,8 @@ package terptorrents.models;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -76,13 +76,13 @@ public class PieceManager {
 			Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 				peerPieceList.remove(0);
-			Iterator<PeerPiece> i = peerPieceList.iterator();
+			Enumeration<PeerPiece> e = peerPieceList.elements();
 
 			int requestedBytes = 0;
 			try {
 				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE * size
-						&& i.hasNext()){
-					BlockRange [] blockRanges = i.next().getBlockRangeToRequest();
+						&& e.hasMoreElements()){
+					BlockRange [] blockRanges = e.nextElement().getBlockRangeToRequest();
 					int j = 0;
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
@@ -93,7 +93,7 @@ public class PieceManager {
 						j++;
 					}
 				}
-			} catch (ConcurrentModificationException e) {
+			} catch (ConcurrentModificationException ex) {
 				Main.dprint("ConcurrentModificationException is caugh in " +
 				"PieceManager while iterating over piece List");
 			}
