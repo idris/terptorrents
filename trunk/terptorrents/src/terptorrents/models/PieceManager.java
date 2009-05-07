@@ -253,7 +253,7 @@ public class PieceManager {
 		peerPieceList = new Vector<PeerPiece>();
 		localPieceList = new Vector<LocalPiece>();
 		currentRequestBufferSize = 0;
-		numPieceReceived = 0;
+		numPieceReceived = IO.getInstance().getNumOfIgnoredPieces();
 		endGameTiggered = false;
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
