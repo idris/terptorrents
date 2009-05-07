@@ -16,11 +16,12 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	private static final String ID_PREFIX = "TerpTorrent ";
+	private static final String ID_PREFIX = "TerpTorrent_";
 	public static byte [] PEER_ID;
-
+	/* ------------------------------- */
 	public static boolean DEBUG = true;
 	public static boolean INFO = true;
+	/* ------------------------------- */
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
@@ -29,6 +30,7 @@ public class Main {
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
 	public static final int MAX_PEER_CONNECTIONS = 20;
 	/* ------------------------------------- */
+	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;
 	public static final int MIN_PORT = 6881;
 	public static final int MAX_PORT = 6889;
@@ -50,7 +52,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "book2.torrent";
+		torrentFile = "memory_coredump.torrent";
 		//parseCommand(args);
 
 
@@ -207,7 +209,11 @@ public class Main {
 		Random r = new Random(System.currentTimeMillis());
 		r.nextBytes(randomID);
 		System.arraycopy(randomID, 0, PEER_ID, peerPrefix.length, randomID.length);
-		dprint("Client ID: " + new String(PEER_ID));
+		String randPart = "";
+		for (int i = 0 ; i < randomID.length; i++) {
+			randPart += Math.abs(randomID[i]);
+		}
+		dprint("Client ID: " + Main.ID_PREFIX + randPart);
 	}
 
 }
