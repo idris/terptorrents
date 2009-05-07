@@ -83,6 +83,8 @@ public class PieceManager {
 			Enumeration<PeerPiece> e = peerPieceList.elements();
 			PeerPiece firstRarestPiece = e.nextElement();
 			
+			rarestPeerPieceList.add(firstRarestPiece);
+			
 			while(e.hasMoreElements()){
 				PeerPiece currentPeerPiece = e.nextElement();
 				if(firstRarestPiece.getPeerSet().size() ==
