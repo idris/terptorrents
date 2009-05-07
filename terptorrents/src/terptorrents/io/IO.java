@@ -97,7 +97,7 @@ public class IO {
 				//Ignore integrity checking of deselected pieces
 			}
 		}
-		if (Main.DEBUG) System.out.println();
+		if (Main.DEBUG) System.out.println("\n Number of pieces to download: " + this.getBitSet().getNumEmptyPieces());
 	}
 	
 	private void prepareFolders(MetaFile m) {
