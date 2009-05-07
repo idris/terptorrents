@@ -19,7 +19,7 @@ public class PeerPiece extends Piece {
 	public PeerPiece(boolean isLastPiece, int index){
 		super(isLastPiece, index);
 		peerSet = new HashSet<Peer>();
-		data = new byte[getSize()];
+		data = null;
 		freeBlock = new TreeMap<Integer, Integer>();
 		initFreeBlock();
 	}
@@ -75,7 +75,9 @@ public class PeerPiece extends Piece {
 	throws TerptorrentsModelsBlockIndexOutOfBound {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
-
+		if (data == null)
+			data = new byte[getSize()];
+		
 		Main.dprint("BlockReceived. PieceIndex: " + pieceIndex + 
 				" blockBegin: " + blockBegin + " blockLength: " + 
 				blockLength);
