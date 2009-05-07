@@ -44,7 +44,7 @@ public class PeerListener implements Runnable {
 										socket.getInetAddress().getHostAddress(), 
 										socket.getPort()));
 
-						if(handshake.getPeerId().equals(Main.PEER_ID)) {
+						if(new String(handshake.getPeerId()).equals(new String(Main.PEER_ID))) {
 							if(peer != null) PeerList.getInstance().removePeer(peer);
 							throw new IOException("Tried to connect to myself!");
 						}
