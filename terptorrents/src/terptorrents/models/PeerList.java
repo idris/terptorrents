@@ -40,24 +40,27 @@ public class PeerList {
 		return set;
 	}
 
-	public void addPeer(Peer p) {
+	/* return true if peer added successfully */
+	public synchronized boolean addPeer(Peer p) {
 		if(!peers.contains(p)) {
 			peers.add(p);
 			peersByAddress.put(p.getAddress(), p);
+			return true;
 		}
+		return false;
 	}
 
-	public void addPeers(List<Peer> newPeers) {
+	public synchronized void addPeers(List<Peer> newPeers) {
 		for(Peer p: newPeers) {
 			addPeer(p);
 		}
 	}
 
-	public void removePeer(Peer p) {
+	public synchronized void removePeer(Peer p) {
 		peers.remove(p);
 	}
 
-	public Peer getPeer(InetSocketAddress addr) {
+	public synchronized Peer getPeer(InetSocketAddress addr) {
 		return peersByAddress.get(addr);
 	}
 }
