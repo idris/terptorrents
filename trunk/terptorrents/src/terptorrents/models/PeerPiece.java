@@ -31,8 +31,6 @@ public class PeerPiece extends Piece {
 	/**
 	 * This function returns the the biggest undownloaded block range.
 	 * 
-	 * TODO this function is currently doing a linear search. This call can be
-	 * very expensive.
 	 * 
 	 * @return
 	 */
