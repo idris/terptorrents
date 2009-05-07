@@ -79,13 +79,18 @@ public class IO {
 		dprint("Checking file(s) integrity...");
 		byte[] piece;
 		dprint("Marking pieces to download: ");
+		int numOfDots = 0;
 		for (int i = 0; i < mask.length; i++) {
 			try {
 				piece = this.getPiece(i);
 				digest.update(piece);
 				byte[] hash = digest.digest();				
 				if (!Arrays.equals(hash, this.pieceHashes.get(i))) {
-					if (Main.DEBUG) System.out.print("."/*i + "  "*/);
+					if (Main.DEBUG) {
+						System.out.print("."/*i + "  "*/);
+						numOfDots++;
+						if (numOfDots > 80) {System.out.println(); numOfDots = 0;}
+					}
 					mask[i] = false;
 				} else {
 					mask[i] = true;
