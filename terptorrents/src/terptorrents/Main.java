@@ -21,7 +21,7 @@ public class Main {
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
-	public static boolean INFO = false;
+	public static boolean INFO = true;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
 	public static final int NUM_PIECES_TO_EVICT = 8;
@@ -30,6 +30,7 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
 	public static final int MAX_PEER_CONNECTIONS = 20;
+	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = 20;
 	/* ------------------------------------- */
 	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;

@@ -8,6 +8,8 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -81,29 +83,17 @@ public class PieceManager {
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 				peerPieceList.remove(0);
 			
-			Vector<PeerPiece> rarestPeerPieceList = new Vector<PeerPiece>();
-			Enumeration<PeerPiece> e = peerPieceList.elements();
-			PeerPiece firstRarestPiece = e.nextElement();
-			
-			rarestPeerPieceList.add(firstRarestPiece);
-			
-			while(e.hasMoreElements()){
-				PeerPiece currentPeerPiece = e.nextElement();
-				if(firstRarestPiece.getPeerSet().size() ==
-					currentPeerPiece.getPeerSet().size())
-					rarestPeerPieceList.add(currentPeerPiece);
-				else
-					break;
-			}
+			List<PeerPiece> rarestPeerPieceList = peerPieceList.subList
+			(0, Math.min(Main.NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST, peerPieceList.size()));			
 			
 			Collections.shuffle(rarestPeerPieceList);
-			e = rarestPeerPieceList.elements();
+			Iterator<PeerPiece> e = rarestPeerPieceList.iterator();
 			
 			int requestedBytes = 0;
 			try {
 				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE * size
-						&& e.hasMoreElements()){
-					BlockRange [] blockRanges = e.nextElement().getBlockRangeToRequest();
+						&& e.hasNext()){
+					BlockRange [] blockRanges = e.next().getBlockRangeToRequest();
 					int j = 0;
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
