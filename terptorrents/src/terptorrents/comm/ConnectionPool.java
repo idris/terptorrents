@@ -7,6 +7,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import terptorrents.Main;
 import terptorrents.models.Peer;
@@ -33,6 +35,12 @@ public class ConnectionPool {
 	private final Vector<PeerConnection> incomingConnections = 
 		new Vector<PeerConnection>(Main.MAX_PEER_CONNECTIONS);
 
+	/**
+	 * each time we create new connection this lock must be acquired
+	 *  to avoid data race
+	 */
+	public final Lock connectLock = new ReentrantLock();
+
 	private final Semaphore incomingSlots = new Semaphore(Main.MAX_PEER_CONNECTIONS);
 
 	private ConnectionPool() throws IOException {
@@ -40,26 +48,28 @@ public class ConnectionPool {
 	}
 
 	private void initialize() {
-		Main.dprint("CONNECTION POOL initialized");
-		Set<Peer> randomPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS);
-		for(Peer peer: randomPeers) {
-			/* if someone creates connection, wait until its done, so 
-			 * we do not have multiple connections to the same peer
-			 */
-			try {
-				synchronized (PeerConnection.PEER_CONNECTION_LOCK) {
+		connectLock.lock();
+
+		try {
+			Set<Peer> randomPeers = PeerList.getInstance().getRandomConnectablePeers(Main.MAX_PEER_CONNECTIONS);
+			for(Peer peer: randomPeers) {
+				/* if someone creates connection, wait until its done, so 
+				 * we do not have multiple connections to the same peer
+				 */
+				try {
 					outgoingConnections.add(new PeerConnection(peer));
+				} catch(IOException ex) {
+					Main.dprint("Failed to Connect: " + peer.toString() + ". " + ex.getMessage());
+					// throw it out
+					peer.disconnect();
+					PeerList.getInstance().removePeer(peer);
 				}
-			} catch(IOException ex) {
-				// throw it out
-				if(Main.DEBUG) {
-					System.err.println("********** Failed to Connect: " + peer.toString());
-//					ex.printStackTrace();
-				}
-				peer.setConnection(null);
-				PeerList.getInstance().removePeer(peer);
 			}
+		} finally {
+			connectLock.unlock();
 		}
+
+		Main.dprint("CONNECTION POOL initialized");
 	}
 
 	public static ConnectionPool newInstance() throws IOException {
@@ -86,20 +96,26 @@ public class ConnectionPool {
 	}
 
 	public synchronized void removeConnection(PeerConnection conn) {
-		if(outgoingConnections.remove(conn)) {
-			Set<Peer> newPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS - outgoingConnections.size());
-			for(Peer p: newPeers) {
-				try {
-					if(p.equals(conn.getPeer())) continue;
+		connectLock.lock();
 
-					outgoingConnections.add(new PeerConnection(p));
-				} catch(IOException ex) {
-					PeerList.getInstance().removePeer(p);
+		try {
+			if(outgoingConnections.remove(conn)) {
+				Set<Peer> newPeers = PeerList.getInstance().getRandomConnectablePeers(Main.MAX_PEER_CONNECTIONS - outgoingConnections.size());
+				for(Peer p: newPeers) {
+					try {
+						if(p.equals(conn.getPeer())) continue;
+
+						outgoingConnections.add(new PeerConnection(p));
+					} catch(IOException ex) {
+						PeerList.getInstance().removePeer(p);
+					}
 				}
+			} else {
+				incomingConnections.remove(conn);
+				releaseIncomingSlot();
 			}
-		} else {
-			incomingConnections.remove(conn);
-			releaseIncomingSlot();
+		} finally {
+			connectLock.unlock();
 		}
 	}
 
@@ -181,7 +197,7 @@ public class ConnectionPool {
 					list.add(peerConnection);
 			}
 		}
-		Collections.sort(list, new DownlaodSpeedComparator());
+		Collections.sort(list, new DownloadSpeedComparator());
 		return list;
 	}
 

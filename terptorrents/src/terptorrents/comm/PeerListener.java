@@ -40,25 +40,38 @@ public class PeerListener implements Runnable {
 	public void run() {
 		Socket socket = null;
 		try {
-			while(listenForConnections && ConnectionPool.getInstance().acquireIncomingSlot()) {
+			while(listenForConnections
+					&& ConnectionPool.getInstance().acquireIncomingSlot()) {
+
 				try {
 					socket = serverSocket.accept();
 
-					//TODO check the number of active connections, drop sockets if it is over limit
-
 					HandshakeMessage handshake = getHandshake(socket);
 
-					// prepare new peer
-					Peer peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
-					
-					/* Sergey
-					 * open connection to the peer only if it is added to the 
-					 * peer list successfully. This will avoid existence
-					 * of multiple connections
-					 */
-					if(PeerList.getInstance().addPeer(peer)) {						
-						PeerConnection connection = new PeerConnection(peer, socket);
-						ConnectionPool.getInstance().addIncomingConnection(connection);
+					ConnectionPool.getInstance().connectLock.lock();
+
+					try {
+						// find the peer
+						Peer peer = PeerList.getInstance().getPeer(
+								new InetSocketAddress(
+										socket.getInetAddress().getHostAddress(), 
+										socket.getPort()));
+
+						if(peer == null) {
+							// prepare new peer
+							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+							PeerList.getInstance().addPeer(peer);
+						} else if(!peer.isConnected()) {
+							/* Sergey (Idris)
+							 * open connection to the peer only if it is not 
+							 * already connected. This will avoid existence
+							 * of multiple connections
+							 */
+							PeerConnection connection = new PeerConnection(peer, socket);
+							ConnectionPool.getInstance().addIncomingConnection(connection);
+						}
+					} finally {
+						ConnectionPool.getInstance().connectLock.unlock();
 					}
 
 				} catch(IOException ex) {
@@ -71,7 +84,6 @@ public class PeerListener implements Runnable {
 			}
 		} catch(InterruptedException ex) {
 			Main.dprint("PeerListener. Interrupted exception is caught. Not Supported. Ignoring");
-			//ex.printStackTrace();
 		}
 
 		try {

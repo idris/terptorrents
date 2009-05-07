@@ -34,17 +34,18 @@ class PeerConnectionIn implements Runnable {
 				// receive initial handshake
 				readHandshake();
 			} catch(IOException ex) {
-				connection.teardown();
-				return;
+				connection.close();
 			}
 		}
+
+		connection.sendBitfield();
 
 		while(!connection.disconnect) {
 			try {
 				readMessage();
 			} catch(IOException ex) {
 				Main.dprint("ConnectionIN. Peer disconnected. " + connection.peer.toString());
-				connection.disconnect = true;
+				connection.close();
 			} catch(UnknownMessageException ex) {
 				Main.dprint("Unknown message received.");
 			}
@@ -56,10 +57,9 @@ class PeerConnectionIn implements Runnable {
 	private HandshakeMessage readHandshake() throws IOException {
 		int length = in.read();
 		if(length < 0) throw new EOFException();
-		System.out.println("READING HANDSHAKE from " + connection.peer.toString());
+		Main.dprint("Reading Handshake from " + connection.peer.toString());
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(in, length);
-		System.out.println("DONE READING HANDSHAKE");
 		connection.handshook = true;
 		return handshake;
 	}
@@ -129,7 +129,7 @@ class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
-		Main.dprint("=> " + m.toString() + " RECEIVED FROM " + connection.peer.toString());
+		Main.iprint("<= " + m.toString() + " RECEIVED FROM " + connection.peer.toString());
 
 		if(m instanceof PieceMessage) {
 			long start = System.currentTimeMillis();

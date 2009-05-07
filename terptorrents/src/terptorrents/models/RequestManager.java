@@ -9,6 +9,7 @@ import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.RequestMessage;
 import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
+import terptorrents.io.IO;
 
 public class RequestManager implements Runnable {
 	private static final RequestManager singleton = new RequestManager();
@@ -38,6 +39,8 @@ public class RequestManager implements Runnable {
 	 */
 	public synchronized void requestBlocks(Peer peer, int numBlocks) 
 	throws TerptorrentsModelsCanNotRequstFromThisPeer {
+		if(IO.getInstance().isComplete()) return;
+
 		Vector<BlockRange> blockRanges = PieceManager.getInstance().
 		getBlockRangeToRequest(peer, new HashSet<BlockRange>(dogpile), 
 				numBlocks);

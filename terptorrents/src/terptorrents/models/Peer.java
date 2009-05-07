@@ -2,13 +2,14 @@ package terptorrents.models;
 
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import terptorrents.comm.PeerConnection;
 
 public class Peer {
 	private final byte[] id;
 	private final InetSocketAddress address;
-	private int badCount = 0;
+	private AtomicInteger badCount = new AtomicInteger();
 
 	
 	@Override
@@ -50,7 +51,7 @@ public class Peer {
 
 	public synchronized void disconnect() {
 		setConnection(null);
-		badCount++;
+		badCount.incrementAndGet();
 	}
 
 	public synchronized void setConnection(PeerConnection connection) {
@@ -66,7 +67,7 @@ public class Peer {
 	}
 
 	public boolean isConnectable() {
-		return !isConnected() && badCount <= 2;
+		return !isConnected() && badCount.get() <= 2;
 	}
 
 	@Override

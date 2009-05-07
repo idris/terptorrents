@@ -28,7 +28,7 @@ public class PeerList {
 		return singleton;
 	}
 
-	public Set<Peer> getRandomUnconnectedPeers(int max) {
+	public Set<Peer> getRandomConnectablePeers(int max) {
 		Set<Peer> set = new HashSet<Peer>(max);
 		for(Peer p: peers) {
 			if(p.isConnectable()) {
@@ -58,6 +58,7 @@ public class PeerList {
 
 	public synchronized void removePeer(Peer p) {
 		peers.remove(p);
+		peersByAddress.remove(p.getAddress());
 	}
 
 	public synchronized Peer getPeer(InetSocketAddress addr) {
