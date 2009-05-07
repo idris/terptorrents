@@ -48,20 +48,20 @@ public class Peer {
 		return id;
 	}
 
-	public void disconnect() {
+	public synchronized void disconnect() {
 		setConnection(null);
 		badCount++;
 	}
 
-	public void setConnection(PeerConnection connection) {
+	public synchronized void setConnection(PeerConnection connection) {
 		this.connection = connection;
 	}
 
-	public PeerConnection getConnection() {
+	public synchronized PeerConnection getConnection() {
 		return connection;
 	}
 
-	public boolean isConnected() {
+	public synchronized boolean isConnected() {
 		return connection != null;
 	}
 

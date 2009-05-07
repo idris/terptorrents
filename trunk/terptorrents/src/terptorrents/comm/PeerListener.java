@@ -48,18 +48,19 @@ public class PeerListener implements Runnable {
 
 					HandshakeMessage handshake = getHandshake(socket);
 
-					// find (or create) the peer
-					Peer peer = PeerList.getInstance().getPeer(new InetSocketAddress(socket.getInetAddress(), socket.getPort()));
-					if(peer == null) {
-						peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
-						PeerList.getInstance().addPeer(peer);
-					}
-					if(peer.getConnection() != null) {
-						// already connected to peer
-					} else {
+					// prepare new peer
+					Peer peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+					
+					/* Sergey
+					 * open connection to the peer only if it is added to the 
+					 * peer list successfully. This will avoid existence
+					 * of multiple connections
+					 */
+					if(PeerList.getInstance().addPeer(peer)) {						
 						PeerConnection connection = new PeerConnection(peer, socket);
 						ConnectionPool.getInstance().addIncomingConnection(connection);
 					}
+
 				} catch(IOException ex) {
 					// something went wrong with the handshake. drop the connection
 					ConnectionPool.getInstance().releaseIncomingSlot();
@@ -69,8 +70,8 @@ public class PeerListener implements Runnable {
 				}
 			}
 		} catch(InterruptedException ex) {
-			//
-			ex.printStackTrace();
+			Main.dprint("PeerListener. Interrupted exception is caught. Not Supported. Ignoring");
+			//ex.printStackTrace();
 		}
 
 		try {
