@@ -8,6 +8,7 @@ import terptorrents.comm.PeerConnection;
 public class Peer {
 	private final byte[] id;
 	private final InetSocketAddress address;
+	private int badCount = 0;
 
 	
 	@Override
@@ -47,6 +48,11 @@ public class Peer {
 		return id;
 	}
 
+	public void disconnect() {
+		setConnection(null);
+		badCount++;
+	}
+
 	public void setConnection(PeerConnection connection) {
 		this.connection = connection;
 	}
@@ -57,6 +63,10 @@ public class Peer {
 
 	public boolean isConnected() {
 		return connection != null;
+	}
+
+	public boolean isConnectable() {
+		return !isConnected() && badCount <= 2;
 	}
 
 	@Override

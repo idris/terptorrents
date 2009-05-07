@@ -8,6 +8,7 @@ import terptorrents.comm.*;
 import terptorrents.io.IO;
 import terptorrents.models.ChockingAlgorithm;
 import terptorrents.models.PieceManager;
+import terptorrents.models.RequestManager;
 
 import metainfo.*;
 
@@ -44,7 +45,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "maryland.jpg.torrent";
+		torrentFile = "book.torrent";
 		//parseCommand(args);
 
 
@@ -103,6 +104,10 @@ public class Main {
 			chockingAlgorithm.setDaemon(true);
 			chockingAlgorithm.start();
 
+			dprint("Starting Request Manager");
+			Thread requestManager = new Thread(RequestManager.getInstance());
+			requestManager.setDaemon(true);
+			requestManager.start();
 
 
 
