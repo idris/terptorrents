@@ -43,7 +43,7 @@ public class ChockingAlgorithm implements Runnable {
 					int min = Math.min(Main.NUM_PEERS_TO_UNCHOKE, numPeersToUnchoke);
 					if (numPeersToUnchoke != 0
 							&& !peersToUnchoke.subList(0, min).
-							contains(peersToUnchoke)) {						
+							contains(unchokedPeer)) {						
 						unchokedPeer.sendMessage(new ChokeMessage());
 					}
 
