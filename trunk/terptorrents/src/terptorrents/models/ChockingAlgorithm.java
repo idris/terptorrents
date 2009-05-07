@@ -89,7 +89,7 @@ public class ChockingAlgorithm implements Runnable {
 				for(PeerConnection unchokedPeer : unchokedPeers){
 					if(!uploaderList.subList(0, Math.min(uploaderList.size(), 
 							Main.NUM_PEERS_TO_UNCHOKE)).
-							contains(uploaderList))
+							contains(unchokedPeer))
 						unchokedPeer.sendMessage(new ChokeMessage());
 				}
 				if(plannedOptimisticUnchokedPeer != null){
