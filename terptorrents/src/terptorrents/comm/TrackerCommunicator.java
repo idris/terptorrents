@@ -60,7 +60,7 @@ public class TrackerCommunicator implements Runnable {
 		while(!completed) {
 			try {
 				pingTracker();
-			} catch(IOException ex) {
+			} catch(Exception ex) {
 				// oh well... maybe next time.
 			}
 
@@ -73,7 +73,7 @@ public class TrackerCommunicator implements Runnable {
 
 		try {
 			pingTracker(EVENT_COMPLETED);
-		} catch(IOException ex) {
+		} catch(Exception ex) {
 			// oh well... maybe next time.
 		}
 
@@ -86,14 +86,14 @@ public class TrackerCommunicator implements Runnable {
 
 			try {
 				pingTracker();
-			} catch(IOException ex) {
+			} catch(Exception ex) {
 				// oh well... maybe next time.
 			}
 		}
 
 		try {
 			pingTracker(EVENT_STOPPED);
-		} catch(IOException ex) {
+		} catch(Exception ex) {
 			// oh well... maybe next time.
 		}
 	}
@@ -120,14 +120,8 @@ public class TrackerCommunicator implements Runnable {
 		StringBuffer buf = new StringBuffer();
 		CharBuffer charBuf = CharBuffer.wrap(buf);
 		while(reader.read(charBuf) > 0);*/
-		
-		try {
-			
-			Main.dprint("Waiting for tracker respond...");
-			handleResponse(conn.getInputStream());
-		} catch (TrackerResponseException e) {
-			e.printStackTrace();
-		}
+		Main.dprint("Waiting for tracker respond...");
+		handleResponse(conn.getInputStream());
 		
 	}
 
@@ -150,7 +144,7 @@ public class TrackerCommunicator implements Runnable {
 		return str;
 	}
 
-	private void handleResponse(InputStream responseStream) throws InvalidBEncodingException, IOException, TrackerResponseException {
+	private void handleResponse(InputStream responseStream) throws InvalidBEncodingException, IOException {
 		BDecoder bdecoder = new BDecoder(responseStream);
 		BEValue failureReasonBE;
 		Map topLevelMap=bdecoder.bdecode().getMap();

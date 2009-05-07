@@ -1,6 +1,8 @@
 package terptorrents.exceptions;
 
-public class TrackerResponseException extends Exception {
+import java.io.IOException;
+
+public class TrackerResponseException extends IOException {
 	
 
 	/**

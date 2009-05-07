@@ -45,9 +45,6 @@ public class RequestManager implements Runnable {
 		getBlockRangeToRequest(peer, new HashSet<BlockRange>(dogpile), 
 				numBlocks);
 		for(BlockRange br : blockRanges) {
-			if(br.getLength() == 0) {
-				System.err.println("ZERO REQUEST!!!");
-			}
 			PeerConnection conn = peer.getConnection();
 			dogpile.add(br);
 			conn.sendMessage(new RequestMessage(br));

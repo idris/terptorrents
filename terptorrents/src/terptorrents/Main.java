@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.util.Random;
 
 import terptorrents.comm.*;
+import terptorrents.exceptions.TrackerResponseException;
 import terptorrents.io.IO;
 import terptorrents.models.ChockingAlgorithm;
 import terptorrents.models.PieceManager;
@@ -52,7 +53,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Linux_Server_Edition.torrent";
+		torrentFile = "LInux_Server_Edition_O-Demonoid.com-O.torrent";
 		//parseCommand(args);
 
 
@@ -144,8 +145,10 @@ public class Main {
 				}
 			}
 
+		} catch (TrackerResponseException e) {
+			System.err.println("TrackerResponseException is caught. Reason: " + e.getMessage());
 		} catch (IOException e) {
-			dprint("IOException is caught. Reason: " + e.getMessage());
+			System.err.println("IOException is caught. Reason: " + e.getMessage());
 		}		
 	}
 
