@@ -29,7 +29,7 @@ public class ParserTester {
 		//url = TorrentParser.getInstance().getMetaFile().computeInfoHash();
 		
 		url += "?info_hash=" + TorrentParser.getInstance().getMetaFile().getURLInfoHash() +
-		"&peer_id=" + TerpURL.urlencode(Main.PEER_ID) +
+		"&peer_id=" + TerpURL.urlEncodeBinary(Main.PEER_ID) +
 		"&port=" + Main.PORT +
 		"&uploaded=" + Stats.getInstance().downloaded +
 		"&downloaded=" + Stats.getInstance().uploaded +
