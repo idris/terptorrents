@@ -3,6 +3,7 @@ package terptorrents.models;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.Map.Entry;
 
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
@@ -12,13 +13,13 @@ import terptorrents.io.IO;
 import terptorrents.*;
 
 public class PeerPiece extends Piece {
-	private HashSet<Peer> peerSet;
+	private Vector<Peer> peerSet;
 	private TreeMap<Integer, Integer> freeBlock; 
 	private byte[] data;
 
 	public PeerPiece(boolean isLastPiece, int index){
 		super(isLastPiece, index);
-		peerSet = new HashSet<Peer>();
+		peerSet = new Vector<Peer>();
 		data = null;
 		freeBlock = new TreeMap<Integer, Integer>();
 		initFreeBlock();
@@ -59,7 +60,7 @@ public class PeerPiece extends Piece {
 			peerSet.remove(peer);
 	}
 
-	public synchronized HashSet<Peer> getPeerSet(){
+	public synchronized Vector<Peer> getPeerSet(){
 		return peerSet;
 	}
 

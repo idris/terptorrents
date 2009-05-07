@@ -157,7 +157,7 @@ public class PieceManager {
 				((PeerPiece)(pieces[i])).removePeer(peer);
 	}
 
-	public HashSet<Peer> GetPeerSet(int pieceIndex) 
+	public Vector<Peer> GetPeerSet(int pieceIndex) 
 	throws TerptorrentsModelsPieceNotWritable, 
 	TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
@@ -204,10 +204,14 @@ public class PieceManager {
 					conn.sendMessage(new HaveMessage(pieceIndex));
 				}
 			}
-
-			for(Peer peer:((PeerPiece)(pieces[pieceIndex])).getPeerSet()){
+			Enumeration<Peer> ps = ((PeerPiece)(pieces[pieceIndex])).getPeerSet().elements();
+			Peer peer;
+			while(ps.hasMoreElements()){
+				peer = ps.nextElement();
 				boolean peerHaveOtherPiece = false;
-				for(PeerPiece pp: peerPieceList){
+				PeerPiece pp;
+				for(int i = 0; i < peerPieceList.size(); i++){
+					pp = peerPieceList.get(i);
 					if(pp.hasPeer(peer)){
 						peerHaveOtherPiece = true;
 						break;
@@ -248,8 +252,7 @@ public class PieceManager {
 					pieces[i] = new LocalPiece((i == numPieces - 1), i) ;
 				}
 			} catch (TerptorrentsIONoSuchPieceException e) {
-				if(terptorrents.Main.DEBUG)
-					e.printStackTrace();
+				Main.dprint("PieceMangager: " + e.toString());
 			}
 		}
 	}
