@@ -66,9 +66,16 @@ public class PieceMessage extends AbstractMessage {
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
+		} catch(Exception ex) {
+			if (Main.DEBUG)
+				System.err.println("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+			ex.printStackTrace();
+		}
+
+		try {
 			if(PieceManager.getInstance().isEndGameTiggered()){
 				 for(PeerConnection peerCon: ConnectionPool.
-                         getInstance().getNonChokingAndInsterested()){
+	                    getInstance().getNonChokingAndInsterested()){
 					 if(conn != peerCon){
 						 peerCon.sendMessage(
 								 new CancelMessage(index, begin, block.length));
@@ -78,9 +85,7 @@ public class PieceMessage extends AbstractMessage {
 				RequestManager.getInstance().requestBlocks(conn.getPeer(), 1);
 			}
 		} catch(Exception ex) {
-			if (Main.DEBUG)
-				System.err.println("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
-//			ex.printStackTrace();
+			Main.iprint("Exception in PieceMessage.onReceive() (bottom) is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
 		}
 	}
 
