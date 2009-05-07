@@ -20,7 +20,7 @@ public class Main {
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
-	public static boolean INFO = true;
+	public static boolean INFO = false;
 	/* ------------------------------- */
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
@@ -52,14 +52,14 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "memory_coredump.torrent";
+		torrentFile = "LInux_Server_Edition_O-Demonoid.com-O.torrent";
 		//parseCommand(args);
 
 
 		try {
 			/* Generate Client ID */
 			generatePeerID();
-			
+
 			/* Parsing .torrent file */
 			dprint("Parsing .torrent file");
 			TorrentParser.instantiate(torrentFile);
@@ -94,12 +94,7 @@ public class Main {
 			 * if a lot of peers returned by tracker */
 			Thread connectionPool = new Thread(new Runnable(){
 				public void run() {
-					try {
-						ConnectionPool.newInstance();
-					} catch (IOException e) {
-						Main.dprint("Connection pool died.");
-						e.printStackTrace();
-					}					
+					ConnectionPool.newInstance();
 				}				
 			});
 			connectionPool.setDaemon(true);

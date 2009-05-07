@@ -1,9 +1,6 @@
 package metainfo;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-
-import com.sun.jndi.toolkit.url.UrlUtil;
 
 import terptorrents.Main;
 import terptorrents.Stats;
