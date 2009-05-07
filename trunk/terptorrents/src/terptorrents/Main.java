@@ -23,7 +23,7 @@ public class Main {
 	public static boolean DEBUG = true;
 	public static boolean INFO = false;
 	/* ------------------------------- */
-	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
+	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 26;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
 	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 10;
