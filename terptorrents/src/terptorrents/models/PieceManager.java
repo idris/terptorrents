@@ -66,7 +66,10 @@ public class PieceManager {
 		Vector<BlockRange> res = new Vector<BlockRange>();
 		if(numPieceReceived + Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME >= 
 			IO.getInstance().getBitSet().totalNumOfPieces()){
-			endGameTiggered = true;
+			if(!endGameTiggered){
+				System.out.println("End Game Is Triggered");
+				endGameTiggered = true;
+			}
 			for(PeerPiece pp: peerPieceList){
 				BlockRange [] blockRanges = pp.getBlockRangeToRequest();
 				for(int i = 0; i < blockRanges.length; i++)

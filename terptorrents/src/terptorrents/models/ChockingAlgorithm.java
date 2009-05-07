@@ -3,7 +3,6 @@
  */
 package terptorrents.models;
 
-import java.util.HashSet;
 import java.util.Vector;
 
 import terptorrents.Main;
@@ -11,7 +10,6 @@ import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.ChokeMessage;
 import terptorrents.comm.messages.UnchokeMessage;
-import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
 import terptorrents.io.IO;
 
 /**

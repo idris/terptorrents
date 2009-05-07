@@ -53,7 +53,6 @@ public class PieceMessage extends AbstractMessage {
 		begin = dis.readInt();
 
 		block = new byte[length - 9];
-		//TODO this exception needs to be handled
 		dis.readFully(block);
 	}
 
