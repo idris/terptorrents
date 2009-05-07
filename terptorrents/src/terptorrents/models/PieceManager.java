@@ -63,7 +63,9 @@ public class PieceManager {
 			"Peer is choking us or We are not intersted");
 
 		Vector<BlockRange> res = new Vector<BlockRange>();
-		if(numPieceReceived + Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME >= 
+		if(numPieceReceived + 
+				Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE / 100
+				* IO.getInstance().getBitSet().totalNumOfPieces() >= 
 			IO.getInstance().getBitSet().totalNumOfPieces()){
 			if(!endGameTiggered){
 				System.out.println("End Game Is Triggered");

@@ -39,7 +39,7 @@ public class Main {
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
-	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME = 4;
+	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10;
 	
 	/* ****************************************************** */
@@ -53,7 +53,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "LInux_Server_Edition_O-Demonoid.com-O.torrent";
+		torrentFile = "Ubuntu.torrent";
 		//parseCommand(args);
 
 
