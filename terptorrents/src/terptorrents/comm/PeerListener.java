@@ -15,21 +15,8 @@ public class PeerListener implements Runnable {
 	private boolean listenForConnections = true;
 	private ServerSocket serverSocket;
 
-	public PeerListener(int port){
-		int i;
-		for(i = 0; i < Main.MAX_NUM_OF_PORTS_TO_TRY; i++){
-			try {
-				this.serverSocket = new ServerSocket(port + i);
-				break;
-			} catch (IOException e) {
-				if(Main.DEBUG){
-					System.out.println("trying new port to listen:" + port +"\n");
-				}
-			}
-		}
-		if(i == 10){
-			throw new InternalError("No available ports\n");
-		}
+	public PeerListener(int port) throws IOException {
+		this.serverSocket = new ServerSocket(port);
 	}
 
 	/**
@@ -61,7 +48,9 @@ public class PeerListener implements Runnable {
 							// prepare new peer
 							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
 							PeerList.getInstance().addPeer(peer);
-						} else if(!peer.isConnected()) {
+						}
+
+						if(!peer.isConnected()) {
 							/* Sergey (Idris)
 							 * open connection to the peer only if it is not 
 							 * already connected. This will avoid existence
