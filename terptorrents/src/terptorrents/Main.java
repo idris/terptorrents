@@ -46,7 +46,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "book2.torrent";
+		torrentFile = "piratemaryland.jpg.torrent";
 		//parseCommand(args);
 
 
@@ -100,7 +100,7 @@ public class Main {
 			
 			/*start chocking algorithm*/
 			dprint("Starting choking algorithm");
-			Thread chockingAlgorithm = new Thread(new ChockingAlgorithm());
+			Thread chockingAlgorithm = new Thread(new ChockingAlgorithm(), "CHOKING ALGORITHM");
 			//make thread a daemon, so it dies when Main exits
 			chockingAlgorithm.setDaemon(true);
 			chockingAlgorithm.start();
