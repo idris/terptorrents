@@ -79,7 +79,7 @@ public class PieceMessage extends AbstractMessage {
 			}
 		} catch(Exception ex) {
 			if (Main.DEBUG)
-				System.err.println("Following exception is caught: " + ex.getClass());
+				System.err.println("Exception in PieceMessage.onReceive() is caught: " + ex.getMessage());
 			//ex.printStackTrace();
 		}
 	}
