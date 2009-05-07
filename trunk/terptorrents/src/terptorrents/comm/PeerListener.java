@@ -15,8 +15,8 @@ public class PeerListener implements Runnable {
 	private boolean listenForConnections = true;
 	private ServerSocket serverSocket;
 
-	public PeerListener(int port) throws IOException {
-		this.serverSocket = new ServerSocket(port);
+	public PeerListener(ServerSocket ss) throws IOException {
+		this.serverSocket = ss;
 	}
 
 	/**
