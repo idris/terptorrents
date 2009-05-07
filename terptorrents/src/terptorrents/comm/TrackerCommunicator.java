@@ -134,7 +134,7 @@ public class TrackerCommunicator implements Runnable {
 
 	private String generateQueryString(String event) {
 		String str = "?info_hash=" + infoHash +
-		"&peer_id=" + TerpURL.urlencode(peerId) +
+		"&peer_id=" + TerpURL.urlEncodeBinary(peerId) +
 		"&port=" + port +
 		"&uploaded=" + stats.uploaded +
 		"&downloaded=" + stats.downloaded +

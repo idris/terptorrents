@@ -101,7 +101,7 @@ public class MetaFile {
 
 
 	public String getURLInfoHash(){
-		return TerpURL.urlencode(this.getByteInfoHash());
+		return TerpURL.urlEncodeBinary(this.getByteInfoHash());
 	}
 	
 	public byte[] getByteInfoHash(){
