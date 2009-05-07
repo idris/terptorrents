@@ -20,7 +20,7 @@ import terptorrents.models.PeerList;
  *
  */
 public class ConnectionPool {
-	private static volatile ConnectionPool singleton;
+	private static volatile ConnectionPool singleton = new ConnectionPool();
 
 	/**
 	 * connections I have initiated
@@ -42,7 +42,7 @@ public class ConnectionPool {
 
 	private final Semaphore incomingSlots = new Semaphore(Main.MAX_PEER_CONNECTIONS);
 
-	private ConnectionPool() throws IOException {
+	private ConnectionPool() {
 		// use newInstance to instantiate this singleton.
 	}
 
