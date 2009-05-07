@@ -52,7 +52,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "LInux_Server_Edition_O-Demonoid.com-O.torrent";
+		torrentFile = "Linux_Server_Edition.torrent";
 		//parseCommand(args);
 
 

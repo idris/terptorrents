@@ -75,8 +75,8 @@ public class PeerPiece extends Piece {
 	throws TerptorrentsModelsBlockIndexOutOfBound {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
-		if (data == null)
-			data = new byte[getSize()];
+		if (this.data == null)
+			this.data = new byte[getSize()];
 		
 		Main.dprint("BlockReceived. PieceIndex: " + pieceIndex + 
 				" blockBegin: " + blockBegin + " blockLength: " + 
@@ -165,6 +165,7 @@ public class PeerPiece extends Piece {
 		if(getSize() % Main.MAX_REQUEST_BLOCK_SIZE != 0)
 			freeBlock.put(end * Main.MAX_REQUEST_BLOCK_SIZE, 
 					getSize() % Main.MAX_REQUEST_BLOCK_SIZE);
+		this.data = null;
 	}
 
 	private TreeMap<Integer, Integer> mergeBlock(){
