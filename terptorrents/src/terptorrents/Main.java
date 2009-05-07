@@ -2,6 +2,7 @@ package terptorrents;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Random;
 
 import terptorrents.comm.*;
@@ -27,7 +28,11 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
 	public static final int MAX_PEER_CONNECTIONS = 20;
-	public static final int PORT = 6881;
+	/* ------------------------------------- */
+	public static int 		PORT;
+	public static final int MIN_PORT = 6881;
+	public static final int MAX_PORT = 6889;
+	/* ------------------------------------- */
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
@@ -45,7 +50,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "piratemaryland.jpg.torrent";
+		torrentFile = "book2.torrent";
 		//parseCommand(args);
 
 
@@ -64,6 +69,15 @@ public class Main {
 			/* init piece manager */
 			dprint("Starting Piece Manager");
 			PieceManager.initialize();
+			
+			/* get port for PeerListener */
+			dprint("Creating socket for PeerListener");
+			ServerSocket peerListenerSocket = getSocketForIncommingConnections();
+			if (peerListenerSocket == null) {
+				System.out.println("All ports in from " + MIN_PORT + " to " 
+						+ MAX_PORT + " are taken.");
+			}
+			dprint("Client is listening on port " + Main.PORT);
 
 			/* instantiate Tracker Communicator */
 			dprint("Launching Tracker Communicator");
@@ -91,7 +105,7 @@ public class Main {
 
 			/*start peer listener*/
 			dprint("Starting peer listener");
-			Thread peerListener = new Thread(new PeerListener(PORT));
+			Thread peerListener = new Thread(new PeerListener(peerListenerSocket));
 			//make thread a daemon, so it dies when Main exits
 			peerListener.setDaemon(true);
 			peerListener.start();
@@ -166,6 +180,23 @@ public class Main {
 		if(INFO) {
 			System.out.println("Info : " + message);
 		}
+	}
+	
+	/* look for available port in range for Peer Listener */
+	private static ServerSocket getSocketForIncommingConnections() {
+		// 6881-6889
+		ServerSocket s;
+		int p;
+		for (p = MIN_PORT; p <= MAX_PORT; p++) {
+			try {
+				Main.PORT = p;
+				s = new ServerSocket(p);
+				return s;
+			} catch (IOException e) {
+				Main.dprint("Could not assignt port #" + p + " to a Listenre. Retrying...");
+			}
+		}
+		return null;
 	}
 
 	private static void generatePeerID(){
