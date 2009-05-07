@@ -40,10 +40,16 @@ public class ConnectionPool {
 	}
 
 	private void initialize() {
+		Main.dprint("CONNECTION POOL initialized");
 		Set<Peer> randomPeers = PeerList.getInstance().getRandomUnconnectedPeers(Main.MAX_PEER_CONNECTIONS);
 		for(Peer peer: randomPeers) {
+			/* if someone creates connection, wait until its done, so 
+			 * we do not have multiple connections to the same peer
+			 */
 			try {
-				outgoingConnections.add(new PeerConnection(peer));
+				synchronized (PeerConnection.PEER_CONNECTION_LOCK) {
+					outgoingConnections.add(new PeerConnection(peer));
+				}
 			} catch(IOException ex) {
 				// throw it out
 				if(Main.DEBUG) {

@@ -22,6 +22,11 @@ import terptorrents.models.PieceManager;
  *
  */
 public class PeerConnection {
+	
+	 /* each time we create new connection this lock must be acquired 
+	 * to avoid data race */
+	public static final Object PEER_CONNECTION_LOCK = new Object();
+	/* ***************************************************** */
 	final Peer peer;
 	final Socket socket;
 
@@ -50,29 +55,34 @@ public class PeerConnection {
 
 
 	public PeerConnection(Peer peer) throws IOException {
-		/* check if peer is already in peerList */
-		InetSocketAddress peerAddress = new InetSocketAddress(peer.getAddress()
-				.getAddress(), peer.getAddress().getPort());
-		if (PeerList.getInstance().getPeer(peerAddress) == null)
-			throw new IOException("PeerConnection: Peer is already in a peer list. Skipping");
-		
-		this.peer = peer;
-		peer.setConnection(this);
-		this.socket = new Socket();
-		socket.connect(new InetSocketAddress(peer.getAddress().getAddress(), peer.getAddress().getPort()), CONNECT_TIMEOUT);
-		lastReceived = new Date();
+		synchronized (PEER_CONNECTION_LOCK) {
+			/* check if peer is already in peerList */
+			InetSocketAddress peerAddress = new InetSocketAddress(peer
+					.getAddress().getAddress(), peer.getAddress().getPort());
+			if (PeerList.getInstance().getPeer(peerAddress) == null)
+				throw new IOException(
+						"PeerConnection: Peer is already in a peer list. Skipping");
 
-		sendHandShakeAndBitfield();
+			this.peer = peer;
+			peer.setConnection(this);
+			this.socket = new Socket();
+			socket.connect(
+					new InetSocketAddress(peer.getAddress().getAddress(), peer
+							.getAddress().getPort()), CONNECT_TIMEOUT);
+			lastReceived = new Date();
 
-		outThread = new Thread(new PeerConnectionOut(this), 
-				"Active OUT_" + peer.getAddress().toString());
-		outThread.setDaemon(true);
-		outThread.start();
+			sendHandShakeAndBitfield();
 
-		inThread = new Thread(new PeerConnectionIn(this), 
-				"Active IN_" + peer.getAddress().toString());
-		inThread.setDaemon(true);
-		inThread.start();
+			outThread = new Thread(new PeerConnectionOut(this), "Active OUT_"
+					+ peer.getAddress().toString());
+			outThread.setDaemon(true);
+			outThread.start();
+
+			inThread = new Thread(new PeerConnectionIn(this), "Active IN_"
+					+ peer.getAddress().toString());
+			inThread.setDaemon(true);
+			inThread.start();
+		}
 	}
 
 	/**
@@ -83,31 +93,34 @@ public class PeerConnection {
 	 */
 	public PeerConnection(Peer peer, Socket socket) throws IOException {
 		/* check if peer is already in peerList */
-		InetSocketAddress peerAddress = new InetSocketAddress(peer.getAddress()
-				.getAddress(), peer.getAddress().getPort());
-		if (PeerList.getInstance().getPeer(peerAddress) == null)
-			throw new IOException("PeerConnection: Peer is already in a peer list. Skipping");
-		
-		this.peer = peer;
-		peer.setConnection(this);
+		synchronized (PEER_CONNECTION_LOCK) {
+			InetSocketAddress peerAddress = new InetSocketAddress(peer
+					.getAddress().getAddress(), peer.getAddress().getPort());
+			if (PeerList.getInstance().getPeer(peerAddress) == null)
+				throw new IOException(
+						"PeerConnection: Peer is already in a peer list. Skipping");
 
-		this.socket = socket;
+			this.peer = peer;
+			peer.setConnection(this);
 
-		lastReceived = new Date();
+			this.socket = socket;
 
-		handshook = true;
+			lastReceived = new Date();
 
-		sendHandShakeAndBitfield();
+			handshook = true;
 
-		inThread = new Thread(new PeerConnectionIn(this), 
-				"Passive IN_" + peer.getAddress().toString());
-		inThread.setDaemon(true);
-		inThread.start();
+			sendHandShakeAndBitfield();
 
-		outThread = new Thread(new PeerConnectionOut(this), 
-				"Passive OUT_" + peer.getAddress().toString());
-		outThread.setDaemon(true);
-		outThread.start();
+			inThread = new Thread(new PeerConnectionIn(this), "Passive IN_"
+					+ peer.getAddress().toString());
+			inThread.setDaemon(true);
+			inThread.start();
+
+			outThread = new Thread(new PeerConnectionOut(this), "Passive OUT_"
+					+ peer.getAddress().toString());
+			outThread.setDaemon(true);
+			outThread.start();
+		}
 	}
 	
 
