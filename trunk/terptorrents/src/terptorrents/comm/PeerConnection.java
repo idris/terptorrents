@@ -234,7 +234,7 @@ public class PeerConnection {
 
 		}
 		ConnectionPool.getInstance().removeConnection(this);
-		peer.setConnection(null);
+		peer.disconnect();
 		Main.dprint("Connection to " + peer.toString() + " closed.");
 	}
 

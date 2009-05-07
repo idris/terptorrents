@@ -10,7 +10,7 @@ import terptorrents.comm.PeerConnection;
 import terptorrents.comm.messages.RequestMessage;
 import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
 
-public class RequestManager {
+public class RequestManager implements Runnable {
 	private static final RequestManager singleton = new RequestManager();
 	public static final int MAX_OUTSTANDING_REQUESTS = 5;
 	private Set<BlockRange> dogpile = Collections.synchronizedSet(new HashSet<BlockRange>());

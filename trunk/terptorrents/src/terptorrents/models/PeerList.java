@@ -31,7 +31,7 @@ public class PeerList {
 	public Set<Peer> getRandomUnconnectedPeers(int max) {
 		Set<Peer> set = new HashSet<Peer>(max);
 		for(Peer p: peers) {
-			if(!p.isConnected()) {
+			if(p.isConnectable()) {
 				set.add(p);
 			}
 			if(set.size() >= max) break;
