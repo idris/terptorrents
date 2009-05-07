@@ -85,7 +85,7 @@ public class IO {
 				digest.update(piece);
 				byte[] hash = digest.digest();				
 				if (!Arrays.equals(hash, this.pieceHashes.get(i))) {
-					if (Main.DEBUG) System.out.print(i + "  ");
+					if (Main.DEBUG) System.out.print("."/*i + "  "*/);
 					mask[i] = false;
 				} else {
 					mask[i] = true;
