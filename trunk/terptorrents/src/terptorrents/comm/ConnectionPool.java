@@ -1,7 +1,6 @@
 package terptorrents.comm;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Set;
@@ -111,21 +110,30 @@ public class ConnectionPool {
 					}
 				}
 			} else {
-				incomingConnections.remove(conn);
-				releaseIncomingSlot();
+				if(incomingConnections.remove(conn)) {
+					releaseIncomingSlot();
+				}
 			}
 		} finally {
 			connectLock.unlock();
 		}
 	}
 
+	public synchronized void removeSeeders() {
+		for(PeerConnection conn: getConnections()) {
+			if(!conn.peerInterested()) {
+				conn.close();
+				removeConnection(conn);
+			}
+		}
+	}
 
 	/**
 	 * 
 	 * @return all currently connected connections to peers
 	 */
-	public ArrayList<PeerConnection> getConnections() {
-		ArrayList<PeerConnection> connections = new ArrayList<PeerConnection>();
+	public Vector<PeerConnection> getConnections() {
+		Vector<PeerConnection> connections = new Vector<PeerConnection>();
 		connections.addAll(incomingConnections);
 		connections.addAll(outgoingConnections);
 		return connections;
@@ -169,7 +177,7 @@ public class ConnectionPool {
 	 */
 	public Vector<PeerConnection> getNonChokingAndInsterested(){
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		ArrayList<PeerConnection> allConnections = getConnections();		
+		Vector<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection : allConnections){
 			if(peerConnection != null && 
 					!peerConnection.peerChoking() && 
@@ -187,7 +195,7 @@ public class ConnectionPool {
 	 */
 	public Vector<PeerConnection> getActiveAndInterested() {
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		ArrayList<PeerConnection> allConnections = getConnections();		
+		Vector<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection : allConnections){
 			if( peerConnection != null 
 					&& peerConnection.getLastPieceRecievedDate() != null
@@ -208,7 +216,7 @@ public class ConnectionPool {
 	 */
 	public Vector<PeerConnection> getUnchoked() {
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		ArrayList<PeerConnection> allConnections = getConnections();
+		Vector<PeerConnection> allConnections = getConnections();
 		for(PeerConnection peerConnection: allConnections){
 			if(peerConnection != null && !peerConnection.amChoking())
 				list.add(peerConnection);
@@ -222,7 +230,7 @@ public class ConnectionPool {
 	 */
 	public Vector<PeerConnection> getInstersted() {		
 		Vector<PeerConnection> list = new Vector<PeerConnection>();
-		ArrayList<PeerConnection> allConnections = getConnections();		
+		Vector<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection: allConnections){
 			if(peerConnection != null && peerConnection.peerInterested())
 				list.add(peerConnection);
@@ -241,7 +249,7 @@ public class ConnectionPool {
 		Vector<PeerConnection> recentlyUnchoked = new Vector<PeerConnection>();
 		Vector<PeerConnection> notRecentlyUnchoked = new Vector<PeerConnection>();
 		
-		ArrayList<PeerConnection> allConnections = getConnections();		
+		Vector<PeerConnection> allConnections = getConnections();		
 		for(PeerConnection peerConnection: allConnections){
 			/* if peer has never been unchoked the data is null */
 			if(peerConnection != null && peerConnection.getLastUnchokedDate() == null) continue;
