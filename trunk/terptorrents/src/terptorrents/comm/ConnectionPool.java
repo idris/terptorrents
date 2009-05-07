@@ -20,7 +20,7 @@ import terptorrents.models.PeerList;
  *
  */
 public class ConnectionPool {
-	private static volatile ConnectionPool singleton = new ConnectionPool();
+	private static final ConnectionPool singleton = new ConnectionPool();
 
 	/**
 	 * connections I have initiated
@@ -72,7 +72,7 @@ public class ConnectionPool {
 	}
 
 	public static ConnectionPool newInstance() throws IOException {
-		if (singleton == null) singleton = new ConnectionPool();
+		//if (singleton == null) singleton = new ConnectionPool();
 		singleton.initialize();
 		return singleton;
 	}
