@@ -8,7 +8,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.Vector;
 
@@ -79,8 +78,23 @@ public class PieceManager {
 			Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 				peerPieceList.remove(0);
+			
+			Vector<PeerPiece> rarestPeerPieceList = new Vector<PeerPiece>();
 			Enumeration<PeerPiece> e = peerPieceList.elements();
-
+			PeerPiece firstRarestPiece = e.nextElement();
+			
+			while(e.hasMoreElements()){
+				PeerPiece currentPeerPiece = e.nextElement();
+				if(firstRarestPiece.getPeerSet().size() ==
+					currentPeerPiece.getPeerSet().size())
+					rarestPeerPieceList.add(currentPeerPiece);
+				else
+					break;
+			}
+			
+			Collections.shuffle(rarestPeerPieceList);
+			e = rarestPeerPieceList.elements();
+			
 			int requestedBytes = 0;
 			try {
 				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE * size
