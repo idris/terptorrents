@@ -19,7 +19,7 @@ public class Main {
 	public static byte [] PEER_ID;
 
 	public static boolean DEBUG = true;
-	public static boolean INFO = false;
+	public static boolean INFO = true;
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
@@ -33,7 +33,6 @@ public class Main {
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME = 4;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10;
-	public static final int MAX_NUM_OF_PORTS_TO_TRY = 10;
 	
 	/* ****************************************************** */
 
@@ -89,8 +88,7 @@ public class Main {
 			});
 			connectionPool.setDaemon(true);
 			connectionPool.start();
-			
-			
+
 			/*start peer listener*/
 			dprint("Starting peer listener");
 			Thread peerListener = new Thread(new PeerListener(PORT));
@@ -112,11 +110,18 @@ public class Main {
 
 
 
+			boolean seeding = false;
 			while(true){
-				if (IO.getInstance().isComplete())
+				if (IO.getInstance().isComplete()) {
 					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
-				else
+					if(!seeding) {
+						seeding = true;
+						ConnectionPool.getInstance().removeSeeders();
+					}
+				} else {
 					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
+				}
+
 				try {
 					Thread.sleep(Main.TIME_TO_CHECK_IF_FILE_IS_COMPLETE);
 				} catch (InterruptedException e) {
