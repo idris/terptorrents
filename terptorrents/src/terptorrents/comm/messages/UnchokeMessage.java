@@ -20,7 +20,7 @@ public class UnchokeMessage extends AbstractMessage {
 	public void onReceive(PeerConnection conn) {
 		conn.setChoked(false);
 		try {
-			RequestManager.getInstance().requestBlocks(conn.getPeer(), RequestManager.MAX_OUTSTANDING_REQUESTS);
+			RequestManager.getInstance().requestBlocks(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS);
 		} catch(TerptorrentsModelsCanNotRequstFromThisPeer ex) {
 			Main.dprint("Can not request from this peer EXCEPTION IS CAUGHT: " + conn.getPeer().toString());
 		}
