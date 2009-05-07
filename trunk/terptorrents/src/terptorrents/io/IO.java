@@ -585,7 +585,11 @@ public class IO {
 			returnValue.add(added);
 		}
 		return returnValue;
-	}	
+	}
+	
+	public int getNumOfIgnoredPieces() {
+		return piecesWeDoNotWant.size(); 
+	}
 	
 	private void dprint(String message) {
 		if (Main.DEBUG)
