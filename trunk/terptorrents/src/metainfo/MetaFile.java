@@ -32,7 +32,6 @@ public class MetaFile {
 	public MetaFile(String announce, Date creationDate, String comment,
 			String createdBy, Long pieceLength, Set<String>filePaths,List<String> filenames,
 			Map<String, Long> fileLengths, Map<Integer, byte[]> pieceHashes) {
-
 		this.announce = announce;
 		this.creationDate = creationDate;
 		this.comment = comment;
@@ -42,8 +41,6 @@ public class MetaFile {
 		this.fileLengths = fileLengths;
 		this.filePaths=filePaths;
 		SHAHashes = pieceHashes;
-		this.urlInfoHash=urlInfoHash;
-		this.infoHash=infoHash;
 	}
 
 	public String getAnnounce() {
