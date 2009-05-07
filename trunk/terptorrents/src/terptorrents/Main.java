@@ -31,7 +31,7 @@ public class Main {
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME = 4;
-	public static final int MAX_NUM_OF_BLOCK_REQUESTS = 3;
+	public static final int MAX_OUTSTANDING_REQUESTS = 5;
 	public static final int MAX_NUM_OF_PORTS_TO_TRY = 10;
 	
 	/* ****************************************************** */
