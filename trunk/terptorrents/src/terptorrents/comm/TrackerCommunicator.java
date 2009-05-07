@@ -11,7 +11,6 @@ import java.util.Map;
 
 import metainfo.*;
 
-import sun.net.util.IPAddressUtil;
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.exceptions.TrackerResponseException;
@@ -40,9 +39,9 @@ public class TrackerCommunicator implements Runnable {
 	private List<Peer>peerList;
 	private int interval = 30; //time to wait between requests, in seconds
 	private int minInterval; //optional, time to wait between announce
-	private int numSeeders;
-	private int numLeechers;
-	
+	private int numSeeders = 0;
+	private int numLeechers = 0;
+
 
 	public TrackerCommunicator() throws IOException {
 		peerId = Main.PEER_ID;
@@ -189,6 +188,15 @@ public class TrackerCommunicator implements Runnable {
 			}
 			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));
 			if(trackerIDBE!=null)trackerId=trackerIDBE.getString();
+
+			try {
+				numSeeders = ((BEValue)(topLevelMap.get("complete"))).getInt();
+				numLeechers = ((BEValue)(topLevelMap.get("incomplete"))).getInt();
+				Main.iprint("Seeders: " + numSeeders + ". Leechers: " + numLeechers);
+//				minInterval
+			} catch(Exception ex) {
+				// who cares.
+			}
 		}	
 	}
 }

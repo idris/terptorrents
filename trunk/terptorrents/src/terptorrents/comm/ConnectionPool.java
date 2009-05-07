@@ -71,7 +71,7 @@ public class ConnectionPool {
 		Main.dprint("CONNECTION POOL initialized");
 	}
 
-	public static ConnectionPool newInstance() throws IOException {
+	public static ConnectionPool newInstance() {
 		//if (singleton == null) singleton = new ConnectionPool();
 		singleton.initialize();
 		return singleton;

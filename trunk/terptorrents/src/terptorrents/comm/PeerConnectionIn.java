@@ -129,7 +129,7 @@ class PeerConnectionIn implements Runnable {
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
-		Main.iprint("<= " + m.toString() + " RECEIVED FROM " + connection.peer.toString());
+		Main.iprint("<= receiving " + m.getClass().getSimpleName() + " FROM " + connection.peer.toString());
 
 		if(m instanceof PieceMessage) {
 			long start = System.currentTimeMillis();
@@ -141,6 +141,8 @@ class PeerConnectionIn implements Runnable {
 			m.read(in, length);
 		}
 		m.onReceive(connection);
+
+		Main.iprint("<= received " + m.toString() + " FROM " + connection.peer.toString());
 
 		return m;
 	}
