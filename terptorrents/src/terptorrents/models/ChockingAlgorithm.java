@@ -46,7 +46,6 @@ public class ChockingAlgorithm implements Runnable {
 							contains(unchokedPeer)) {						
 						unchokedPeer.sendMessage(new ChokeMessage());
 					}
-
 				}
 				/* unchoke peer based on the rank 4th one or the lat one*/
 				if(countOptimistic % Main.OPTIMISTIC_UNCHOKE_FREQUENCY == 0){
