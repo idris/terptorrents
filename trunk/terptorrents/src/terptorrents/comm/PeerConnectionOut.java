@@ -28,7 +28,7 @@ class PeerConnectionOut implements Runnable {
 	public void run() {
 		while(!connection.disconnect) {
 			if(connection.peerIsDead()) {
-				connection.disconnect = true;
+				connection.close();
 				break;
 			}
 			try {
@@ -41,7 +41,7 @@ class PeerConnectionOut implements Runnable {
 				// keep on truckin'
 			} catch(IOException ex) {
 				Main.dprint("ConnectionOUT. Peer disconnected. " + connection.peer.toString());
-				connection.disconnect = true;
+				connection.close();
 			}
 		}
 
@@ -56,7 +56,7 @@ class PeerConnectionOut implements Runnable {
 			connection.uploadRate =  ((PieceMessage)message).getLength() / ((double)(System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
 		}
-		Main.dprint("<= " + message.toString() + " SENT to " + connection.peer.getAddress().toString());
+		Main.iprint("=> " + message.toString() + " SENT to " + connection.peer.toString());
 
 		//System.out.println("=== SENT MESSAGE to " + connection.peer.getAddress().toString() + " ===\n" + message.toString());
 

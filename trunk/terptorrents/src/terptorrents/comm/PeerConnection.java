@@ -12,7 +12,6 @@ import terptorrents.Main;
 import terptorrents.comm.messages.*;
 import terptorrents.io.IO;
 import terptorrents.models.Peer;
-import terptorrents.models.PeerList;
 import terptorrents.models.PieceManager;
 
 
@@ -25,13 +24,13 @@ public class PeerConnection {
 	
 	 /* each time we create new connection this lock must be acquired 
 	 * to avoid data race */
-	public static final Object PEER_CONNECTION_LOCK = new Object();
+//	public static final Object PEER_CONNECTION_LOCK = new Object();
 	/* ***************************************************** */
 	final Peer peer;
 	final Socket socket;
 
 	private static final long MAX_KEEPALIVE = 1000*60*2; // two minutes
-	private static final int CONNECT_TIMEOUT = 1000 * 2;
+	private static final int CONNECT_TIMEOUT = 1000;
 
 	volatile Date lastReceived;
 	volatile Date lastPieceReceived = null;
@@ -44,6 +43,7 @@ public class PeerConnection {
 	private volatile boolean interesting = false;
 	volatile boolean disconnect = false;
 	boolean handshook = false;
+	private volatile boolean dead = false;
 
 	private final Thread inThread;
 	private final Thread outThread;
@@ -55,34 +55,25 @@ public class PeerConnection {
 
 
 	public PeerConnection(Peer peer) throws IOException {
-		synchronized (PEER_CONNECTION_LOCK) {
-			/* check if peer is already in peerList */
-			InetSocketAddress peerAddress = new InetSocketAddress(peer
-					.getAddress().getAddress(), peer.getAddress().getPort());
-			if (PeerList.getInstance().getPeer(peerAddress) == null)
-				throw new IOException(
-						"PeerConnection: Peer is already in a peer list. Skipping");
+		this.peer = peer;
+		peer.setConnection(this);
+		this.socket = new Socket();
+		socket.connect(
+				new InetSocketAddress(peer.getAddress().getAddress(), peer
+						.getAddress().getPort()), CONNECT_TIMEOUT);
+		lastReceived = new Date();
 
-			this.peer = peer;
-			peer.setConnection(this);
-			this.socket = new Socket();
-			socket.connect(
-					new InetSocketAddress(peer.getAddress().getAddress(), peer
-							.getAddress().getPort()), CONNECT_TIMEOUT);
-			lastReceived = new Date();
+		sendHandshake();
 
-			sendHandShakeAndBitfield();
+		outThread = new Thread(new PeerConnectionOut(this), "Active OUT_"
+				+ peer.getAddress().toString());
+		outThread.setDaemon(true);
+		outThread.start();
 
-			outThread = new Thread(new PeerConnectionOut(this), "Active OUT_"
-					+ peer.getAddress().toString());
-			outThread.setDaemon(true);
-			outThread.start();
-
-			inThread = new Thread(new PeerConnectionIn(this), "Active IN_"
-					+ peer.getAddress().toString());
-			inThread.setDaemon(true);
-			inThread.start();
-		}
+		inThread = new Thread(new PeerConnectionIn(this), "Active IN_"
+				+ peer.getAddress().toString());
+		inThread.setDaemon(true);
+		inThread.start();
 	}
 
 	/**
@@ -92,42 +83,36 @@ public class PeerConnection {
 	 * @throws IOException
 	 */
 	public PeerConnection(Peer peer, Socket socket) throws IOException {
-		/* check if peer is already in peerList */
-		synchronized (PEER_CONNECTION_LOCK) {
-			InetSocketAddress peerAddress = new InetSocketAddress(peer
-					.getAddress().getAddress(), peer.getAddress().getPort());
-			if (PeerList.getInstance().getPeer(peerAddress) == null)
-				throw new IOException(
-						"PeerConnection: Peer is already in a peer list. Skipping");
+		this.peer = peer;
+		peer.setConnection(this);
 
-			this.peer = peer;
-			peer.setConnection(this);
+		this.socket = socket;
 
-			this.socket = socket;
+		lastReceived = new Date();
 
-			lastReceived = new Date();
+		handshook = true;
 
-			handshook = true;
+		sendHandshake();
 
-			sendHandShakeAndBitfield();
+		inThread = new Thread(new PeerConnectionIn(this), "Passive IN_"
+				+ peer.getAddress().toString());
+		inThread.setDaemon(true);
+		inThread.start();
 
-			inThread = new Thread(new PeerConnectionIn(this), "Passive IN_"
-					+ peer.getAddress().toString());
-			inThread.setDaemon(true);
-			inThread.start();
-
-			outThread = new Thread(new PeerConnectionOut(this), "Passive OUT_"
-					+ peer.getAddress().toString());
-			outThread.setDaemon(true);
-			outThread.start();
-		}
+		outThread = new Thread(new PeerConnectionOut(this), "Passive OUT_"
+				+ peer.getAddress().toString());
+		outThread.setDaemon(true);
+		outThread.start();
 	}
 	
 
-	private void sendHandShakeAndBitfield() {
+	private void sendHandshake() {
 		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
 				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
 		outgoingMessages.add(handshake);
+	}
+
+	void sendBitfield() {
 		if(IO.getInstance().getBitSet().getNumEmptyPieces() 
 				!= IO.getInstance().getBitSet().totalNumOfPieces()){
 			BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.
@@ -252,6 +237,8 @@ public class PeerConnection {
 	}
 
 	void teardown() {
+		if(dead) return;
+		dead = true;
 		try {
 			disconnect = true;
 			outThread.interrupt();

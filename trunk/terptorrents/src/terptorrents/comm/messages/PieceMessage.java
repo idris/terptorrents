@@ -77,13 +77,11 @@ public class PieceMessage extends AbstractMessage {
 			} else {
 				RequestManager.getInstance().requestBlocks(conn.getPeer(), 1);
 			}
-			
 		} catch(Exception ex) {
 			if (Main.DEBUG)
 				System.err.println("Following exception is caught: " + ex.getClass());
 			//ex.printStackTrace();
 		}
-		// TODO: request another piece
 	}
 
 	@Override

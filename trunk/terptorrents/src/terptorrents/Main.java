@@ -19,6 +19,7 @@ public class Main {
 	public static byte [] PEER_ID;
 
 	public static boolean DEBUG = true;
+	public static boolean INFO = false;
 	public static final int MAX_REQUEST_BUFFER_SIZE = 1 << 28;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
@@ -31,7 +32,7 @@ public class Main {
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME = 4;
-	public static final int MAX_OUTSTANDING_REQUESTS = 5;
+	public static final int MAX_OUTSTANDING_REQUESTS = 10;
 	public static final int MAX_NUM_OF_PORTS_TO_TRY = 10;
 	
 	/* ****************************************************** */
@@ -45,7 +46,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "book.torrent";
+		torrentFile = "book2.torrent";
 		//parseCommand(args);
 
 
@@ -121,14 +122,14 @@ public class Main {
 				} catch (InterruptedException e) {
 					dprint("Exiting...");
 					/* ********************************* */
-					/* closing Bittorrent procedures     */
+					/* closing BitTorrent procedures     */
 					IO.getInstance().close();
 					System.exit(1);
 				}
 			}
-			
+
 		} catch (IOException e) {
-			dprint("IOException is caught. Reason: " + e);
+			dprint("IOException is caught. Reason: " + e.getMessage());
 		}		
 	}
 
@@ -151,9 +152,17 @@ public class Main {
 	}
 
 	public static void dprint(String message) {
-		System.out.println("Debug : " + message);
+		if(DEBUG) {
+			System.out.println("Debug : " + message);
+		}
 	}
-	
+
+	public static void iprint(String message) {
+		if(INFO) {
+			System.out.println("Info : " + message);
+		}
+	}
+
 	private static void generatePeerID(){
 		PEER_ID = new byte[20];
 		byte[] peerPrefix = Main.ID_PREFIX.getBytes();

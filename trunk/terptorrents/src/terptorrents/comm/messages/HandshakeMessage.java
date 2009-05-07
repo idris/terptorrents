@@ -68,7 +68,10 @@ public class HandshakeMessage implements Message {
 
 	
 	public void onReceive(PeerConnection conn) {}
-
-
 	public void onSend(PeerConnection conn) {}
+
+	@Override
+	public String toString() {
+		return "Handshake Message";
+	}
 }
