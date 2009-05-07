@@ -88,12 +88,12 @@ public class PeerConnection {
 		sendHandShakeAndBitfield();
 
 		inThread = new Thread(new PeerConnectionIn(this), 
-				"OUT_" + peer.getAddress().toString());
+				"IN_" + peer.getAddress().toString());
 		inThread.setDaemon(true);
 		inThread.start();
 
 		outThread = new Thread(new PeerConnectionOut(this), 
-				"IN_" + peer.getAddress().toString());
+				"OUT_" + peer.getAddress().toString());
 		outThread.setDaemon(true);
 		outThread.start();
 	}
