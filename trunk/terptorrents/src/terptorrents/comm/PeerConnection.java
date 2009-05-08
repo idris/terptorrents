@@ -21,10 +21,10 @@ import terptorrents.models.PieceManager;
  *
  */
 public class PeerConnection {
-	
-	 /* each time we create new connection this lock must be acquired 
+
+	/* each time we create new connection this lock must be acquired 
 	 * to avoid data race */
-//	public static final Object PEER_CONNECTION_LOCK = new Object();
+	//	public static final Object PEER_CONNECTION_LOCK = new Object();
 	/* ***************************************************** */
 	final Peer peer;
 	final Socket socket;
@@ -104,7 +104,7 @@ public class PeerConnection {
 		outThread.setDaemon(true);
 		outThread.start();
 	}
-	
+
 
 	private void sendHandshake() {
 		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
@@ -138,13 +138,19 @@ public class PeerConnection {
 	}
 
 	public void addPeerRequest(RequestMessage requestMessage) {
-		// TODO: if they have a different block size, their request may span 2 of our blocks. we should queue ALL blocks between begin and length
 		try {
-			byte[] data = PieceManager.getInstance().requestBlock(
-					requestMessage.getIndex(), requestMessage.getBegin(), 
-					requestMessage.getBlockLength());
-			sendMessage(new PieceMessage(requestMessage.getIndex(), 
-					requestMessage.getBegin(), data));
+			int begin = requestMessage.getBegin();
+			int length = requestMessage.getBlockLength();
+			do{
+				int lengthToRequest = (length > Main.MAX_REQUEST_BLOCK_SIZE) ? 
+						Main.MAX_REQUEST_BLOCK_SIZE : length;
+				byte[] data = PieceManager.getInstance().requestBlock(
+						requestMessage.getIndex(), begin, lengthToRequest);
+				sendMessage(new PieceMessage(requestMessage.getIndex(), 
+						begin, data));
+				begin += length;
+				length -= lengthToRequest;
+			}while(length > 0);
 		} catch(Exception ex) {
 			// something went wrong. maybe we didn't have the piece. oh well...
 			//ex.printStackTrace();
@@ -157,7 +163,8 @@ public class PeerConnection {
 		for(Message m: outgoingMessages) {
 			if(m instanceof PieceMessage) {
 				PieceMessage queued = (PieceMessage)m;
-				if(queued.getIndex() == msg.getIndex() && queued.getBegin() == msg.getBegin()) {
+				if(queued.getIndex() == msg.getIndex() && 
+						queued.getBegin() == msg.getBegin()) {
 					outgoingMessages.remove(m);
 					break;
 				}
@@ -254,5 +261,5 @@ public class PeerConnection {
 	public String toString() {
 		return this.peer.toString();
 	}
-	
+
 }
