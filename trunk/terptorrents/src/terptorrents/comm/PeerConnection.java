@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import metainfo.TorrentParser;
 
@@ -44,6 +45,7 @@ public class PeerConnection {
 	volatile boolean disconnect = false;
 	boolean handshook = false;
 	private volatile boolean dead = false;
+	public AtomicInteger outstandingRequests = new AtomicInteger();
 
 	private final Thread inThread;
 	private final Thread outThread;
@@ -163,8 +165,9 @@ public class PeerConnection {
 		for(Message m: outgoingMessages) {
 			if(m instanceof PieceMessage) {
 				PieceMessage queued = (PieceMessage)m;
-				if(queued.getIndex() == msg.getIndex() && 
-						queued.getBegin() == msg.getBegin()) {
+				if(queued.getIndex() == msg.getIndex() 
+						&& queued.getBegin() <= msg.getBegin() 
+						&& (queued.getEnd()) >= (msg.getEnd())) {
 					outgoingMessages.remove(m);
 					break;
 				}

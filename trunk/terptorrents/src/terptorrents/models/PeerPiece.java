@@ -1,7 +1,6 @@
 package terptorrents.models;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.Map.Entry;

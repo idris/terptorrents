@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import terptorrents.Main;
 import terptorrents.comm.ConnectionPool;
@@ -35,6 +37,11 @@ public class PieceManager {
 	private int numPieceReceived;
 	private boolean endGameTiggered;
 
+	/**
+	 * lock must be used when updating or requesting blocks
+	 */
+	public final Lock blocksLock = new ReentrantLock();
+
 	public static  PieceManager getInstance() {
 		return SINGLETON;
 	}
@@ -52,19 +59,12 @@ public class PieceManager {
 		return endGameTiggered;
 	}
 
-	public Vector<BlockRange> getBlockRangeToRequest(Peer peer, 
-			Set<BlockRange> RequestedBlock, int size) throws
-			TerptorrentsModelsCanNotRequstFromThisPeer{
-		PeerConnection conn = peer.getConnection();
-		if(conn == null) 
-			throw new TerptorrentsModelsCanNotRequstFromThisPeer
-			("Disconnected Peer");
-
-		if(conn.peerChoking() || !conn.amInterested())
-			throw new TerptorrentsModelsCanNotRequstFromThisPeer(
-			"Peer is choking us or We are not intersted");
-
+	public synchronized Vector<BlockRange> getBlockRangeToRequest(Peer peer, 
+			Set<BlockRange> RequestedBlock, int size) {
 		Vector<BlockRange> res = new Vector<BlockRange>();
+		List<PeerPiece> rarestPeerPieceList = null;
+		int same = 0;
+		BlockRange [] blockRanges = null;
 		if(numPieceReceived + 
 				Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE / 100
 				* IO.getInstance().getBitSet().totalNumOfPieces() >= 
@@ -74,16 +74,18 @@ public class PieceManager {
 				endGameTiggered = true;
 			}
 			for(PeerPiece pp: peerPieceList){
-				BlockRange [] blockRanges = pp.getBlockRangeToRequest();
+				blockRanges = pp.getBlockRangeToRequest();
 				for(int i = 0; i < blockRanges.length; i++)
 					res.add(blockRanges[i]);
 			}
 		}else{
+			Main.iprint("peerPieceList size: " + peerPieceList.size());
 			Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0)
 				peerPieceList.remove(0);
-			
-			List<PeerPiece> rarestPeerPieceList = peerPieceList.subList
+
+			Main.iprint("peerPieceList size after removals: " + peerPieceList.size());
+			rarestPeerPieceList = peerPieceList.subList
 			(0, Math.min(Main.NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST, peerPieceList.size()));			
 			
 			Collections.shuffle(rarestPeerPieceList);
@@ -93,13 +95,15 @@ public class PieceManager {
 			try {
 				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE * size
 						&& e.hasNext()){
-					BlockRange [] blockRanges = e.next().getBlockRangeToRequest();
+					blockRanges = e.next().getBlockRangeToRequest();
 					int j = 0;
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
 						if(!RequestedBlock.contains(blockRanges[j])){
 							res.add(blockRanges[j]);
 							requestedBytes += blockRanges[j].getLength();
+						} else {
+							same++;
 						}
 						j++;
 					}
@@ -110,6 +114,9 @@ public class PieceManager {
 			}
 		}
 
+		if(res.isEmpty() && RequestedBlock.isEmpty()) {
+			Main.iprint("requesting 0");
+		}
 		return res;
 	}
 
@@ -202,38 +209,47 @@ public class PieceManager {
 	TerptorrentsModelsPieceIndexOutOfBound{
 		if(pieceIndex < 0 || pieceIndex > pieces.length)
 			throw new TerptorrentsModelsPieceIndexOutOfBound();
-		if(pieces[pieceIndex].updateBlock(pieceIndex, blockBegin, 
-				blockLength, data)){
+		if(!(pieces[pieceIndex] instanceof PeerPiece)) 
+			throw new TerptorrentsModelsPieceNotWritable();
 
-			/*send have messages*/
-			for(PeerConnection conn : ConnectionPool.getInstance().
-					getConnections()){
-				if(conn != null){
-					conn.sendMessage(new HaveMessage(pieceIndex));
-				}
-			}
-			Enumeration<Peer> ps = ((PeerPiece)(pieces[pieceIndex])).getPeerSet().elements();
-			Peer peer;
-			while(ps.hasMoreElements()){
-				peer = ps.nextElement();
-				boolean peerHaveOtherPiece = false;
-				PeerPiece pp;
-				for(int i = 0; i < peerPieceList.size(); i++){
-					pp = peerPieceList.get(i);
-					if(pp.hasPeer(peer)){
-						peerHaveOtherPiece = true;
-						break;
+		blocksLock.lock();
+
+		try {
+			if(pieces[pieceIndex].updateBlock(pieceIndex, blockBegin, 
+					blockLength, data)){
+
+				/*send have messages*/
+				for(PeerConnection conn : ConnectionPool.getInstance().
+						getConnections()){
+					if(conn != null){
+						conn.sendMessage(new HaveMessage(pieceIndex));
 					}
 				}
-				if(!peerHaveOtherPiece){
-					peer.getConnection().sendMessage(new NotInterestedMessage());
+				Enumeration<Peer> ps = ((PeerPiece)(pieces[pieceIndex])).getPeerSet().elements();
+				Peer peer;
+				while(ps.hasMoreElements()){
+					peer = ps.nextElement();
+					boolean peerHaveOtherPiece = false;
+					PeerPiece pp;
+					for(int i = 0; i < peerPieceList.size(); i++){
+						pp = peerPieceList.get(i);
+						if(pp.hasPeer(peer)){
+							peerHaveOtherPiece = true;
+							break;
+						}
+					}
+					if(!peerHaveOtherPiece){
+						peer.getConnection().sendMessage(new NotInterestedMessage());
+					}
 				}
+				peerPieceList.remove(pieces[pieceIndex]);
+				numPieceReceived++;
+				pieces[pieceIndex] = new LocalPiece(
+						(pieceIndex == pieces.length - 1), 
+						pieceIndex);
 			}
-			peerPieceList.remove(pieces[pieceIndex]);
-			numPieceReceived++;
-			pieces[pieceIndex] = new LocalPiece(
-					(pieceIndex == pieces.length - 1), 
-					pieceIndex);
+		} finally {
+			blocksLock.unlock();
 		}
 	}
 

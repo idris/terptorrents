@@ -47,6 +47,11 @@ public class RequestMessage extends AbstractMessage {
 	}
 
 	@Override
+	public void onSend(PeerConnection conn) {
+		conn.outstandingRequests.incrementAndGet();
+	}
+
+	@Override
 	public void write(DataOutputStream out) throws IOException {
 		super.write(out);
 		out.writeInt(index);
