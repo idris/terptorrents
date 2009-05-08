@@ -187,7 +187,7 @@ public class TrackerCommunicator implements Runnable {
 				numSeeders = ((BEValue)(topLevelMap.get("complete"))).getInt();
 				numLeechers = ((BEValue)(topLevelMap.get("incomplete"))).getInt();
 				Main.iprint("Seeders: " + numSeeders + ". Leechers: " + numLeechers);
-//				minInterval
+				minInterval = ((BEValue)(topLevelMap.get("min interval"))).getInt();
 			} catch(Exception ex) {
 				// who cares.
 			}

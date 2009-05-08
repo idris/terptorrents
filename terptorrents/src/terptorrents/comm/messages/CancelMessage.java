@@ -32,6 +32,10 @@ public class CancelMessage extends AbstractMessage {
 		return length;
 	}
 
+	public int getEnd() {
+		return begin + length;
+	}
+
 	@Override
 	protected int getId() {
 		return 8;

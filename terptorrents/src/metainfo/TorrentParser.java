@@ -16,6 +16,8 @@ import java.util.Set;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import terptorrents.Main;
+
 import metainfo.*;
 
 
@@ -89,6 +91,7 @@ public class TorrentParser {
 		BEValue infoBE=((BEValue)topLevelMap.get("info"));
 		Map infoDictionary = infoBE.getMap();
 		Long pieceLength = ((BEValue)infoDictionary.get("piece length")).getLong();
+		Main.iprint("Piece Length: " + pieceLength);
 		filesBE=(BEValue)(infoDictionary.get("files"));
 		if(filesBE!=null) files = filesBE.getList();
 		else files=null;

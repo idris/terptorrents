@@ -142,7 +142,7 @@ class PeerConnectionIn implements Runnable {
 		}
 		m.onReceive(connection);
 
-		Main.iprint("<= received " + m.toString() + " FROM " + connection.peer.toString());
+//		Main.iprint("<= received " + m.toString() + " FROM " + connection.peer.toString());
 
 		return m;
 	}

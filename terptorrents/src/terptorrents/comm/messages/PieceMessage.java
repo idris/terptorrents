@@ -37,6 +37,10 @@ public class PieceMessage extends AbstractMessage {
 		return block.length;
 	}
 
+	public int getEnd() {
+		return begin + block.length;
+	}
+
 	@Override
 	protected int getId() {
 		return 7;
@@ -63,6 +67,7 @@ public class PieceMessage extends AbstractMessage {
 
 	@Override
 	public void onReceive(PeerConnection conn) {
+		conn.outstandingRequests.decrementAndGet();
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
