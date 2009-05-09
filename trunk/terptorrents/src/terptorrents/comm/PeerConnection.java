@@ -249,6 +249,10 @@ public class PeerConnection {
 	void teardown() {
 		if(dead) return;
 		dead = true;
+
+		// remove from PieceManager
+		PieceManager.getInstance().removePeer(peer);
+
 		try {
 			disconnect = true;
 			outThread.interrupt();
@@ -256,6 +260,7 @@ public class PeerConnection {
 		} catch(IOException ex) {
 
 		}
+
 		ConnectionPool.getInstance().removeConnection(this);
 		peer.disconnect();
 		Main.dprint("Connection to " + peer.toString() + " closed.");

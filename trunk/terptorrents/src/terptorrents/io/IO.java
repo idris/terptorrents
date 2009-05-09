@@ -78,7 +78,7 @@ public class IO {
 	private void checkFilesIntegrity() throws IOException {
 		dprint("Checking file(s) integrity...");
 		byte[] piece;
-		dprint("Marking pieces to download: ");
+		dprint("Marking pieces to download: (total: " + mask.length + ")");
 		int numOfDots = 0;
 		for (int i = 0; i < mask.length; i++) {
 			try {
@@ -86,9 +86,14 @@ public class IO {
 				digest.update(piece);
 				byte[] hash = digest.digest();				
 				if (!Arrays.equals(hash, this.pieceHashes.get(i))) {
-					if (Main.DEBUG) {
-						System.out.print("."/*i + "  "*/);
-						numOfDots++;
+					if (Main.DEBUG || Main.INFO) {
+						if(Main.INFO) {
+							System.out.print(i + "  ");
+							numOfDots += 3;
+						} else {
+							System.out.print(".");
+							numOfDots++;
+						}
 						if (numOfDots > 80) {System.out.println(); numOfDots = 0;}
 					}
 					mask[i] = false;
@@ -274,8 +279,9 @@ public class IO {
 	}
 	
 	
-	/* Computes SHA1 of the piece and writes it into the file
-	 * Returns: false if SHA1 does not match with SHA1 in MetaFile
+	/**
+	 * Computes SHA1 of the piece and writes it into the file
+	 * @return false if SHA1 does not match with SHA1 in MetaFile
 	 */
 	public synchronized boolean writePiece(int i, byte[] piece) throws IOException, TerptorrentsIONoSuchPieceException {
 		if (DEBUG) dprint("Writing piece #" + i + " Size: " + piece.length);
@@ -285,6 +291,7 @@ public class IO {
 		if (piece.length > this.pieceSize)
 			throw new TerptorrentsIONoSuchPieceException(
 					"writePiece() Given piece is > than pieceSize");
+
 		if (piecesWeDoNotWant.contains(i)) {
 			//ignore deselected pieces
 			dprint("Following piece #" + i + " was deselected by user");
@@ -378,6 +385,7 @@ public class IO {
 			
 		}
 		mask[i] = true;
+if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 		return true;
 	}
 	

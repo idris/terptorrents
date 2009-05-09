@@ -21,7 +21,7 @@ public class Main {
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
-	public static boolean INFO = true;
+	public static boolean INFO = false;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
 	public static final int NUM_PIECES_TO_EVICT = 8;
@@ -30,7 +30,8 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
 	public static final int MAX_PEER_CONNECTIONS = 20;
-	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = 20;
+	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
+	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
 	/* ------------------------------------- */
 	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;
@@ -39,9 +40,8 @@ public class Main {
 	/* ------------------------------------- */
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
-	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
+	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 300000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
-	public static final int MAX_OUTSTANDING_REQUESTS = 10;
 	
 	/* ****************************************************** */
 
@@ -54,7 +54,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Ubuntu.torrent";
+		torrentFile = "eclipse.torrent";
 		//parseCommand(args);
 
 

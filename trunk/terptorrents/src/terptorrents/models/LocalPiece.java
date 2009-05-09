@@ -72,7 +72,7 @@ public class LocalPiece extends Piece {
 	public boolean updateBlock(int pieceIndex,
 			int begin, int length, byte [] data) 
 	throws TerptorrentsModelsPieceNotWritable {
-		throw new TerptorrentsModelsPieceNotWritable();
+		throw new TerptorrentsModelsPieceNotWritable("Cannot update LocalPiece! {" + pieceIndex + "}");
 	}
 
 	public void clearBuffer() {

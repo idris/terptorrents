@@ -140,10 +140,10 @@ public class PeerPiece extends Piece {
 					initFreeBlock();
 				}
 			} catch (IOException e) {
-				if(terptorrents.Main.DEBUG)
+				if(Main.DEBUG)
 					e.printStackTrace();
 			} catch (TerptorrentsIONoSuchPieceException e) {
-				if(terptorrents.Main.DEBUG)
+				if(Main.DEBUG)
 					e.printStackTrace();
 			}
 		}

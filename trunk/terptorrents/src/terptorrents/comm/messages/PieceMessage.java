@@ -67,16 +67,16 @@ public class PieceMessage extends AbstractMessage {
 
 	@Override
 	public void onReceive(PeerConnection conn) {
-		conn.outstandingRequests.decrementAndGet();
+		int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.decrementAndGet();
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
-			if (Main.DEBUG)
-				Main.dprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+			Main.dprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
 			//ex.printStackTrace();
 		}
 
+		// request more from this connection
 		try {
 			if(PieceManager.getInstance().isEndGameTiggered()){
 				 for(PeerConnection peerCon: ConnectionPool.
@@ -86,11 +86,13 @@ public class PieceMessage extends AbstractMessage {
 								 new CancelMessage(index, begin, block.length));
 					 }
 				 }
-			} else {
-				RequestManager.getInstance().requestBlocks(conn.getPeer(), 1);
+			} else if(conn.canIRequest()) {
+				if(toRequest >= Main.MAX_OUTSTANDING_REQUESTS/2) {
+					RequestManager.getInstance().requestBlocks(conn.getPeer(), toRequest);
+				}
 			}
 		} catch(Exception ex) {
-			Main.iprint("Exception in PieceMessage.onReceive() (bottom) is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+			Main.iprint("Exception in PieceMessage{" + index + "}.onReceive() (bottom) is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
 		}
 	}
 

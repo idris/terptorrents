@@ -2,6 +2,7 @@ package terptorrents.models;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -41,40 +42,49 @@ public class RequestManager implements Runnable {
 	throws TerptorrentsModelsCanNotRequstFromThisPeer {
 		if(IO.getInstance().isComplete()) return;
 
-		PieceManager.getInstance().blocksLock.lock();
+		PeerConnection conn = peer.getConnection();
+		if(conn == null) 
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer
+			("Disconnected Peer");
 
+		if(conn.peerChoking() || !conn.amInterested())
+			throw new TerptorrentsModelsCanNotRequstFromThisPeer(
+					"Peer is choking us or We are not intersted");
+
+		boolean dogpileEmpty = dogpile.isEmpty();
+		Vector<BlockRange> blockRanges = PieceManager.getInstance().
+		getBlockRangeToRequest(peer, new HashSet<BlockRange>(dogpile), 
+				numBlocks);
+		Main.iprint("Requesting " + blockRanges.size() + " blocks");
+
+		if(blockRanges.isEmpty()) {
+			// we got stuck. clear the dogpile and try again.
+			if(dogpileEmpty) {
+				Main.dprint("=============== FATAL ERROR: nothing left to request! ============");
+				throw new TerptorrentsModelsCanNotRequstFromThisPeer("FATAL ERROR: nothing left to request!");
+			}
+			dogpile.clear();
+			requestBlocks(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get());
+		} else {
+			for(BlockRange br : blockRanges) {
+				dogpile.add(br);
+				conn.sendMessage(new RequestMessage(br));
+			}
+		}
+	}
+
+	public void pieceComplete(int index) {
+		// clear out this piece's request from the dogpile (not necessary, but keeps the dogpile clean.
 		try {
-			PeerConnection conn = peer.getConnection();
-			if(conn == null) 
-				throw new TerptorrentsModelsCanNotRequstFromThisPeer
-				("Disconnected Peer");
-
-			if(conn.peerChoking() || !conn.amInterested())
-				throw new TerptorrentsModelsCanNotRequstFromThisPeer(
-				"Peer is choking us or We are not intersted");
-
-			boolean dogpileEmpty = dogpile.isEmpty();
-			Vector<BlockRange> blockRanges = PieceManager.getInstance().
-			getBlockRangeToRequest(peer, new HashSet<BlockRange>(dogpile), 
-					numBlocks);
-			Main.iprint("Requesting " + blockRanges.size() + " blocks");
-
-			if(blockRanges.isEmpty()) {
-				// we got stuck. clear the dogpile and try again.
-				if(dogpileEmpty) {
-					Main.dprint("=============== FATAL ERROR: nothing left to request! ============");
-					throw new TerptorrentsModelsCanNotRequstFromThisPeer("FATAL ERROR: nothing left to request!");
-				}
-				dogpile.clear();
-				requestBlocks(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get());
-			} else {
-				for(BlockRange br : blockRanges) {
-					dogpile.add(br);
-					conn.sendMessage(new RequestMessage(br));
+			Iterator<BlockRange> it = dogpile.iterator();
+			while(it.hasNext()) {
+				if(it.next().getPieceIndex() == index) {
+					it.remove();
 				}
 			}
-		} finally {
-			PieceManager.getInstance().blocksLock.unlock();
+		} catch(Exception ex) {
+			Main.iprint("EXCEPTION CAUGHT in RequestManager.pieceComplete(): " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+			// no problem
 		}
 	}
 }
