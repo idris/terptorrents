@@ -9,6 +9,10 @@ package terptorrents.exceptions;
  */
 public class TerptorrentsModelsPieceNotWritable extends Exception {
 
+	public TerptorrentsModelsPieceNotWritable(String msg) {
+		super(msg);
+	}
+
 	/**
 	 * 
 	 */

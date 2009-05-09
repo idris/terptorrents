@@ -34,7 +34,7 @@ public class BlockRange {
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!getClass().equals(obj.getClass()))
 			return false;
 		BlockRange other = (BlockRange) obj;
 		if (begin != other.begin)

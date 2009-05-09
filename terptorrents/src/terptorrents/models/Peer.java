@@ -11,7 +11,7 @@ public class Peer {
 	private final InetSocketAddress address;
 	private AtomicInteger badCount = new AtomicInteger();
 
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -68,6 +68,13 @@ public class Peer {
 
 	public boolean isConnectable() {
 		return !isConnected() && badCount.get() <= 2;
+	}
+
+	/**
+	 * Forgive this peer. That is, reset badCount.
+	 */
+	public void forgive() {
+		badCount.set(0);
 	}
 
 	@Override

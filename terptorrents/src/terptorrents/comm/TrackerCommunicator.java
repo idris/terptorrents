@@ -177,8 +177,8 @@ public class TrackerCommunicator implements Runnable {
 					}
 					String dottedIP = inetAddress.getHostAddress();
 					peerList.add(new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port));
-					PeerList.getInstance().addPeers(peerList);
 				}
+				PeerList.getInstance().addPeers(peerList);
 			}
 			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));
 			if(trackerIDBE!=null)trackerId=trackerIDBE.getString();
