@@ -51,7 +51,7 @@ public class PeerListener implements Runnable {
 
 						if(peer == null) {
 							// prepare new peer
-							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort(), false);
 							PeerList.getInstance().addPeer(peer);
 						}
 

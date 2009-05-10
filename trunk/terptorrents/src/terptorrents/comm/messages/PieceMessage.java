@@ -3,11 +3,13 @@ package terptorrents.comm.messages;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
+import terptorrents.models.BlockRange;
 import terptorrents.models.PieceManager;
 import terptorrents.models.RequestManager;
 
@@ -78,9 +80,9 @@ public class PieceMessage extends AbstractMessage {
 
 		// request more from this connection
 		try {
-			if(PieceManager.getInstance().isEndGameTiggered()){
+			if(PieceManager.getInstance().isEndGameTiggered()) {
 				 for(PeerConnection peerCon: ConnectionPool.
-	                    getInstance().getNonChokingAndInsterested()){
+	                    getInstance().getNonChokingAndInsterested()) {
 					 if(conn != peerCon){
 						 peerCon.sendMessage(
 								 new CancelMessage(index, begin, block.length));
@@ -88,7 +90,11 @@ public class PieceMessage extends AbstractMessage {
 				 }
 			} else if(conn.canIRequest()) {
 				if(toRequest >= Main.MAX_OUTSTANDING_REQUESTS/2) {
-					RequestManager.getInstance().requestBlocks(conn.getPeer(), toRequest);
+//					RequestManager.getInstance().requestBlocks(conn.getPeer(), toRequest); // the old way
+					List<BlockRange> ranges = PieceManager.getInstance().getBlockRangeToRequestSamePiecePerPeer(conn.getPeer(), toRequest);
+					for(BlockRange range: ranges) {
+						conn.sendMessage(new RequestMessage(range));
+					}
 				}
 			}
 		} catch(Exception ex) {
