@@ -8,7 +8,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +29,7 @@ import terptorrents.io.IO;
 public class PieceManager {
 	private static PieceManager SINGLETON = null;
 
-	private HashMap<Peer, Integer> pieceRequestedFromPeer;
+	private Hashtable<Peer, Integer> pieceRequestedFromPeer;
 	private Piece [] pieces;
 	private Vector<PeerPiece> peerPieceList;
 	private Vector<LocalPiece> localPieceList;
@@ -61,7 +61,7 @@ public class PieceManager {
 			BlockRange [] blockRanges = null;
 			int requestedBytes = 0;
 
-		try {		
+		try {
 			if(pieceRequestedFromPeer.get(peer) != null &&
 					(PeerPiece)pieces[pieceRequestedFromPeer.get(peer)] instanceof PeerPiece){
 				blockRanges = ((PeerPiece)pieces[pieceRequestedFromPeer.get(peer)])
@@ -202,9 +202,8 @@ public class PieceManager {
 		for(int i = 0; i < peerBitField.size(); i++){
 			if(peerBitField.get(i) && (pieces[i] instanceof PeerPiece)){
 				PeerConnection pc = peer.getConnection();
-				if (pc != null){ 
+				if (pc != null){
 					pc.sendMessage(new InterestedMessage());
-					pieceRequestedFromPeer.put(peer, null);
 				}
 				break;
 			}
@@ -348,6 +347,7 @@ public class PieceManager {
 		Piece.setLastPieceSize(IO.getInstance().getLastPieceSize());
 		Piece.setSize(IO.getInstance().getPieceSize());
 
+		pieceRequestedFromPeer = new Hashtable<Peer, Integer>();
 		peerPieceList = new Vector<PeerPiece>();
 		localPieceList = new Vector<LocalPiece>();
 		currentRequestBufferSize = 0;
