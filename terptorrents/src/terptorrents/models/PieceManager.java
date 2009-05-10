@@ -287,7 +287,7 @@ public class PieceManager {
 	}
 
 	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, 
-			byte [] data)
+			byte [] data, Peer fromPeer)
 	throws TerptorrentsModelsPieceNotWritable, 
 	TerptorrentsModelsBlockIndexOutOfBound, 
 	TerptorrentsModelsPieceIndexOutOfBound{
@@ -336,7 +336,10 @@ public class PieceManager {
 					peer.getConnection().sendMessage(new NotInterestedMessage());
 				}
 			}
+		}else{
+			fromPeer.gotBadPiece();
 		}
+		
 	}
 
 	private PieceManager(){
