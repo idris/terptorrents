@@ -17,7 +17,7 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	private static final String ID_PREFIX = "TerpTorrent_";
+	private static final String ID_PREFIX = "TerpTorrent ";
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = false;
@@ -126,13 +126,13 @@ public class Main {
 			boolean seeding = false;
 			while(true){
 				if (IO.getInstance().isComplete()) {
-					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
+					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding...");
 					if(!seeding) {
 						seeding = true;
 						ConnectionPool.getInstance().removeSeeders();
 					}
 				} else {
-					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
+					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K ");
 				}
 
 				try {
