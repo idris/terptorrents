@@ -29,6 +29,8 @@ public class IO {
 	private final Map<Integer, byte[]> pieceHashes;
 	private volatile boolean mask[];
 	private HashSet<Integer> piecesWeDoNotWant = new HashSet<Integer>();
+	private HashSet<Integer> highPriorityPieces = new HashSet<Integer>();
+	private HashSet<Integer> excludedFiles = new HashSet<Integer>();
 	private MyIOBitSet ioBitSet;
 
 	
@@ -70,6 +72,7 @@ public class IO {
 	    /* it was set to false just to remove some prints caused by constructor */
 	    DEBUG = Main.DEBUG;
 	    if (Main.ENABLE_SELECTIVE_DOWNLOAD) selectFilesForDownload();
+	    if (Main.ENABLE_FILE_PRIORITY_SELECTION) setPriority();
 	}
 
 	/* checks pieces in a file against SHA1 and mark mask[] if piece needs
@@ -79,6 +82,7 @@ public class IO {
 		dprint("Checking file(s) integrity...");
 		byte[] piece;
 		dprint("Marking pieces to download: (total: " + mask.length + ")");
+		Main.print("Preparing file(s)");
 		int numOfDots = 0;
 		for (int i = 0; i < mask.length; i++) {
 			try {
@@ -86,20 +90,21 @@ public class IO {
 				digest.update(piece);
 				byte[] hash = digest.digest();				
 				if (!Arrays.equals(hash, this.pieceHashes.get(i))) {
-					if (Main.DEBUG || Main.INFO) {
-						if(Main.INFO) {
-							System.out.print(i + "  ");
-							numOfDots += 3;
-						} else {
-							System.out.print(".");
-							numOfDots++;
-						}
-						if (numOfDots > 80) {System.out.println(); numOfDots = 0;}
-					}
 					mask[i] = false;
 				} else {
 					mask[i] = true;
 				}
+				/* ---Print progress bar ---*/
+				if (Main.DEBUG || Main.INFO) {
+					if (!mask[i]) System.out.print(i + "  ");
+					else System.out.print("X  ");
+					numOfDots += 3;
+				} else {
+					System.out.print(".");
+					numOfDots++;
+				}
+				if (numOfDots > 80) {System.out.println(); numOfDots = 0;}
+				/* ------------------------- */
 			} catch (TerptorrentsIONoSuchPieceException e) {
 				dprint("Integrity Checking failed. Reason: " + e.getMessage());
 				throw new InternalError("checkFilesIntegrity() function failed. Requested piece does not exists");
@@ -107,6 +112,7 @@ public class IO {
 				//Ignore integrity checking of deselected pieces
 			}
 		}
+		Main.print("\n");
 		if (Main.DEBUG) System.out.println("\n Number of pieces to download: " + this.getBitSet().getNumEmptyPieces());
 	}
 	
@@ -425,7 +431,12 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 		return this.irregPieceSize;
 	}
 	
-	/* closes all open files for wirte */
+	/* returns set of high priority pieces */
+	public Set<Integer> getHighPriorityPieces() {
+		return new HashSet<Integer>(this.highPriorityPieces);
+	}
+	
+	/* closes all open files for write */
 	public void close() throws IOException {
 		for (int i = 0; i < files.length; i++) 
 			files[i].close();
@@ -473,7 +484,7 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 
 		public int totalNumOfPieces() {
 			return mask.length;
-		}	
+		}
 		
 		private class EmptyPiecesIterator implements Iterator<Integer> {
 
@@ -508,7 +519,7 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 	private void selectFilesForDownload() {
 		/* print filenames to choose from */
 		List<String> files = TorrentParser.getInstance().getMetaFile().getFilenames();
-		System.out.println("Choose files you don't want to download... ");
+		System.out.println("\nChoose files you don't want to download... ");
 		/* print filename and its number STARTING FROM ONE */
 		for (int i = 0; i < files.size(); i++) {
 			System.out.println("" + (i+1) + ". " + files.get(i));
@@ -530,6 +541,7 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 					System.out.print(" " + (i + 1));
 				System.out.println();
 				this.excludeFiles(filesToExclude);
+				this.excludedFiles.addAll(filesToExclude);
 			} else System.out.println("Downloading all files");
 		} catch (IOException e) {
 			System.out.println("Sorry, could not read a string from you. Downloading all pieces");
@@ -570,6 +582,78 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 					}
 				}
 				if (!downloadPiece) piecesWeDoNotWant.add(i);
+			}
+		}
+	}
+	
+	/* SELECT PRIORITY OF THE FILES */
+	private void setPriority() {
+		/* print filenames to choose from */
+		List<String> files = TorrentParser.getInstance().getMetaFile().getFilenames();
+		System.out.println("\nChoose files you want to give a higher priority... ");
+		/* print filename and its number STARTING FROM ONE */
+		for (int i = 0; i < files.size(); i++) {
+			if (excludedFiles.contains(i)) {continue;}
+			System.out.println("" + (i+1) + ". " + files.get(i));
+		}
+		System.out.print("Enter file numbers separated by space: ");
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			/* get user input */
+			List<Integer> userInput = this.getIntegers(in.readLine());
+			int lastFile = this.files.length;
+			Set<Integer> filesToPrioritize = new HashSet<Integer>();
+			for (Integer i: userInput) {
+				if (i <= lastFile && i > 0 
+						&& !excludedFiles.contains(i-1)) filesToPrioritize.add(i-1);
+			}
+			/* mark higher priority pieces */
+			if (!filesToPrioritize.isEmpty()) {
+				System.out.print("\nFollowing files will have higher priority:");
+				for (Integer i : filesToPrioritize)
+					System.out.print(" " + (i + 1));
+				System.out.println();
+				
+				/* mark high priority pieces */
+				this.markHighPriorityPieces(filesToPrioritize, highPriorityPieces);
+
+			} else System.out.println("All files will have default priority");
+		} catch (IOException e) {
+			System.out.println("Sorry, could not read a string from you. Files will have default priority");
+		}
+		dprint("Following pieces where marked as high priority pieces: " + highPriorityPieces);
+	}
+	
+	
+	/* mark high priority pieces */
+	private void markHighPriorityPieces(Set<Integer> files, Set<Integer> pieces) throws IOException {
+		FileTuple ft;
+		for (int i = 0 ; i < mask.length; i++) {
+			/* for each piece find start and end file */
+			ft = findFiles(i);
+			/* if piece is entirely inside one file */
+			if (ft.startFile == ft.endFile) {
+				if (files.contains(ft.startFile)) pieces.add(i);
+			} else if (ft.endFile != -1 && ft.startFile == ft.endFile +1) { //two consecutive files
+				if (files.contains(ft.startFile) || files.contains(ft.endFile))
+					pieces.add(i);
+			} else if (ft.startFile != -1 && ft.endFile != -1) {
+				//two non consecutive files, check if any of those files 
+				//have a priority
+				for (int f = ft.startFile; f <= ft.endFile; f++) {
+					if (files.contains(f)) {
+						pieces.add(i);
+						break;
+					}
+				}
+			} else if (ft.startFile != -1 && ft.endFile == -1) {
+				//last piece
+				for (int file = ft.startFile; file < this.files.length; file++) {
+					if (files.contains(file)) {
+						pieces.add(i);
+						break;
+					}
+				}
 			}
 		}
 	}
