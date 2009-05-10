@@ -29,7 +29,7 @@ public class Main {
 	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
-	public static final int MAX_PEER_CONNECTIONS = 20;
+	public static		int MAX_PEER_CONNECTIONS = 20;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
 	/* ------------------------------------- */
@@ -46,7 +46,7 @@ public class Main {
 	/* ****************************************************** */
 
 	private static String torrentFile;
-	private final static String USAGE = " <-d> <.torrent>";
+
 	/* ARGUMENTS: 
 	 * -d : debugging mode
 	 * last argument should be a .torrent file
@@ -56,7 +56,6 @@ public class Main {
 		//TODO remove comment. It is OFF for debugging purpose
 		torrentFile = "Ubuntu.torrent";
 		//parseCommand(args);
-
 
 		try {
 			/* Generate Client ID */
@@ -153,15 +152,40 @@ public class Main {
 		}		
 	}
 
+	/* ------------ COMMAND PARSER ----------------------------- */
+	private final static String USAGE = 
+		"[-option...] torrent_file \n" +
+		"Options: \n" +
+		"-d			Turn on Debug Mode\n" +
+		"-i			Turn on Info Mode (Display Messages Exchanged)\n" +
+		"-sd		Enable Selective Download\n" +
+		"-mp NUM	Maximum number of connected peers\n";
+	
 	private static void parseCommand(String[] args) {
 		/* parse arguments*/
-		for (String arg : args) {
-			/* debugging mode */
-			if (arg.equals("-d")) Main.DEBUG = true;
+		Main.DEBUG = false;
+		Main.INFO = false;
+		Main.ENABLE_SELECTIVE_DOWNLOAD = false;
+		String arg;
+		try {
+			for (int i = 0; i < args.length; i++) {
+				arg = args[i];
+				/* debugging mode */
+				if (arg.toLowerCase().equals("-d"))
+					Main.DEBUG = true;
+				if (arg.toLowerCase().equals("-i"))
+					Main.INFO = true;
+				if (arg.toLowerCase().equals("-sd"))
+					Main.ENABLE_SELECTIVE_DOWNLOAD = true;
+				if (arg.toLowerCase().equals("-mp"))
+					Main.MAX_PEER_CONNECTIONS = Integer.valueOf(args[i + 1]);
+			}
+		} catch (Exception e) {
+			print("Usage: " + Main.USAGE);
 		}
 		/* last argument should always be a .torrent file */
 		if (args.length == 0) {
-			System.out.println("Usage: " + Main.USAGE);
+			print("Usage: " + Main.USAGE);
 		}
 
 		torrentFile = args[args.length - 1];
@@ -170,6 +194,8 @@ public class Main {
 		if (!f.isFile())
 			System.out.println("Specified .torrent file does not exists");		
 	}
+	
+	/* -------------------------------------------------------------------- */
 
 	public static void dprint(String message) {
 		if(DEBUG) {
