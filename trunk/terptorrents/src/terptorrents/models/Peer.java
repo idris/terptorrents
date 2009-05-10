@@ -4,11 +4,21 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
 
 public class Peer {
 	private final byte[] id;
 	private final InetSocketAddress address;
+
+	/**
+	 * number of times we have failed to connect, or disconnected from this peer
+	 */
+	private AtomicInteger disconnectCount = new AtomicInteger();
+
+	/**
+	 * number of times we have received a bad piece from this peer
+	 */
 	private AtomicInteger badCount = new AtomicInteger();
 
 
@@ -51,7 +61,7 @@ public class Peer {
 
 	public synchronized void disconnect() {
 		setConnection(null);
-		badCount.incrementAndGet();
+		disconnectCount.incrementAndGet();
 	}
 
 	public synchronized void setConnection(PeerConnection connection) {
@@ -67,13 +77,25 @@ public class Peer {
 	}
 
 	public boolean isConnectable() {
-		return !isConnected() && badCount.get() <= 2;
+		return !isConnected() && disconnectCount.get() <= 2 && badCount.get() <= Main.MAX_BAD_PIECES_PER_PEER;
+	}
+
+	public synchronized void gotBadPiece() {
+		if(!isConnected()) return;
+		if(badCount.incrementAndGet() > Main.MAX_BAD_PIECES_PER_PEER) {
+			try {
+				connection.close();
+			} catch(Exception ex) {
+				// already closed.
+			}
+		}
 	}
 
 	/**
-	 * Forgive this peer. That is, reset badCount.
+	 * Forgive this peer. That is, reset disconnectCount and badCount.
 	 */
 	public void forgive() {
+		disconnectCount.set(0);
 		badCount.set(0);
 	}
 
