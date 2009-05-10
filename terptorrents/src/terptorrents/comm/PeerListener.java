@@ -88,12 +88,12 @@ public class PeerListener implements Runnable {
 	}
 
 	private HandshakeMessage getHandshake(Socket socket) throws IOException {
-		System.out.println("INCOMING HANDSHAKE FROM " + socket.getInetAddress().toString());
+		Main.dprint("INCOMING HANDSHAKE FROM " + socket.getInetAddress().toString());
 		DataInputStream dis = new DataInputStream(socket.getInputStream());
 		int handshakeLength = dis.read();
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(dis, handshakeLength);
-		System.out.println("DONE WITH INCOMING HANDSHAKE");
+		Main.dprint("DONE WITH INCOMING HANDSHAKE");
 		return handshake;
 	}
 

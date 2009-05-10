@@ -20,7 +20,7 @@ public class Main {
 	private static final String ID_PREFIX = "TerpTorrent ";
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
-	public static boolean DEBUG = false;
+	public static boolean DEBUG = true;
 	public static boolean INFO = true;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
