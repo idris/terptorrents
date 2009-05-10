@@ -43,7 +43,8 @@ public class Main {
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 300000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
-	
+	public static final int MAX_BAD_PIECES_PER_PEER = 3;
+	public static final int MAX_DISCONNECTS_PER_PEER = 2;
 	/* ****************************************************** */
 
 	private static String torrentFile;
@@ -55,7 +56,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Ubuntu.torrent";
+		torrentFile = "ubuntu.torrent";
 		//parseCommand(args);
 
 		try {

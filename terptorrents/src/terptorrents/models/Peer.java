@@ -8,8 +8,9 @@ import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
 
 public class Peer {
-	private final byte[] id;
-	private final InetSocketAddress address;
+	private byte[] id;
+	private InetSocketAddress address;
+	private InetSocketAddress listenAddress;
 
 	/**
 	 * number of times we have failed to connect, or disconnected from this peer
@@ -49,14 +50,19 @@ public class Peer {
 		return address;
 	}
 
-	public Peer(byte[] id, String host, int port) throws IOException {
+	public Peer(byte[] id, String host, int port, boolean outgoing) throws IOException {
 		this.id = id;
 		InetAddress addr = InetAddress.getByName(host);
 		this.address = new InetSocketAddress(addr, port);
+		if(outgoing) this.listenAddress = this.address;
 	}
 
 	public byte[] getId() {
 		return id;
+	}
+
+	public void setId(byte[] id) {
+		this.id = id;
 	}
 
 	public synchronized void disconnect() {
