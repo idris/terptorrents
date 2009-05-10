@@ -20,7 +20,7 @@ public class Main {
 	private static final String ID_PREFIX = "TerpTorrent_";
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
-	public static boolean DEBUG = true;
+	public static boolean DEBUG = false;
 	public static boolean INFO = false;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
@@ -54,7 +54,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "eclipse.torrent";
+		torrentFile = "Ubuntu.torrent";
 		//parseCommand(args);
 
 
@@ -183,6 +183,12 @@ public class Main {
 		}
 	}
 	
+	public static void print(String message) {
+		if(!DEBUG && !INFO) {
+			System.out.println(message);
+		}
+	}
+	
 	/* look for available port in range for Peer Listener */
 	private static ServerSocket getSocketForIncommingConnections() {
 		// 6881-6889
@@ -213,6 +219,7 @@ public class Main {
 			randPart += Math.abs(randomID[i]);
 		}
 		dprint("Client ID: " + Main.ID_PREFIX + randPart);
+		print("Client ID: " + Main.ID_PREFIX + randPart + "\n");
 	}
 
 }

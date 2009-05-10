@@ -79,6 +79,7 @@ public class IO {
 		dprint("Checking file(s) integrity...");
 		byte[] piece;
 		dprint("Marking pieces to download: (total: " + mask.length + ")");
+		Main.print("Preparing file(s)");
 		int numOfDots = 0;
 		for (int i = 0; i < mask.length; i++) {
 			try {
@@ -100,6 +101,11 @@ public class IO {
 				} else {
 					mask[i] = true;
 				}
+				if (!Main.DEBUG && !Main.INFO) {
+					System.out.print(".");
+					numOfDots++;
+					if (numOfDots > 80) {System.out.println(); numOfDots = 0;}
+				}
 			} catch (TerptorrentsIONoSuchPieceException e) {
 				dprint("Integrity Checking failed. Reason: " + e.getMessage());
 				throw new InternalError("checkFilesIntegrity() function failed. Requested piece does not exists");
@@ -107,6 +113,7 @@ public class IO {
 				//Ignore integrity checking of deselected pieces
 			}
 		}
+		Main.print("\n");
 		if (Main.DEBUG) System.out.println("\n Number of pieces to download: " + this.getBitSet().getNumEmptyPieces());
 	}
 	
