@@ -8,7 +8,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +28,6 @@ import terptorrents.io.IO;
 public class PieceManager {
 	private static PieceManager SINGLETON = null;
 
-	private Hashtable<Peer, Integer> pieceRequestedFromPeer;
 	private Piece [] pieces;
 	private Vector<PeerPiece> peerPieceList;
 	private Vector<LocalPiece> localPieceList;
@@ -54,76 +52,6 @@ public class PieceManager {
 		return endGameTiggered;
 	}
 
-
-	public synchronized Vector<BlockRange> getBlockRangeToRequestSamePiecePerPeer
-	(Peer peer, int size) {
-		Vector<BlockRange> res = new Vector<BlockRange>();
-			BlockRange [] blockRanges = null;
-			int requestedBytes = 0;
-
-		try {
-			if(pieceRequestedFromPeer.get(peer) != null &&
-					(PeerPiece)pieces[pieceRequestedFromPeer.get(peer)] instanceof PeerPiece){
-				blockRanges = ((PeerPiece)pieces[pieceRequestedFromPeer.get(peer)])
-				.getBlockRangeToRequest();
-				int j = 0;
-				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
-						&& j < blockRanges.length){
-					res.add(blockRanges[j]);
-					requestedBytes += blockRanges[j].getLength();
-					j++;
-				}
-			}else{
-				synchronized (peerPieceList) {
-					Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
-				}
-				while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
-					peerPieceList.remove(0);
-				}
-				int j = 0;
-				int newPieceIndexToRequest = -1;
-				while(j < peerPieceList.size() && peerPieceList.get(j).hasPeer(peer)) {
-					newPieceIndexToRequest = peerPieceList.get(j).getIndex();
-					j++;
-				}
-
-				if(newPieceIndexToRequest < 0) return res;
-
-				blockRanges = ((PeerPiece)pieces[newPieceIndexToRequest])
-				.getBlockRangeToRequest();
-
-				j = 0;
-				while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
-						&& j < blockRanges.length){
-					if(!pieceRequestedFromPeer.containsValue
-							(blockRanges[j].getPieceIndex())){
-						res.add(blockRanges[j]);
-						requestedBytes += blockRanges[j].getLength();
-					}
-					j++;	
-				}
-				pieceRequestedFromPeer.put(peer, newPieceIndexToRequest);
-			}
-
-		} catch (ConcurrentModificationException ex) {
-			Main.dprint("ConcurrentModificationException is caught in " +
-			"PieceManager while iterating over piece List");
-		}
-
-		if(peerPieceList.size() <= pieceRequestedFromPeer.size() && res.isEmpty()){
-			if(!endGameTiggered){
-				Main.dprint("End Game Is Triggered");
-				endGameTiggered = true;
-			}
-			for(PeerPiece pp: peerPieceList){
-				blockRanges = pp.getBlockRangeToRequest();
-				for(int i = 0; i < blockRanges.length; i++)
-					res.add(blockRanges[i]);
-			}
-		}
-		return res;
-	}
-
 	public synchronized Vector<BlockRange> getBlockRangeToRequest(Peer peer, 
 			Set<BlockRange> dogpile, int size) {
 		Vector<BlockRange> res = new Vector<BlockRange>();
@@ -133,7 +61,7 @@ public class PieceManager {
 		if(numPieceReceived + 
 				Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE / 100
 				* IO.getInstance().getBitSet().totalNumOfPieces() >= 
-					IO.getInstance().getBitSet().totalNumOfPieces()){
+			IO.getInstance().getBitSet().totalNumOfPieces()){
 			if(!endGameTiggered){
 				Main.dprint("End Game Is Triggered");
 				endGameTiggered = true;
@@ -148,20 +76,28 @@ public class PieceManager {
 			synchronized (peerPieceList) {
 				Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 			}
+
+
+			// XXX: this while will usually only check the first entry.
+			//       this should be fixed and refactored into its own method
+			//       also, is this the best (most efficient) place to do this?
+			//       this method is called A LOT
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
 				peerPieceList.remove(0);
 			}
+			Main.iprint("peerPieceList size after removals: " + peerPieceList.size());
+
 
 			rarestPeerPieceList = peerPieceList.subList
 			(0, Math.min(Main.NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST, peerPieceList.size()));
 
-			/*
+/*
 			if(Main.INFO) {
 				for(PeerPiece pp: rarestPeerPieceList) {
 					Main.iprint("Ranges in Piece " + pp.getIndex() + " to request: " + pp.getBlockRangeToRequest().length);
 				}
 			}
-			 */
+*/
 			Collections.shuffle(rarestPeerPieceList);
 			Iterator<PeerPiece> e = rarestPeerPieceList.iterator();
 
@@ -200,13 +136,11 @@ public class PieceManager {
 	public void addPeer(BitSet peerBitField, Peer peer) {
 		assert peerBitField.length() == pieces.length;
 		assert peer != null;
-		
+
 		for(int i = 0; i < peerBitField.size(); i++){
 			if(peerBitField.get(i) && (pieces[i] instanceof PeerPiece)){
 				PeerConnection pc = peer.getConnection();
-				if (pc != null){
-					pc.sendMessage(new InterestedMessage());
-				}
+				if (pc != null) pc.sendMessage(new InterestedMessage());
 				break;
 			}
 		}
@@ -288,7 +222,7 @@ public class PieceManager {
 	}
 
 	public void updateBlock(int pieceIndex,	int blockBegin, int blockLength, 
-			byte [] data, Peer fromPeer)
+			byte [] data)
 	throws TerptorrentsModelsPieceNotWritable, 
 	TerptorrentsModelsBlockIndexOutOfBound, 
 	TerptorrentsModelsPieceIndexOutOfBound{
@@ -298,49 +232,45 @@ public class PieceManager {
 			throw new TerptorrentsModelsPieceNotWritable("Piece " + pieceIndex + " is not a PeerPiece.");
 
 		PeerPiece peerPiece = (PeerPiece)pieces[pieceIndex];
-		try {
-			if(peerPiece.updateBlock(pieceIndex, blockBegin, 
-					blockLength, data)){
-				// tell RequestManager that we now have this piece
-				RequestManager.getInstance().pieceComplete(pieceIndex);
+		if(peerPiece.updateBlock(pieceIndex, blockBegin, 
+				blockLength, data)){
+			// tell RequestManager that we now have this piece
+			RequestManager.getInstance().pieceComplete(pieceIndex);
 
-				// change this piece into a LocalPiece (first remove the PeerPiece)
-				synchronized (peerPieceList) {
-					while(peerPieceList.remove(peerPiece)); // in case there are duplicates, keep removing the duplicates from the list
-				}
-				numPieceReceived++;
-				pieces[pieceIndex] = new LocalPiece(
-						(pieceIndex == pieces.length - 1), 
-						pieceIndex);
+			// change this piece into a LocalPiece (first remove the PeerPiece)
+			synchronized (peerPieceList) {
+				while(peerPieceList.remove(peerPiece)); // in case there are duplicates, keep removing the duplicates from the list
+			}
+			numPieceReceived++;
+			pieces[pieceIndex] = new LocalPiece(
+					(pieceIndex == pieces.length - 1), 
+					pieceIndex);
 
-				/*send have messages*/
-				for(PeerConnection conn : ConnectionPool.getInstance().
-						getConnections()){
-					if(conn != null){
-						conn.sendMessage(new HaveMessage(pieceIndex));
-					}
-				}
-				Enumeration<Peer> ps = (peerPiece).getPeerSet().elements();
-				Peer peer;
-				while(ps.hasMoreElements()){
-					peer = ps.nextElement();
-					boolean peerHaveOtherPiece = false;
-					PeerPiece pp;
-					for(int i = 0; i < peerPieceList.size(); i++){
-						pp = peerPieceList.get(i);
-						if(pp.hasPeer(peer)){
-							Main.iprint("PEER " + peer.toString() + " also has " + pp.getIndex());
-							peerHaveOtherPiece = true;
-							break;
-						}
-					}
-					if(!peerHaveOtherPiece){
-						peer.getConnection().sendMessage(new NotInterestedMessage());
-					}
+			/*send have messages*/
+			for(PeerConnection conn : ConnectionPool.getInstance().
+					getConnections()){
+				if(conn != null){
+					conn.sendMessage(new HaveMessage(pieceIndex));
 				}
 			}
-		} catch(TerptorrentsIOBadHashException ex) {
-			fromPeer.gotBadPiece();
+			Enumeration<Peer> ps = (peerPiece).getPeerSet().elements();
+			Peer peer;
+			while(ps.hasMoreElements()){
+				peer = ps.nextElement();
+				boolean peerHaveOtherPiece = false;
+				PeerPiece pp;
+				for(int i = 0; i < peerPieceList.size(); i++){
+					pp = peerPieceList.get(i);
+					if(pp.hasPeer(peer)){
+						Main.iprint("PEER " + peer.toString() + " also has " + pp.getIndex());
+						peerHaveOtherPiece = true;
+						break;
+					}
+				}
+				if(!peerHaveOtherPiece){
+					peer.getConnection().sendMessage(new NotInterestedMessage());
+				}
+			}
 		}
 	}
 
@@ -351,7 +281,6 @@ public class PieceManager {
 		Piece.setLastPieceSize(IO.getInstance().getLastPieceSize());
 		Piece.setSize(IO.getInstance().getPieceSize());
 
-		pieceRequestedFromPeer = new Hashtable<Peer, Integer>();
 		peerPieceList = new Vector<PeerPiece>();
 		localPieceList = new Vector<LocalPiece>();
 		currentRequestBufferSize = 0;
@@ -364,7 +293,7 @@ public class PieceManager {
 					pieces[i] = (bitMap.havePiece(i)) ? 
 							new LocalPiece((i == numPieces - 1), i) : 
 								new PeerPiece((i == numPieces - 1), i);
-							//					if(pieces[i] instanceof PeerPiece) peerPieceList.add((PeerPiece)pieces[i]);
+//					if(pieces[i] instanceof PeerPiece) peerPieceList.add((PeerPiece)pieces[i]);
 				} catch (IODeselectedPieceException e) {
 					pieces[i] = new LocalPiece((i == numPieces - 1), i) ;
 				}

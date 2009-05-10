@@ -176,10 +176,7 @@ public class TrackerCommunicator implements Runnable {
 						continue;
 					}
 					String dottedIP = inetAddress.getHostAddress();
-					String padding = "                    "; // 20 characters of padding
-					String fakePeerId = dottedIP + padding.substring(dottedIP.length());
-
-					peerList.add(new Peer(new String(fakePeerId).getBytes(), dottedIP, port, true));
+					peerList.add(new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port));
 				}
 				PeerList.getInstance().addPeers(peerList);
 			}

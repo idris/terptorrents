@@ -60,7 +60,6 @@ class PeerConnectionIn implements Runnable {
 		Main.dprint("Reading Handshake from " + connection.peer.toString());
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(in, length);
-		handshake.onReceive(connection);
 		connection.handshook = true;
 		return handshake;
 	}
@@ -90,7 +89,7 @@ class PeerConnectionIn implements Runnable {
 
 		byte id = in.readByte();
 
-		Message m = null;
+		Message m;
 		switch(id) {
 		case 0:
 			m = new ChokeMessage();
@@ -122,29 +121,7 @@ class PeerConnectionIn implements Runnable {
 		case 9:
 			m = new PortMessage();
 			break;
-		}
-
-		if(m == null) {
-			if(false && length > 5) {
-				// try azureus messaging protocol
-				// 4 byte length (already stored in length)
-				// 4 byte length of message type (first byte is already stored in id)
-				int typeNameLength = (id<<4 & 0xFF000000) | (in.readByte() & 0x00FF0000) | (in.readByte() & 0x0000FF00) | (in.readByte() & 0x000000FF);
-
-				// x bytes message type name
-				byte[] messageTypeNameBytes = new byte[typeNameLength];
-				in.readFully(messageTypeNameBytes);
-				String messageTypeName = new String(messageTypeNameBytes);
-				int messageTypeVersion = in.readByte();
-
-				// if the 4th bit is true, then this indicates that 
-				// there is some message padding to follow.
-				if((messageTypeVersion & 0x10) > 0) {
-					
-				}
-			}
-
-			// unknown message. skip it.
+		default:
 			length -= 1;
 			while(length > 0) {
 				length -= in.skip(length);
@@ -154,16 +131,15 @@ class PeerConnectionIn implements Runnable {
 
 		Main.iprint("<= receiving " + m.getClass().getSimpleName() + " FROM " + connection.peer.toString());
 
-		long start = System.currentTimeMillis();
-		m.read(in, length);
-
 		if(m instanceof PieceMessage) {
-			connection.bytesUploaded += ((PieceMessage)m).getLength() - 1;
-			connection.timeUploaded += (double)(System.currentTimeMillis() - start) / 1000;
+			long start = System.currentTimeMillis();
+			m.read(in, length);
+			connection.downloadRate =  (((PieceMessage)m).getLength() - 1) / ((double)(System.currentTimeMillis() - start) / 1000);
 			Stats.getInstance().downloaded.addAndGet(((PieceMessage)m).getBlockLength());
 			connection.lastPieceReceived = new Date();
+		} else {
+			m.read(in, length);
 		}
-
 		m.onReceive(connection);
 
 //		Main.iprint("<= received " + m.toString() + " FROM " + connection.peer.toString());

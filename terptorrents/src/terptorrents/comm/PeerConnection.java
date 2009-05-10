@@ -3,7 +3,6 @@ package terptorrents.comm;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.BitSet;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +22,11 @@ import terptorrents.models.PieceManager;
  *
  */
 public class PeerConnection {
+
+	/* each time we create new connection this lock must be acquired 
+	 * to avoid data race */
+	//	public static final Object PEER_CONNECTION_LOCK = new Object();
+	/* ***************************************************** */
 	final Peer peer;
 	final Socket socket;
 
@@ -32,14 +36,8 @@ public class PeerConnection {
 	volatile Date lastReceived;
 	volatile Date lastPieceReceived = null;
 	volatile Date lastUnchoked = null;
-	volatile long bytesDownloaded = 0;
-	volatile double timeDownloaded = 0;
-	volatile long bytesUploaded = 0;
-	volatile double timeUploaded = 0;
-//	volatile double downloadRate = 0;
-//	volatile double uploadRate = 0;
-	volatile long uploadStart = 0;
-	volatile long downloadStart = 0;
+	volatile double downloadRate = 0;
+	volatile double uploadRate = 0;
 	private volatile boolean choking = true;
 	private volatile boolean interested = false;
 	private volatile boolean choked = true;
@@ -117,16 +115,11 @@ public class PeerConnection {
 	}
 
 	void sendBitfield() {
-		if(Main.SUPER_SEEDING_MODE) {
-			BitfieldMessage bitfieldMessage=new BitfieldMessage(new BitSet());
-			sendMessage(bitfieldMessage);
-		} else {
-			if(IO.getInstance().getBitSet().getNumEmptyPieces() 
-					!= IO.getInstance().getBitSet().totalNumOfPieces()){
-				BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.
-						getInstance().getBitSet().getUnsyncBitSet());
-				sendMessage(bitfieldMessage);
-			}
+		if(IO.getInstance().getBitSet().getNumEmptyPieces() 
+				!= IO.getInstance().getBitSet().totalNumOfPieces()){
+			BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.
+					getInstance().getBitSet().getUnsyncBitSet());
+			outgoingMessages.add(bitfieldMessage);
 		}
 	}
 
@@ -229,20 +222,12 @@ public class PeerConnection {
 		return interesting && !choking;
 	}
 
-	/**
-	 * 
-	 * @return download rate for this connection in bytes/second
-	 */
 	public double getDownloadRate() {
-		return (double) bytesDownloaded / timeDownloaded;
+		return downloadRate;
 	}
 
-	/**
-	 * 
-	 * @return upload rate for this connection in bytes/second
-	 */
 	public double getUploadRate() {
-		return (double) bytesUploaded / timeUploaded;
+		return uploadRate;
 	}
 
 	public Date getLastPieceRecievedDate() {

@@ -51,7 +51,7 @@ public class PeerListener implements Runnable {
 
 						if(peer == null) {
 							// prepare new peer
-							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort(), false);
+							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
 							PeerList.getInstance().addPeer(peer);
 						}
 
@@ -88,12 +88,12 @@ public class PeerListener implements Runnable {
 	}
 
 	private HandshakeMessage getHandshake(Socket socket) throws IOException {
-		Main.dprint("INCOMING HANDSHAKE FROM " + socket.getInetAddress().toString());
+		System.out.println("INCOMING HANDSHAKE FROM " + socket.getInetAddress().toString());
 		DataInputStream dis = new DataInputStream(socket.getInputStream());
 		int handshakeLength = dis.read();
 		HandshakeMessage handshake = new HandshakeMessage();
 		handshake.read(dis, handshakeLength);
-		Main.dprint("DONE WITH INCOMING HANDSHAKE");
+		System.out.println("DONE WITH INCOMING HANDSHAKE");
 		return handshake;
 	}
 

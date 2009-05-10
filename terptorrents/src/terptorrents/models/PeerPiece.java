@@ -1,13 +1,10 @@
 package terptorrents.models;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import terptorrents.exceptions.TerptorrentsIOBadHashException;
 import terptorrents.exceptions.TerptorrentsIONoSuchPieceException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
@@ -75,7 +72,7 @@ public class PeerPiece extends Piece {
 	@Override
 	public synchronized boolean updateBlock(int pieceIndex,
 			int blockBegin, int blockLength, byte [] data) 
-	throws TerptorrentsIOBadHashException, TerptorrentsModelsBlockIndexOutOfBound {
+	throws TerptorrentsModelsBlockIndexOutOfBound {
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if (this.data == null)
@@ -92,8 +89,8 @@ public class PeerPiece extends Piece {
 			Entry<Integer, Integer> entry = freeBlock.floorEntry(blockBegin);
 			if(entry == null || entry.getKey() + entry.getValue() <= blockBegin){
 				entry = freeBlock.ceilingEntry(blockBegin);
-				if(entry == null) return false;
-//					break;
+				if(entry == null)
+					break;
 				blockBegin = entry.getKey();
 				blockLength -= entry.getKey() - blockBegin;
 			}else{
@@ -120,8 +117,9 @@ public class PeerPiece extends Piece {
 		//System.arraycopy(src, srcPos, dest, destPos, length)
 		System.arraycopy(data, 0, this.data, oldBlockBegin, oldBlockLength);
 		if(Have_Piece()){
+			/*
 	        try {
-				FileOutputStream writer = new FileOutputStream("pieceDump" + pieceIndex + ".txt");
+				FileOutputStream writer = new FileOutputStream("pieceDump.txt");
 				writer.write(this.data);
 				writer.close();
 	        } catch (FileNotFoundException e1) {
@@ -131,6 +129,7 @@ public class PeerPiece extends Piece {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			*/
 			
 			Main.dprint("Received Piece " + pieceIndex);
 			
@@ -139,7 +138,6 @@ public class PeerPiece extends Piece {
 					res = true;
 				}else{
 					initFreeBlock();
-					throw new TerptorrentsIOBadHashException();
 				}
 			} catch (IOException e) {
 				if(Main.DEBUG)
@@ -164,10 +162,9 @@ public class PeerPiece extends Piece {
 			freeBlock.put(i * Main.MAX_REQUEST_BLOCK_SIZE, 
 					Main.MAX_REQUEST_BLOCK_SIZE);
 
-		int lastPieceSize = getSize() % Main.MAX_REQUEST_BLOCK_SIZE;
-		if(lastPieceSize != 0)
+		if(getSize() % Main.MAX_REQUEST_BLOCK_SIZE != 0)
 			freeBlock.put(end * Main.MAX_REQUEST_BLOCK_SIZE, 
-					lastPieceSize);
+					getSize() % Main.MAX_REQUEST_BLOCK_SIZE);
 		this.data = null;
 	}
 

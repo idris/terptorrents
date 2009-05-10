@@ -1,11 +1,9 @@
 package terptorrents.comm.messages;
 
-import java.util.List;
-
 import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
-import terptorrents.models.BlockRange;
-import terptorrents.models.PieceManager;
+import terptorrents.exceptions.TerptorrentsModelsCanNotRequstFromThisPeer;
+import terptorrents.models.RequestManager;
 
 public class UnchokeMessage extends AbstractMessage {
 	@Override
@@ -21,10 +19,10 @@ public class UnchokeMessage extends AbstractMessage {
 	@Override
 	public void onReceive(PeerConnection conn) {
 		conn.setChoked(false);
-		List<BlockRange> ranges = PieceManager.getInstance().getBlockRangeToRequestSamePiecePerPeer(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS);
-		if(ranges.isEmpty()) Main.dprint("NOTHING TO REQUEST FROM  " + conn.getPeer().toString());
-		for(BlockRange range: ranges) {
-			conn.sendMessage(new RequestMessage(range));
+		try {
+			RequestManager.getInstance().requestBlocks(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS);
+		} catch(TerptorrentsModelsCanNotRequstFromThisPeer ex) {
+			Main.dprint("Can not request from this peer EXCEPTION IS CAUGHT: " + conn.getPeer().toString());
 		}
 	}
 }
