@@ -88,6 +88,7 @@ public class Peer {
 
 	public synchronized void gotBadPiece() {
 		if(!isConnected()) return;
+		Main.dprint("Got a bad piece from " + toString());
 		if(badCount.incrementAndGet() > Main.MAX_BAD_PIECES_PER_PEER) {
 			try {
 				connection.close();

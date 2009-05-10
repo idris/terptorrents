@@ -1,5 +1,6 @@
 package terptorrents.models;
 
+import terptorrents.exceptions.TerptorrentsIOBadHashException;
 import terptorrents.exceptions.TerptorrentsModelsBlockIndexOutOfBound;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotReadable;
 import terptorrents.exceptions.TerptorrentsModelsPieceNotWritable;
@@ -46,6 +47,6 @@ abstract public class Piece {
 	throws TerptorrentsModelsPieceNotReadable, TerptorrentsModelsBlockIndexOutOfBound;
 	
 	public abstract boolean updateBlock(int pieceIndex, int blockBegin, int blockLength,
-			byte[] data) throws TerptorrentsModelsBlockIndexOutOfBound,
+			byte[] data) throws TerptorrentsIOBadHashException, TerptorrentsModelsBlockIndexOutOfBound,
 			TerptorrentsModelsPieceNotWritable;
 }
