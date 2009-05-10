@@ -48,12 +48,13 @@ class PeerConnectionOut implements Runnable {
 		connection.teardown();
 	}
 
-	private synchronized void writeMessage(Message message) throws IOException {
+	private void writeMessage(Message message) throws IOException {
 		long start = System.currentTimeMillis();
 		message.write(out);
 		out.flush();
 		if(message instanceof PieceMessage) {
-			connection.uploadRate =  ((PieceMessage)message).getLength() / ((double)(System.currentTimeMillis() - start) / 1000);
+			connection.bytesUploaded += ((PieceMessage)message).getLength();
+			connection.timeUploaded += (double)(System.currentTimeMillis() - start) / 1000;
 			Stats.getInstance().uploaded.addAndGet(((PieceMessage)message).getBlockLength());
 		}
 		Main.iprint("=> " + message.toString() + " SENT to " + connection.peer.toString());

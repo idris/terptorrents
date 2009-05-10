@@ -72,7 +72,7 @@ public class PieceManager {
 					res.add(blockRanges[j]);
 					requestedBytes += blockRanges[j].getLength();
 					j++;
-				}	
+				}
 			}else{
 				synchronized (peerPieceList) {
 					Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
@@ -81,13 +81,15 @@ public class PieceManager {
 					peerPieceList.remove(0);
 				}
 				int j = 0;
-				int newPieceIndexToRqeust = peerPieceList.get(0).getIndex();
-				while(peerPieceList.get(j).hasPeer(peer)){
-					newPieceIndexToRqeust = peerPieceList.get(j).getIndex();
+				int newPieceIndexToRequest = -1;
+				while(j < peerPieceList.size() && peerPieceList.get(j).hasPeer(peer)) {
+					newPieceIndexToRequest = peerPieceList.get(j).getIndex();
 					j++;
 				}
-				
-				blockRanges = ((PeerPiece)pieces[newPieceIndexToRqeust])
+
+				if(newPieceIndexToRequest < 0) return res;
+
+				blockRanges = ((PeerPiece)pieces[newPieceIndexToRequest])
 				.getBlockRangeToRequest();
 
 				j = 0;
@@ -100,7 +102,7 @@ public class PieceManager {
 					}
 					j++;	
 				}
-				pieceRequestedFromPeer.put(peer, newPieceIndexToRqeust);
+				pieceRequestedFromPeer.put(peer, newPieceIndexToRequest);
 			}
 
 		} catch (ConcurrentModificationException ex) {
@@ -296,46 +298,48 @@ public class PieceManager {
 			throw new TerptorrentsModelsPieceNotWritable("Piece " + pieceIndex + " is not a PeerPiece.");
 
 		PeerPiece peerPiece = (PeerPiece)pieces[pieceIndex];
-		if(peerPiece.updateBlock(pieceIndex, blockBegin, 
-				blockLength, data)){
-			// tell RequestManager that we now have this piece
-			RequestManager.getInstance().pieceComplete(pieceIndex);
+		try {
+			if(peerPiece.updateBlock(pieceIndex, blockBegin, 
+					blockLength, data)){
+				// tell RequestManager that we now have this piece
+				RequestManager.getInstance().pieceComplete(pieceIndex);
 
-			// change this piece into a LocalPiece (first remove the PeerPiece)
-			synchronized (peerPieceList) {
-				while(peerPieceList.remove(peerPiece)); // in case there are duplicates, keep removing the duplicates from the list
-			}
-			numPieceReceived++;
-			pieces[pieceIndex] = new LocalPiece(
-					(pieceIndex == pieces.length - 1), 
-					pieceIndex);
-
-			/*send have messages*/
-			for(PeerConnection conn : ConnectionPool.getInstance().
-					getConnections()){
-				if(conn != null){
-					conn.sendMessage(new HaveMessage(pieceIndex));
+				// change this piece into a LocalPiece (first remove the PeerPiece)
+				synchronized (peerPieceList) {
+					while(peerPieceList.remove(peerPiece)); // in case there are duplicates, keep removing the duplicates from the list
 				}
-			}
-			Enumeration<Peer> ps = (peerPiece).getPeerSet().elements();
-			Peer peer;
-			while(ps.hasMoreElements()){
-				peer = ps.nextElement();
-				boolean peerHaveOtherPiece = false;
-				PeerPiece pp;
-				for(int i = 0; i < peerPieceList.size(); i++){
-					pp = peerPieceList.get(i);
-					if(pp.hasPeer(peer)){
-						Main.iprint("PEER " + peer.toString() + " also has " + pp.getIndex());
-						peerHaveOtherPiece = true;
-						break;
+				numPieceReceived++;
+				pieces[pieceIndex] = new LocalPiece(
+						(pieceIndex == pieces.length - 1), 
+						pieceIndex);
+
+				/*send have messages*/
+				for(PeerConnection conn : ConnectionPool.getInstance().
+						getConnections()){
+					if(conn != null){
+						conn.sendMessage(new HaveMessage(pieceIndex));
 					}
 				}
-				if(!peerHaveOtherPiece){
-					peer.getConnection().sendMessage(new NotInterestedMessage());
+				Enumeration<Peer> ps = (peerPiece).getPeerSet().elements();
+				Peer peer;
+				while(ps.hasMoreElements()){
+					peer = ps.nextElement();
+					boolean peerHaveOtherPiece = false;
+					PeerPiece pp;
+					for(int i = 0; i < peerPieceList.size(); i++){
+						pp = peerPieceList.get(i);
+						if(pp.hasPeer(peer)){
+							Main.iprint("PEER " + peer.toString() + " also has " + pp.getIndex());
+							peerHaveOtherPiece = true;
+							break;
+						}
+					}
+					if(!peerHaveOtherPiece){
+						peer.getConnection().sendMessage(new NotInterestedMessage());
+					}
 				}
 			}
-		}else{
+		} catch(TerptorrentsIOBadHashException ex) {
 			fromPeer.gotBadPiece();
 		}
 	}

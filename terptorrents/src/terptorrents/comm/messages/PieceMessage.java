@@ -60,6 +60,15 @@ public class PieceMessage extends AbstractMessage {
 
 		block = new byte[length - 9];
 		dis.readFully(block);
+
+		boolean zero = true;
+		for(byte b: block) {
+			if(b != 0) {
+				zero = false;
+				break;
+			}
+		}
+		if(zero) Main.dprint("ERROR: ALL ZERO PIECE!!!!");
 	}
 
 	@Override
