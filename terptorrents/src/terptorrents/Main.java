@@ -18,6 +18,7 @@ import metainfo.*;
 public class Main {
 	/* ****************************************************** */
 	private static final String ID_PREFIX = "TerpTorrent ";
+	public static int PEER_ID_LENGTH = 20;
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
@@ -34,7 +35,7 @@ public class Main {
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
 	public static final boolean SUPER_SEEDING_MODE=false;
 	/* ------------------------------------- */
-	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is assigned by user
+	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;
 	public static final int MIN_PORT = 6881;
 	public static final int MAX_PORT = 6889;
@@ -57,7 +58,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Ubuntu.torrent";
+		torrentFile = "ubuntu.torrent";
 		//parseCommand(args);
 
 		try {
@@ -157,21 +158,18 @@ public class Main {
 
 	/* ------------ COMMAND PARSER ----------------------------- */
 	private final static String USAGE = 
-		"[options] torrent_file_name \n" +
+		"[-option...] torrent_file \n" +
 		"Options: \n" +
-		"-d				Turn on Debug Mode\n" +
-		"-i				Turn on Info Mode (Display Messages Exchanged)\n" +
-		"-fp			Enable file priority selection\n" +
-		"-sd			Enable Selective Download\n" +
-		"-mpeers NUM	Maximum number of connected peers\n" +
-		"-p		 NUM	Port on which this client will listen for incomming connections\n";
+		"-d			Turn on Debug Mode\n" +
+		"-i			Turn on Info Mode (Display Messages Exchanged)\n" +
+		"-sd		Enable Selective Download\n" +
+		"-mp NUM	Maximum number of connected peers\n";
 	
 	private static void parseCommand(String[] args) {
 		/* parse arguments*/
 		Main.DEBUG = false;
 		Main.INFO = false;
 		Main.ENABLE_SELECTIVE_DOWNLOAD = false;
-		Main.ENABLE_FILE_PRIORITY_SELECTION = false;
 		String arg;
 		try {
 			for (int i = 0; i < args.length; i++) {
@@ -181,16 +179,10 @@ public class Main {
 					Main.DEBUG = true;
 				if (arg.toLowerCase().equals("-i"))
 					Main.INFO = true;
-				if (arg.toLowerCase().equals("-fp"))
-					Main.ENABLE_FILE_PRIORITY_SELECTION = true;
 				if (arg.toLowerCase().equals("-sd"))
 					Main.ENABLE_SELECTIVE_DOWNLOAD = true;
-				if (arg.toLowerCase().equals("-mpeers"))
+				if (arg.toLowerCase().equals("-mp"))
 					Main.MAX_PEER_CONNECTIONS = Integer.valueOf(args[i + 1]);
-				if (arg.toLowerCase().equals("-p")) {
-					Main.USER_ASSIGNED_PORT = true;
-					Main.PORT = Integer.valueOf(args[i + 1]);
-				}
 			}
 		} catch (Exception e) {
 			print("Usage: " + Main.USAGE);
@@ -231,15 +223,6 @@ public class Main {
 	private static ServerSocket getSocketForIncommingConnections() {
 		// 6881-6889
 		ServerSocket s;
-		if (Main.USER_ASSIGNED_PORT) {
-			try {
-				return new ServerSocket(Main.PORT);
-			} catch (IOException e) {
-				dprint("Unable to bind this port: " + Main.PORT);
-				return null;
-			}
-		}
-
 		int p;
 		for (p = MIN_PORT; p <= MAX_PORT; p++) {
 			try {
@@ -254,13 +237,13 @@ public class Main {
 	}
 
 	private static void generatePeerID(){
-		PEER_ID = new byte[20];
+		PEER_ID = new byte[PEER_ID_LENGTH];
 		byte[] peerPrefix = Main.ID_PREFIX.getBytes();
-		byte[] randomID = new byte[20 - peerPrefix.length];
+		byte[] randomID = new byte[PEER_ID_LENGTH - peerPrefix.length];
 		System.arraycopy(peerPrefix, 0, PEER_ID, 0, peerPrefix.length);
 		Random r = new Random(System.currentTimeMillis());
 		r.nextBytes(randomID);
-		System.arraycopy(randomID, 0, PEER_ID, peerPrefix.length, randomID.length);
+		System.arraycopy(randomID, 0, PEER_ID, peerPrefix.length, PEER_ID_LENGTH - peerPrefix.length);
 		String randPart = "";
 		for (int i = 0 ; i < randomID.length; i++) {
 			randPart += Math.abs(randomID[i]);

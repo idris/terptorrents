@@ -97,7 +97,7 @@ public class IO {
 				/* ---Print progress bar ---*/
 				if (Main.DEBUG || Main.INFO) {
 					if (!mask[i]) System.out.print(i + "  ");
-					else System.out.print("X  ");
+					else System.out.print("...");
 					numOfDots += 3;
 				} else {
 					System.out.print(".");

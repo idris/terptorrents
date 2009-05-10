@@ -22,6 +22,7 @@ public class RequestManager implements Runnable {
 	}
 
 	public void run() {
+		if(true) return;
 		while(true) {
 			try {
 				Thread.sleep(
