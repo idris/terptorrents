@@ -39,6 +39,7 @@ public class Main {
 	public static final int MAX_PORT = 6889;
 	/* ------------------------------------- */
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
+	public static boolean	ENABLE_FILE_PRIORITY_SELECTION = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 300000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
