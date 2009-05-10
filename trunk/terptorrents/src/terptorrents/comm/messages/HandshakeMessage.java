@@ -66,10 +66,8 @@ public class HandshakeMessage implements Message {
 		out.write(peerId); // peer_id
 	}
 
-
-	public void onReceive(PeerConnection conn) {
-		conn.getPeer().setId(peerId);
-	}
+	
+	public void onReceive(PeerConnection conn) {}
 	public void onSend(PeerConnection conn) {}
 
 	@Override

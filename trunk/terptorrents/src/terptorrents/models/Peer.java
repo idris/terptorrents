@@ -4,22 +4,11 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
 
 public class Peer {
-	private byte[] id;
-	private InetSocketAddress address;
-	private InetSocketAddress listenAddress;
-
-	/**
-	 * number of times we have failed to connect, or disconnected from this peer
-	 */
-	private AtomicInteger disconnectCount = new AtomicInteger();
-
-	/**
-	 * number of times we have received a bad piece from this peer
-	 */
+	private final byte[] id;
+	private final InetSocketAddress address;
 	private AtomicInteger badCount = new AtomicInteger();
 
 
@@ -50,24 +39,19 @@ public class Peer {
 		return address;
 	}
 
-	public Peer(byte[] id, String host, int port, boolean outgoing) throws IOException {
+	public Peer(byte[] id, String host, int port) throws IOException {
 		this.id = id;
 		InetAddress addr = InetAddress.getByName(host);
 		this.address = new InetSocketAddress(addr, port);
-		if(outgoing) this.listenAddress = this.address;
 	}
 
 	public byte[] getId() {
 		return id;
 	}
 
-	public void setId(byte[] id) {
-		this.id = id;
-	}
-
 	public synchronized void disconnect() {
 		setConnection(null);
-		disconnectCount.incrementAndGet();
+		badCount.incrementAndGet();
 	}
 
 	public synchronized void setConnection(PeerConnection connection) {
@@ -83,26 +67,13 @@ public class Peer {
 	}
 
 	public boolean isConnectable() {
-		return !isConnected() && disconnectCount.get() <= 2 && badCount.get() <= Main.MAX_BAD_PIECES_PER_PEER;
-	}
-
-	public synchronized void gotBadPiece() {
-		if(!isConnected()) return;
-		Main.dprint("Got a bad piece from " + toString());
-		if(badCount.incrementAndGet() > Main.MAX_BAD_PIECES_PER_PEER) {
-			try {
-				connection.close();
-			} catch(Exception ex) {
-				// already closed.
-			}
-		}
+		return !isConnected() && badCount.get() <= 2;
 	}
 
 	/**
-	 * Forgive this peer. That is, reset disconnectCount and badCount.
+	 * Forgive this peer. That is, reset badCount.
 	 */
 	public void forgive() {
-		disconnectCount.set(0);
 		badCount.set(0);
 	}
 

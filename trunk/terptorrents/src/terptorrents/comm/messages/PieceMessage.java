@@ -3,13 +3,11 @@ package terptorrents.comm.messages;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.ConnectionPool;
 import terptorrents.comm.PeerConnection;
-import terptorrents.models.BlockRange;
 import terptorrents.models.PieceManager;
 import terptorrents.models.RequestManager;
 
@@ -60,15 +58,6 @@ public class PieceMessage extends AbstractMessage {
 
 		block = new byte[length - 9];
 		dis.readFully(block);
-
-		boolean zero = true;
-		for(byte b: block) {
-			if(b != 0) {
-				zero = false;
-				break;
-			}
-		}
-		if(zero) Main.dprint("ERROR: ALL ZERO PIECE!!!!");
 	}
 
 	@Override
@@ -80,7 +69,7 @@ public class PieceMessage extends AbstractMessage {
 	public void onReceive(PeerConnection conn) {
 		int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.decrementAndGet();
 		try {
-			PieceManager.getInstance().updateBlock(index, begin, block.length, block, conn.getPeer());
+			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
 			Main.dprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
@@ -89,9 +78,9 @@ public class PieceMessage extends AbstractMessage {
 
 		// request more from this connection
 		try {
-			if(PieceManager.getInstance().isEndGameTiggered()) {
+			if(PieceManager.getInstance().isEndGameTiggered()){
 				 for(PeerConnection peerCon: ConnectionPool.
-	                    getInstance().getNonChokingAndInsterested()) {
+	                    getInstance().getNonChokingAndInsterested()){
 					 if(conn != peerCon){
 						 peerCon.sendMessage(
 								 new CancelMessage(index, begin, block.length));
@@ -99,11 +88,7 @@ public class PieceMessage extends AbstractMessage {
 				 }
 			} else if(conn.canIRequest()) {
 				if(toRequest >= Main.MAX_OUTSTANDING_REQUESTS/2) {
-//					RequestManager.getInstance().requestBlocks(conn.getPeer(), toRequest); // the old way
-					List<BlockRange> ranges = PieceManager.getInstance().getBlockRangeToRequestSamePiecePerPeer(conn.getPeer(), toRequest);
-					for(BlockRange range: ranges) {
-						conn.sendMessage(new RequestMessage(range));
-					}
+					RequestManager.getInstance().requestBlocks(conn.getPeer(), toRequest);
 				}
 			}
 		} catch(Exception ex) {

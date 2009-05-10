@@ -17,39 +17,36 @@ import metainfo.*;
 
 public class Main {
 	/* ****************************************************** */
-	private static final String ID_PREFIX = "TerpTorrent ";
+	private static final String ID_PREFIX = "TerpTorrent_";
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
-	public static boolean INFO = true;
+	public static boolean INFO = false;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
-	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
+	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 10;
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
-	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
-	public static		int MAX_PEER_CONNECTIONS = 20;
+	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
+	public static final int MAX_PEER_CONNECTIONS = 20;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
-	public static final boolean SUPER_SEEDING_MODE=false;
 	/* ------------------------------------- */
-	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is assigned by user
+	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;
 	public static final int MIN_PORT = 6881;
 	public static final int MAX_PORT = 6889;
 	/* ------------------------------------- */
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
-	public static boolean	ENABLE_FILE_PRIORITY_SELECTION = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
 	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 300000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
-	public static final int MAX_BAD_PIECES_PER_PEER = 3;
-	public static final int MAX_DISCONNECTS_PER_PEER = 2;
+	
 	/* ****************************************************** */
 
 	private static String torrentFile;
-
+	private final static String USAGE = " <-d> <.torrent>";
 	/* ARGUMENTS: 
 	 * -d : debugging mode
 	 * last argument should be a .torrent file
@@ -57,8 +54,9 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Ubuntu.torrent";
+		torrentFile = "eclipse.torrent";
 		//parseCommand(args);
+
 
 		try {
 			/* Generate Client ID */
@@ -128,13 +126,13 @@ public class Main {
 			boolean seeding = false;
 			while(true){
 				if (IO.getInstance().isComplete()) {
-					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding...");
+					System.out.println("***** FILE DOWNLOAD COMPLETE. Seeding. *****");
 					if(!seeding) {
 						seeding = true;
 						ConnectionPool.getInstance().removeSeeders();
 					}
 				} else {
-					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K ");
+					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K *****");
 				}
 
 				try {
@@ -155,49 +153,15 @@ public class Main {
 		}		
 	}
 
-	/* ------------ COMMAND PARSER ----------------------------- */
-	private final static String USAGE = 
-		"[options] torrent_file_name \n" +
-		"Options: \n" +
-		"-d				Turn on Debug Mode\n" +
-		"-i				Turn on Info Mode (Display Messages Exchanged)\n" +
-		"-fp			Enable file priority selection\n" +
-		"-sd			Enable Selective Download\n" +
-		"-mpeers NUM	Maximum number of connected peers\n" +
-		"-p		 NUM	Port on which this client will listen for incomming connections\n";
-	
 	private static void parseCommand(String[] args) {
 		/* parse arguments*/
-		Main.DEBUG = false;
-		Main.INFO = false;
-		Main.ENABLE_SELECTIVE_DOWNLOAD = false;
-		Main.ENABLE_FILE_PRIORITY_SELECTION = false;
-		String arg;
-		try {
-			for (int i = 0; i < args.length; i++) {
-				arg = args[i];
-				/* debugging mode */
-				if (arg.toLowerCase().equals("-d"))
-					Main.DEBUG = true;
-				if (arg.toLowerCase().equals("-i"))
-					Main.INFO = true;
-				if (arg.toLowerCase().equals("-fp"))
-					Main.ENABLE_FILE_PRIORITY_SELECTION = true;
-				if (arg.toLowerCase().equals("-sd"))
-					Main.ENABLE_SELECTIVE_DOWNLOAD = true;
-				if (arg.toLowerCase().equals("-mpeers"))
-					Main.MAX_PEER_CONNECTIONS = Integer.valueOf(args[i + 1]);
-				if (arg.toLowerCase().equals("-p")) {
-					Main.USER_ASSIGNED_PORT = true;
-					Main.PORT = Integer.valueOf(args[i + 1]);
-				}
-			}
-		} catch (Exception e) {
-			print("Usage: " + Main.USAGE);
+		for (String arg : args) {
+			/* debugging mode */
+			if (arg.equals("-d")) Main.DEBUG = true;
 		}
 		/* last argument should always be a .torrent file */
 		if (args.length == 0) {
-			print("Usage: " + Main.USAGE);
+			System.out.println("Usage: " + Main.USAGE);
 		}
 
 		torrentFile = args[args.length - 1];
@@ -206,8 +170,6 @@ public class Main {
 		if (!f.isFile())
 			System.out.println("Specified .torrent file does not exists");		
 	}
-	
-	/* -------------------------------------------------------------------- */
 
 	public static void dprint(String message) {
 		if(DEBUG) {
@@ -221,25 +183,10 @@ public class Main {
 		}
 	}
 	
-	public static void print(String message) {
-		if(!DEBUG && !INFO) {
-			System.out.println(message);
-		}
-	}
-	
 	/* look for available port in range for Peer Listener */
 	private static ServerSocket getSocketForIncommingConnections() {
 		// 6881-6889
 		ServerSocket s;
-		if (Main.USER_ASSIGNED_PORT) {
-			try {
-				return new ServerSocket(Main.PORT);
-			} catch (IOException e) {
-				dprint("Unable to bind this port: " + Main.PORT);
-				return null;
-			}
-		}
-
 		int p;
 		for (p = MIN_PORT; p <= MAX_PORT; p++) {
 			try {
@@ -266,7 +213,6 @@ public class Main {
 			randPart += Math.abs(randomID[i]);
 		}
 		dprint("Client ID: " + Main.ID_PREFIX + randPart);
-		print("Client ID: " + Main.ID_PREFIX + randPart + "\n");
 	}
 
 }
