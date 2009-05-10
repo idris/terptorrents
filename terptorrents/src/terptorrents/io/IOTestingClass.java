@@ -18,9 +18,11 @@ public class IOTestingClass {
 	 * @throws TerptorrentsIONoSuchPieceException 
 	 */
 	public static void main(String[] args) throws InvalidBEncodingException, FileNotFoundException, IOException, TerptorrentsIONoSuchPieceException {;
-		TorrentParser.instantiate("piratemaryland.jpg.torrent");
+		TorrentParser.instantiate("beyonce.torrent");
 		MetaFile m = TorrentParser.getInstance().getMetaFile();
 		IO.instantiate(m);
+		
+		/*
 		for (int i = 0 ; i < IO.getInstance().getBitSet().totalNumOfPieces(); i++) {
 			byte[] piece;
 			try {
@@ -32,6 +34,7 @@ public class IOTestingClass {
 			
 		}
 		System.out.println("Num: " + IO.getInstance().getBitSet().getUnsyncBitSet().length());
+		*/
 	}
 
 }
