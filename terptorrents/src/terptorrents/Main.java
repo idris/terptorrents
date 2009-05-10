@@ -32,6 +32,7 @@ public class Main {
 	public static		int MAX_PEER_CONNECTIONS = 20;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
+	public static final boolean SUPER_SEEDING_MODE=false;
 	/* ------------------------------------- */
 	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is read form user
 	public static int 		PORT;
