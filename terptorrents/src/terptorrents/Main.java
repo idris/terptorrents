@@ -21,14 +21,14 @@ public class Main {
 	public static byte [] PEER_ID;
 	/* ------------------------------- */
 	public static boolean DEBUG = false;
-	public static boolean INFO = false;
+	public static boolean INFO = true;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
 	public static final int NUM_PIECES_TO_EVICT = 8;
 	public static final int MAX_REQUEST_BLOCK_SIZE = 1 << 14;
-	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 10;
+	public static final int OPTIMISTIC_UNCHOKE_FREQUENCY = 3;
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
-	public static final int CHOCKING_ALGORITHM_INTERVAL = 1000;
+	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
 	public static final int MAX_PEER_CONNECTIONS = 20;
 	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
