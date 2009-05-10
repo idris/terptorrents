@@ -108,7 +108,7 @@ public class PieceManager {
 			"PieceManager while iterating over piece List");
 		}
 
-		if(peer.getConnection().amInterested() && res.isEmpty()){
+		if(peerPieceList.size() <= pieceRequestedFromPeer.size() && res.isEmpty()){
 			if(!endGameTiggered){
 				Main.dprint("End Game Is Triggered");
 				endGameTiggered = true;
@@ -339,7 +339,6 @@ public class PieceManager {
 		}else{
 			fromPeer.gotBadPiece();
 		}
-		
 	}
 
 	private PieceManager(){
