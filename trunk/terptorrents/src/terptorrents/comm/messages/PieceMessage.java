@@ -71,7 +71,7 @@ public class PieceMessage extends AbstractMessage {
 	public void onReceive(PeerConnection conn) {
 		int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.decrementAndGet();
 		try {
-			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
+			PieceManager.getInstance().updateBlock(index, begin, block.length, block, conn.getPeer());
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
 			Main.dprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
