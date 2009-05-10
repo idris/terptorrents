@@ -3,6 +3,7 @@ package terptorrents.comm;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.BitSet;
 import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -115,11 +116,15 @@ public class PeerConnection {
 	}
 
 	void sendBitfield() {
+		if(Main.SUPER_SEEDING_MODE){
+			BitfieldMessage bitfieldMessage=new BitfieldMessage(new BitSet());
+			sendMessage(bitfieldMessage);
+		}
 		if(IO.getInstance().getBitSet().getNumEmptyPieces() 
 				!= IO.getInstance().getBitSet().totalNumOfPieces()){
 			BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.
 					getInstance().getBitSet().getUnsyncBitSet());
-			outgoingMessages.add(bitfieldMessage);
+			sendMessage(bitfieldMessage);
 		}
 	}
 
