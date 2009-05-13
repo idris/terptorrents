@@ -1,8 +1,10 @@
 package terptorrents.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -51,15 +53,15 @@ public class RequestManager implements Runnable {
 			throw new TerptorrentsModelsCanNotRequstFromThisPeer(
 					"Peer is choking us or We are not intersted");
 
-		boolean dogpileEmpty = dogpile.isEmpty();
+		List<BlockRange> dogpileList = new ArrayList<BlockRange>(dogpile);
 		Vector<BlockRange> blockRanges = PieceManager.getInstance().
-		getBlockRangeToRequest(peer, new HashSet<BlockRange>(dogpile), 
+		getBlockRangeToRequest(peer, dogpileList, 
 				numBlocks);
 		Main.iprint("Requesting " + blockRanges.size() + " blocks");
 
 		if(blockRanges.isEmpty()) {
 			// we got stuck. clear the dogpile and try again.
-			if(dogpileEmpty) {
+			if(dogpileList.isEmpty()) {
 				Main.dprint("=============== FATAL ERROR: nothing left to request! ============");
 				throw new TerptorrentsModelsCanNotRequstFromThisPeer("FATAL ERROR: nothing left to request!");
 			}
