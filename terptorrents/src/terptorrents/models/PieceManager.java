@@ -5,12 +5,12 @@
 package terptorrents.models;
 
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 
 import terptorrents.Main;
@@ -53,7 +53,7 @@ public class PieceManager {
 	}
 
 	public synchronized Vector<BlockRange> getBlockRangeToRequest(Peer peer, 
-			Set<BlockRange> dogpile, int size) {
+			Collection<BlockRange> dogpile, int size) {
 		Vector<BlockRange> res = new Vector<BlockRange>();
 		List<PeerPiece> rarestPeerPieceList = null;
 		int same = 0;
@@ -78,10 +78,6 @@ public class PieceManager {
 			}
 
 
-			// XXX: this while will usually only check the first entry.
-			//       this should be fixed and refactored into its own method
-			//       also, is this the best (most efficient) place to do this?
-			//       this method is called A LOT
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
 				peerPieceList.remove(0);
 			}
@@ -91,13 +87,12 @@ public class PieceManager {
 			rarestPeerPieceList = peerPieceList.subList
 			(0, Math.min(Main.NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST, peerPieceList.size()));
 
-/*
-			if(Main.INFO) {
+			if(false && Main.INFO) {
 				for(PeerPiece pp: rarestPeerPieceList) {
 					Main.iprint("Ranges in Piece " + pp.getIndex() + " to request: " + pp.getBlockRangeToRequest().length);
 				}
 			}
-*/
+
 			Collections.shuffle(rarestPeerPieceList);
 			Iterator<PeerPiece> e = rarestPeerPieceList.iterator();
 
@@ -110,6 +105,7 @@ public class PieceManager {
 
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
+//						Main.iprint("DOGPILE HAS " + dogpile.size());
 						if(!dogpile.contains(blockRanges[j])){
 							if(((PeerPiece)pieces[blockRanges[j].getPieceIndex()]).hasPeer(peer)){
 								res.add(blockRanges[j]);
