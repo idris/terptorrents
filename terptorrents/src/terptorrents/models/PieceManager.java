@@ -42,6 +42,10 @@ public class PieceManager {
 		if (SINGLETON == null)
 			SINGLETON = new PieceManager();
 	}
+	
+	public static void reinitialize() {
+		SINGLETON = new PieceManager();
+	}
 
 
 	/**
