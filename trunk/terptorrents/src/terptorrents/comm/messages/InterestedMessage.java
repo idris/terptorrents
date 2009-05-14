@@ -11,7 +11,7 @@ public class InterestedMessage extends AbstractMessage {
 
 	@Override
 	public void onSend(PeerConnection conn) {
-		conn.setInterested(true);
+//		conn.setInterested(true);
 	}
 
 	@Override

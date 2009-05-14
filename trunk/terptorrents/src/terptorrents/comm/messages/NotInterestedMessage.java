@@ -11,10 +11,10 @@ public class NotInterestedMessage extends AbstractMessage {
 
 	@Override
 	public void onSend(PeerConnection conn) {
-		conn.setInterested(false);
-		if(!conn.peerInterested()) {
-			conn.close();
-		}
+//		conn.setInterested(false);
+//		if(!conn.peerInterested()) {
+//			conn.close();
+//		}
 	}
 
 	@Override
