@@ -73,7 +73,8 @@ public class PieceManager {
 			Main.iprint("peerPieceList size: " + peerPieceList.size());
 			synchronized (peerPieceList) {
 				Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
-				Collections.sort(peerPieceList, new PeerPieceComparatorPriority());
+				if(Main.ENABLE_FILE_PRIORITY_SELECTION)
+					Collections.sort(peerPieceList, new PeerPieceComparatorPriority());
 			}
 
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
@@ -284,7 +285,8 @@ public class PieceManager {
 				try {
 					pieces[i] = (bitMap.havePiece(i)) ? 
 							new LocalPiece((i == numPieces - 1), i) : 
-								(IO.getInstance().getHighPriorityPieces().contains(i)? 
+								(Main.ENABLE_FILE_PRIORITY_SELECTION && 
+										IO.getInstance().getHighPriorityPieces().contains(i)? 
 										new PeerPiece((i == numPieces - 1), i, 100) : 
 											new PeerPiece((i == numPieces - 1), i, 0));
 				} catch (IODeselectedPieceException e) {
