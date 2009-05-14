@@ -33,7 +33,7 @@ public class Main {
 	public static final int NUM_PEERS_TO_UNCHOKE = 4;
 	public static final int CHOCKING_ALGORITHM_INTERVAL = 10000;
 	public static		int MAX_PEER_CONNECTIONS = 20;
-	public static final int MAX_OUTSTANDING_REQUESTS = 3; // MUST BE > 2
+	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
 	public static final boolean SUPER_SEEDING_MODE=false;
 	/* ------------------------------------- */
@@ -45,7 +45,7 @@ public class Main {
 	public static boolean 	ENABLE_SELECTIVE_DOWNLOAD = false;
 	public static boolean	ENABLE_FILE_PRIORITY_SELECTION = false;
 	private static final int TIME_TO_CHECK_IF_FILE_IS_COMPLETE = 5000;
-	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 300000;
+	public static final int TIME_BETWEEN_RETRANSMITION_OF_UNREPLIED_REQUEST_MESSAGES = 3000;
 	public static final int NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE = 4;
 	public static final int MAX_BAD_PIECES_PER_PEER = 3;
 	public static final int MAX_DISCONNECTS_PER_PEER = 2;
