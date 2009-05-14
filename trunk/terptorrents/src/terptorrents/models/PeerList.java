@@ -82,4 +82,8 @@ public class PeerList {
 	public synchronized Peer getPeer(InetAddress addr) {
 		return peersByAddress.get(addr);
 	}
+	
+	public Set<Peer> getPeerListSnapshot() {
+		return new HashSet<Peer>(this.peers);
+	}
 }
