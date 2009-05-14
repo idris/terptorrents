@@ -32,7 +32,6 @@ public class PieceManager {
 	private Vector<PeerPiece> peerPieceList;
 	private Vector<LocalPiece> localPieceList;
 	private int currentRequestBufferSize;
-	private int numPieceReceived;
 	private boolean endGameTiggered;
 
 	public static  PieceManager getInstance() {
@@ -236,7 +235,6 @@ public class PieceManager {
 			synchronized (peerPieceList) {
 				while(peerPieceList.remove(peerPiece)); // in case there are duplicates, keep removing the duplicates from the list
 			}
-			numPieceReceived++;
 			pieces[pieceIndex] = new LocalPiece(
 					(pieceIndex == pieces.length - 1), 
 					pieceIndex);
@@ -279,7 +277,6 @@ public class PieceManager {
 		peerPieceList = new Vector<PeerPiece>();
 		localPieceList = new Vector<LocalPiece>();
 		currentRequestBufferSize = 0;
-		numPieceReceived = IO.getInstance().getNumOfIgnoredPieces();
 		endGameTiggered = false;
 		pieces = new Piece[numPieces];
 		for(int i = 0; i < numPieces; i++){
