@@ -70,7 +70,7 @@ public class RequestManager implements Runnable {
 					//Main.dprint("PIECE MANAGER RE-INITIALIZED");
 				} else return;
 				Main.dprint("=============== FATAL ERROR: nothing left to request! ============");
-//				throw new TerptorrentsModelsCanNotRequstFromThisPeer("PIECE MANAGER RE-INITIALIZED");
+				throw new TerptorrentsModelsCanNotRequstFromThisPeer("PIECE MANAGER RE-INITIALIZED");
 			}
 			dogpile.clear();
 			int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get();
