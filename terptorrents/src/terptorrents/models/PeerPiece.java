@@ -15,13 +15,22 @@ public class PeerPiece extends Piece {
 	private Vector<Peer> peerSet;
 	private TreeMap<Integer, Integer> freeBlock; 
 	private byte[] data;
+	private int priority;
 
-	public PeerPiece(boolean isLastPiece, int index){
+	public PeerPiece(boolean isLastPiece, int index, int priority){
 		super(isLastPiece, index);
 		peerSet = new Vector<Peer>();
 		data = null;
+		this.priority = priority;
 		freeBlock = new TreeMap<Integer, Integer>();
 		initFreeBlock();
+	}
+
+	/**
+	 * @return the priority
+	 */
+	public synchronized int getPriority() {
+		return priority;
 	}
 
 	public synchronized int getNumPeer(){
