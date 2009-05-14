@@ -73,7 +73,10 @@ public class RequestManager implements Runnable {
 				//throw new TerptorrentsModelsCanNotRequstFromThisPeer("FATAL ERROR: nothing left to request!");
 			}
 			dogpile.clear();
-			requestBlocks(conn.getPeer(), Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get());
+			int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get();
+			if(toRequest > 0) {
+				requestBlocks(conn.getPeer(), toRequest);
+			}
 		} else {
 			for(BlockRange br : blockRanges) {
 				dogpile.add(br);
