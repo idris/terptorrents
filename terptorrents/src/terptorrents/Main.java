@@ -9,6 +9,8 @@ import terptorrents.comm.*;
 import terptorrents.exceptions.TrackerResponseException;
 import terptorrents.io.IO;
 import terptorrents.models.ChockingAlgorithm;
+import terptorrents.models.Peer;
+import terptorrents.models.PeerList;
 import terptorrents.models.PieceManager;
 import terptorrents.models.RequestManager;
 
@@ -22,6 +24,7 @@ public class Main {
 	/* ------------------------------- */
 	public static boolean DEBUG = true;
 	public static boolean INFO = true;
+	public static boolean PRINT_PEER_LIST = true;
 	/* ------------------------------- */
 	public static final long MAX_REQUEST_BUFFER_SIZE = Runtime.getRuntime().maxMemory() / 2;
 	public static final int NUM_PIECES_TO_EVICT = 8;
@@ -57,7 +60,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "Ubuntu.torrent";
+		torrentFile = "pictures.torrent";
 		//parseCommand(args);
 
 		try {
@@ -136,7 +139,13 @@ public class Main {
 				} else {
 					System.out.println("***** REMAINING DATA TO DOWNLOAD: " + IO.getInstance().bytesRemaining()/1024 + "K ");
 				}
-
+				if (PRINT_PEER_LIST) {
+					System.out.println("***** Peer List: ");
+					for (Peer p: PeerList.getInstance().getPeerListSnapshot()) {
+						System.out.print(p + " : ");
+					}
+					System.out.println();
+				}
 				try {
 					Thread.sleep(Main.TIME_TO_CHECK_IF_FILE_IS_COMPLETE);
 				} catch (InterruptedException e) {
