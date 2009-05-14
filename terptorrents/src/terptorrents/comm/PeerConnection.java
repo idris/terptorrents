@@ -124,6 +124,16 @@ public class PeerConnection {
 	}
 
 	public void sendMessage(Message message) {
+		if(message instanceof InterestedMessage) {
+			setInterested(true);
+		} else if(message instanceof NotInterestedMessage) {
+			setInterested(false);
+		} else if(message instanceof ChokeMessage) {
+			setChoking(true);
+		} else if(message instanceof UnchokeMessage) {
+			setChoking(false);
+		}
+
 		if(disconnect) {
 			return;
 		}

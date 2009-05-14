@@ -13,7 +13,7 @@ public class UnchokeMessage extends AbstractMessage {
 
 	@Override
 	public void onSend(PeerConnection conn) {
-		conn.setChoking(false);
+//		conn.setChoking(false);
 	}
 
 	@Override

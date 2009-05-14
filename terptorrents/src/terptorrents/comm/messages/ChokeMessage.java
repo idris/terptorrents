@@ -10,7 +10,7 @@ public class ChokeMessage extends AbstractMessage {
 
 	@Override
 	public void onSend(PeerConnection conn) {
-		conn.setChoking(true);
+//		conn.setChoking(true);
 	}
 
 	@Override
