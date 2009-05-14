@@ -34,13 +34,27 @@ public class HandshakeMessage implements Message {
 
 
 	public void read(DataInputStream dis, int pstrlen) throws IOException {
-		if(pstrlen != HandshakeMessage.pstr.length()) throw new BadHandshakeException();
+		if(pstrlen != HandshakeMessage.pstr.length()) throw new BadHandshakeException("Invalid Protocol Length (" + pstrlen + ")");
 
 		byte[] pstr = new byte[pstrlen];
 		dis.readFully(pstr);
-		if(!HandshakeMessage.pstr.equals(new String(pstr))) throw new BadHandshakeException();
+		if(!HandshakeMessage.pstr.equals(new String(pstr))) throw new BadHandshakeException("Invalid Protocol: " + pstr);
 
-		dis.readLong(); // reserved
+		long reserved = dis.readLong(); // reserved. see http://www.bittorrent.org/beps/bep_0004.html
+		if((reserved & 0x8000000000000000L) > 0) {
+			// supports Azureus Messaging Protocol
+			
+		}
+		if((reserved & 0x0000000000100000L) > 0) {
+			// supports LibTorrent extension protocol for BitTorrent
+			// http://www.rasterbar.com/products/libtorrent/extension_protocol.html
+			
+		}
+		if((reserved & 0x0000000000000100L) > 0) {
+			// supports BitTorrent DHT
+			
+		}
+
 		byte[] twentyBytes = new byte[20];
 
 		dis.readFully(twentyBytes); // info_hash
@@ -48,7 +62,7 @@ public class HandshakeMessage implements Message {
 		infoHash = twentyBytes;
 
 		if(!Arrays.equals(infoHash, TorrentParser.getInstance().getMetaFile().getByteInfoHash())) {
-			throw new BadHandshakeException();
+			throw new BadHandshakeException("Wrong InfoHash");
 		}
 
 		twentyBytes = new byte[20];

@@ -2,7 +2,6 @@ package terptorrents.comm;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -40,9 +39,8 @@ public class PeerListener implements Runnable {
 					try {
 						// find the peer
 						Peer peer = PeerList.getInstance().getPeer(
-								new InetSocketAddress(
-										socket.getInetAddress().getHostAddress(), 
-										socket.getPort()));
+										socket.getInetAddress()
+										);
 
 						if(new String(handshake.getPeerId()).equals(new String(Main.PEER_ID))) {
 							if(peer != null) PeerList.getInstance().removePeer(peer);
@@ -51,7 +49,7 @@ public class PeerListener implements Runnable {
 
 						if(peer == null) {
 							// prepare new peer
-							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress(), socket.getPort());
+							peer = new Peer(handshake.getPeerId(), socket.getInetAddress().getHostAddress());
 							PeerList.getInstance().addPeer(peer);
 						}
 
@@ -63,12 +61,15 @@ public class PeerListener implements Runnable {
 							 */
 							PeerConnection connection = new PeerConnection(peer, socket);
 							ConnectionPool.getInstance().addIncomingConnection(connection);
+						} else {
+							Main.dprint("Peer " + peer.toString() + " is already connected.");
 						}
 					} finally {
 						ConnectionPool.getInstance().connectLock.unlock();
 					}
 
 				} catch(IOException ex) {
+					Main.dprint("Problem with Incoming Handshake: " + ex.getMessage());
 					// something went wrong with the handshake. drop the connection
 					ConnectionPool.getInstance().releaseIncomingSlot();
 					try {

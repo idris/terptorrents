@@ -34,12 +34,12 @@ public class PortMessage extends AbstractMessage {
 
 	@Override
 	public void read(DataInputStream dis, int length) throws IOException {
-		port = dis.readChar();
+		port = dis.readShort();
 	}
 
 	@Override
 	public void write(DataOutputStream out) throws IOException {
 		super.write(out);
-		out.writeChar(port);
+		out.writeShort(port);
 	}
 }
