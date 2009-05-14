@@ -8,7 +8,11 @@ import terptorrents.comm.PeerConnection;
 
 public class Peer {
 	private final byte[] id;
-	private final InetSocketAddress address;
+	private final InetAddress address;
+	/**
+	 * port this peer is listening on. Incoming connections will be -1
+	 */
+	private int port = -1;
 	private AtomicInteger badCount = new AtomicInteger();
 
 
@@ -35,14 +39,34 @@ public class Peer {
 	private PeerConnection connection = null;
 
 
-	public InetSocketAddress getAddress() {
+	public InetAddress getAddress() {
 		return address;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	/**
+	 * create a peer from an incoming connection (unknown listening port)
+	 * @param id
+	 * @param host
+	 * @throws IOException
+	 */
+	public Peer(byte[] id, String host) throws IOException {
+		this(id, host, -1);
 	}
 
 	public Peer(byte[] id, String host, int port) throws IOException {
 		this.id = id;
 		InetAddress addr = InetAddress.getByName(host);
-		this.address = new InetSocketAddress(addr, port);
+		this.address = addr;
+		//new InetSocketAddress(addr, port);
+		this.port = port;
 	}
 
 	public byte[] getId() {
@@ -80,6 +104,6 @@ public class Peer {
 	@Override
 	public String toString() {
 		//return new String(id) + "|" + address.toString();
-		return address.toString();
+		return address.toString() + ":" + port;
 	}
 }

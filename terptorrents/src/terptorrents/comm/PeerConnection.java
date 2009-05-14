@@ -61,8 +61,8 @@ public class PeerConnection {
 		peer.setConnection(this);
 		this.socket = new Socket();
 		socket.connect(
-				new InetSocketAddress(peer.getAddress().getAddress(), peer
-						.getAddress().getPort()), CONNECT_TIMEOUT);
+				new InetSocketAddress(peer.getAddress(), peer
+						.getPort()), CONNECT_TIMEOUT);
 		lastReceived = new Date();
 
 		sendHandshake();

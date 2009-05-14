@@ -3,7 +3,7 @@
  */
 package terptorrents.models;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -21,7 +21,7 @@ public class PeerList {
 
 	private final Vector<Peer> peers = new Vector<Peer>();
 //	private final Map<byte[], Peer> peersById = Collections.synchronizedMap(new Hashtable<byte[], Peer>());
-	private final Map<InetSocketAddress, Peer> peersByAddress = Collections.synchronizedMap(new Hashtable<InetSocketAddress, Peer>());
+	private final Map<InetAddress, Peer> peersByAddress = Collections.synchronizedMap(new Hashtable<InetAddress, Peer>());
 
 	private PeerList() {}
 
@@ -32,10 +32,21 @@ public class PeerList {
 	public Set<Peer> getRandomConnectablePeers(int max) {
 		Set<Peer> set = new HashSet<Peer>(max);
 		for(Peer p: peers) {
-			if(p.isConnectable()) {
+			if(p.isConnectable() && p.getPort() > 0) {
 				set.add(p);
 			}
 			if(set.size() >= max) break;
+		}
+
+		return set;
+	}
+
+	public Set<Peer> getWellKnownPeers() {
+		Set<Peer> set = new HashSet<Peer>();
+		for(Peer p: peers) {
+			if(p.getPort() > 0) {
+				set.add(p);
+			}
 		}
 
 		return set;
@@ -68,7 +79,7 @@ public class PeerList {
 		peersByAddress.remove(p.getAddress());
 	}
 
-	public synchronized Peer getPeer(InetSocketAddress addr) {
+	public synchronized Peer getPeer(InetAddress addr) {
 		return peersByAddress.get(addr);
 	}
 }
