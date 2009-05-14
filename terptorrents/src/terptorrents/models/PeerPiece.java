@@ -97,13 +97,13 @@ public class PeerPiece extends Piece {
 		
 		while(blockLength > 0){
 			Entry<Integer, Integer> entry = freeBlock.floorEntry(blockBegin);
-			if(entry == null){
-				break;
-			}else if(entry.getKey() + entry.getValue() <= blockBegin){
+
+			if(entry == null || entry.getKey() + entry.getValue() <= blockBegin){
 				entry = freeBlock.ceilingEntry(blockBegin);
+				if(entry == null) break;
 				
 				blockBegin = entry.getKey();
-				blockLength -= entry.getKey() - blockBegin;
+				blockLength -= entry.getKey() - oldBlockBegin;
 			}else{
 				int currentBlockBegin = entry.getKey();
 				int currentBlockLength = entry.getValue();
