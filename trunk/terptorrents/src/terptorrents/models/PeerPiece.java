@@ -87,6 +87,7 @@ public class PeerPiece extends Piece {
 		if (this.data == null)
 			this.data = new byte[getSize()];
 		
+		Main.iprint("freeBlocks for piece " + pieceIndex + ": " + freeBlock.size());
 		Main.dprint("BlockReceived. PieceIndex: " + pieceIndex + 
 				" blockBegin: " + blockBegin + " blockLength: " + 
 				blockLength);
@@ -96,10 +97,11 @@ public class PeerPiece extends Piece {
 		
 		while(blockLength > 0){
 			Entry<Integer, Integer> entry = freeBlock.floorEntry(blockBegin);
-			if(entry == null || entry.getKey() + entry.getValue() <= blockBegin){
+			if(entry == null){
+				break;
+			}else if(entry.getKey() + entry.getValue() <= blockBegin){
 				entry = freeBlock.ceilingEntry(blockBegin);
-				if(entry == null)
-					break;
+				
 				blockBegin = entry.getKey();
 				blockLength -= entry.getKey() - blockBegin;
 			}else{
