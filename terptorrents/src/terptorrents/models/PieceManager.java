@@ -58,7 +58,7 @@ public class PieceManager {
 		List<PeerPiece> rarestPeerPieceList = null;
 		int same = 0;
 		BlockRange [] blockRanges = null;
-		if(IO.getInstance().getBitSet().getNumEmptyPieces() <=
+		if(IO.getInstance().getBitSet().getNumEmptyPieces() <
 				Main.NUM_OF_PIECES_LEFT_TO_TRIGGER_END_GAME_PERCENTAGE / 100.00
 				* IO.getInstance().getBitSet().totalNumOfPieces()){
 			if(!endGameTiggered){
