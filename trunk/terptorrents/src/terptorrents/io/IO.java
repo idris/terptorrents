@@ -432,7 +432,7 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 	}
 	
 	/* returns set of high priority pieces */
-	public Set<Integer> getHighPriorityPieces() {
+	public HashSet<Integer> getHighPriorityPieces() {
 		return new HashSet<Integer>(this.highPriorityPieces);
 	}
 	

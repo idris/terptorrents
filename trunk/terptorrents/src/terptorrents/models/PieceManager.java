@@ -73,14 +73,14 @@ public class PieceManager {
 			Main.iprint("peerPieceList size: " + peerPieceList.size());
 			synchronized (peerPieceList) {
 				Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
+				Collections.sort(peerPieceList, new PeerPieceComparatorPriority());
 			}
-
 
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
 				peerPieceList.remove(0);
 			}
-			Main.iprint("peerPieceList size after removals: " + peerPieceList.size());
 
+			Main.iprint("peerPieceList size after removals: " + peerPieceList.size());
 
 			rarestPeerPieceList = peerPieceList.subList
 			(0, Math.min(Main.NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST, peerPieceList.size()));
@@ -103,7 +103,7 @@ public class PieceManager {
 
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
-//						Main.iprint("DOGPILE HAS " + dogpile.size());
+						//Main.iprint("DOGPILE HAS " + dogpile.size());
 						if(!dogpile.contains(blockRanges[j])){
 							if(((PeerPiece)pieces[blockRanges[j].getPieceIndex()]).hasPeer(peer)){
 								res.add(blockRanges[j]);
@@ -284,8 +284,9 @@ public class PieceManager {
 				try {
 					pieces[i] = (bitMap.havePiece(i)) ? 
 							new LocalPiece((i == numPieces - 1), i) : 
-								new PeerPiece((i == numPieces - 1), i);
-//					if(pieces[i] instanceof PeerPiece) peerPieceList.add((PeerPiece)pieces[i]);
+								(IO.getInstance().getHighPriorityPieces().contains(i)? 
+										new PeerPiece((i == numPieces - 1), i, 100) : 
+											new PeerPiece((i == numPieces - 1), i, 0));
 				} catch (IODeselectedPieceException e) {
 					pieces[i] = new LocalPiece((i == numPieces - 1), i) ;
 				}
