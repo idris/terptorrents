@@ -95,8 +95,8 @@ public class PieceManager {
 					Main.iprint("Ranges in Piece " + pp.getIndex() + " to request: " + pp.getBlockRangeToRequest().length);
 				}
 			}
-
-			Collections.shuffle(rarestPeerPieceList);
+			if(!Main.ENABLE_FILE_PRIORITY_SELECTION)
+				Collections.shuffle(rarestPeerPieceList);
 			Iterator<PeerPiece> e = rarestPeerPieceList.iterator();
 
 			int requestedBytes = 0;
