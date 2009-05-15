@@ -187,6 +187,7 @@ public class TrackerCommunicator implements Runnable {
 			//port |= peerBytes[i+5];
 			try {
 				InetAddress inetAddress = InetAddress.getByAddress(ip);
+				if(ip[0] == 0) continue;
 				if(inetAddress.equals(InetAddress.getLocalHost())) {
 					// TODO: find a better way to detect if this is a local IP
 					// this is me! skip it.
