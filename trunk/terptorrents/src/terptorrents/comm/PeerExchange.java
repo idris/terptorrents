@@ -2,6 +2,7 @@ package terptorrents.comm;
 
 import java.util.Set;
 
+import terptorrents.Main;
 import terptorrents.comm.messages.extended.UTPEXMessage;
 import terptorrents.models.Peer;
 import terptorrents.models.PeerList;
@@ -14,6 +15,7 @@ public class PeerExchange implements Runnable {
 		while(go) {
 			try {
 				Thread.sleep(PEER_EXCHANGE_INTERVAL);
+				Main.dprint("Sending Peer Exchange (ut_pex) Messages");
 				Set<Peer> peers = PeerList.getInstance().getWellKnownPeers();
 				for(PeerConnection conn: ConnectionPool.getInstance().getConnections()) {
 					UTPEXMessage m = new UTPEXMessage(conn);
