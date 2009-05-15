@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,6 +12,8 @@ import metainfo.TorrentParser;
 
 import terptorrents.Main;
 import terptorrents.comm.messages.*;
+import terptorrents.comm.messages.extended.ExtendedHandshakeMessage;
+import terptorrents.comm.messages.extended.ExtendedMessage;
 import terptorrents.io.IO;
 import terptorrents.models.Peer;
 import terptorrents.models.PieceManager;
@@ -31,7 +34,7 @@ public class PeerConnection {
 	final Socket socket;
 
 	private static final long MAX_KEEPALIVE = 1000*60*2; // two minutes
-	private static final int CONNECT_TIMEOUT = 300;
+	private static final int CONNECT_TIMEOUT = 800;
 
 	volatile Date lastReceived;
 	volatile Date lastPieceReceived = null;
@@ -46,6 +49,9 @@ public class PeerConnection {
 	boolean handshook = false;
 	private volatile boolean dead = false;
 	public AtomicInteger outstandingRequests = new AtomicInteger();
+
+	private Map<String, Integer> extendedMessageTypes = new java.util.Hashtable<String, Integer>();
+	public boolean supportsExtendedMessages = true;
 
 	private final Thread inThread;
 	private final Thread outThread;
@@ -111,7 +117,7 @@ public class PeerConnection {
 	private void sendHandshake() {
 		HandshakeMessage handshake = new HandshakeMessage(TorrentParser.
 				getInstance().getMetaFile().getByteInfoHash(), Main.PEER_ID);
-		outgoingMessages.add(handshake);
+		sendMessage(handshake);
 	}
 
 	void sendBitfield() {
@@ -119,16 +125,24 @@ public class PeerConnection {
 				!= IO.getInstance().getBitSet().totalNumOfPieces()){
 			BitfieldMessage bitfieldMessage = new BitfieldMessage(IO.
 					getInstance().getBitSet().getUnsyncBitSet());
-			outgoingMessages.add(bitfieldMessage);
+			sendMessage(bitfieldMessage);
+		}
+
+		if(Main.SUPPORT_EXTENDED_MESSAGES) {
+			sendMessage(new ExtendedHandshakeMessage(this));
 		}
 	}
 
 	public void sendMessage(Message message) {
+		if(message instanceof ExtendedMessage && !supportsExtendedMessages) {
+			return;
+		}
+
 		if(message instanceof InterestedMessage) {
 			setInterested(true);
 		} else if(message instanceof NotInterestedMessage) {
 			setInterested(false);
-			return;
+//			return;
 		} else if(message instanceof ChokeMessage) {
 			setChoking(true);
 		} else if(message instanceof UnchokeMessage) {
@@ -184,6 +198,15 @@ public class PeerConnection {
 				}
 			}
 		}
+	}
+
+	public Integer getExtendedMessageId(String messageTypeName) {
+		if("handshake".equals(messageTypeName)) return 0;
+		return extendedMessageTypes.get(messageTypeName);
+	}
+
+	public void addExtendedMessageType(String messageTypeName, int id) {
+		extendedMessageTypes.put(messageTypeName, id);
 	}
 
 	public Peer getPeer() {

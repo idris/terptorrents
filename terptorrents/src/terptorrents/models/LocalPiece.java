@@ -42,7 +42,7 @@ public class LocalPiece extends Piece {
 	public synchronized byte [] requestBlock(int pieceIndex, int blockBegin, 
 			int blockLength) throws TerptorrentsModelsBlockIndexOutOfBound,
 			TerptorrentsModelsPieceNotReadable{
-		Main.dprint("LocalPiece: Requesting message #" + pieceIndex);
+//		Main.dprint("LocalPiece: Requesting message #" + pieceIndex);
 		if(blockBegin < 0 || blockBegin + blockLength > getSize())
 			throw new TerptorrentsModelsBlockIndexOutOfBound();
 		if(data == null){

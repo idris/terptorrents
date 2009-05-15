@@ -36,7 +36,6 @@ public class TrackerCommunicator implements Runnable {
 	private boolean stopped = false;
 	
 	// Tracker response fields
-	private List<Peer>peerList;
 	private int interval = 30; //time to wait between requests, in seconds
 	private int minInterval; //optional, time to wait between announce
 	private int numSeeders = 0;
@@ -157,37 +156,8 @@ public class TrackerCommunicator implements Runnable {
 			if(intervalBE!=null)interval=intervalBE.getInt();
 			BEValue peersBE=(BEValue)(topLevelMap.get("peers"));
 			if(peersBE!=null){
-				peerList=new ArrayList<Peer>();
-				byte[]peerBytes=peersBE.getBytes();
 				Main.dprint("Peers from Tracker Response:");
-				for(int i=0; i<peerBytes.length; i+=6){
-					byte[]ip=new byte[4];
-					for(int j=0; j<4; j++){
-						ip[j]=peerBytes[i+j];
-					}
-					int port = 0;
-					port=peerBytes[i+5] & 0xFF;
-					port |= (peerBytes[i+4]<<8)&0xFF00;
-					//port <<= 8;
-					//port |= peerBytes[i+5];
-					InetAddress inetAddress = InetAddress.getByAddress(ip);
-					if(inetAddress.equals(InetAddress.getLocalHost())) {
-						// TODO: find a better way to detect if this is a local IP
-						// this is me! skip it.
-						continue;
-					}
-					String dottedIP = inetAddress.getHostAddress();
-					Peer p = new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port);
-//					try {
-//						new PeerConnection(p).close();
-//						peerList.add(p);
-//					} catch(Exception ex) {
-//						
-//					}
-					Main.dprint(p.toString());
-					peerList.add(p);
-				}
-				PeerList.getInstance().addPeers(peerList);
+				PeerList.getInstance().addPeers(readPeers(peersBE.getBytes()));
 			}
 			BEValue trackerIDBE=(BEValue)(topLevelMap.get("tracker id"));
 			if(trackerIDBE!=null)trackerId=trackerIDBE.getString();
@@ -200,6 +170,37 @@ public class TrackerCommunicator implements Runnable {
 			} catch(Exception ex) {
 				// who cares.
 			}
-		}	
+		}
+	}
+
+	public static List<Peer> readPeers(byte[] peerBytes) {
+		ArrayList<Peer> peerList = new ArrayList<Peer>();
+		for(int i=0; i<peerBytes.length; i+=6){
+			byte[]ip=new byte[4];
+			for(int j=0; j<4; j++){
+				ip[j]=peerBytes[i+j];
+			}
+			int port = 0;
+			port=peerBytes[i+5] & 0xFF;
+			port |= (peerBytes[i+4]<<8)&0xFF00;
+			//port <<= 8;
+			//port |= peerBytes[i+5];
+			try {
+				InetAddress inetAddress = InetAddress.getByAddress(ip);
+				if(inetAddress.equals(InetAddress.getLocalHost())) {
+					// TODO: find a better way to detect if this is a local IP
+					// this is me! skip it.
+					continue;
+				}
+				String dottedIP = inetAddress.getHostAddress();
+				Peer p = new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port);
+				Main.dprint(p.toString());
+				peerList.add(p);
+			} catch(Exception ex) {
+				// carry on...
+			}
+		}
+
+		return peerList;
 	}
 }

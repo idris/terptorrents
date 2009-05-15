@@ -46,40 +46,32 @@ public class ConnectionPool {
 		// use newInstance to instantiate this singleton.
 	}
 
-	private void initialize() {
+	private void connect(Peer peer) {
+		if(!peer.isConnectable()) return;
+		try {
+			outgoingConnections.add(new PeerConnection(peer));
+		} catch(IOException ex) {
+			Main.dprint("Failed to Connect: " + peer.toString() + ". Reason: " + ex.getMessage());
+			// throw it out
+			peer.setConnection(null);
+			peer.changePort();
+			if(peer.getPort() > 0) connect(peer);
+			else peer.disconnect();
+		}
+	}
+
+	public synchronized void refill() {
 		connectLock.lock();
 
 		try {
-			Set<Peer> randomPeers = PeerList.getInstance().getRandomConnectablePeers(Main.MAX_PEER_CONNECTIONS);
+			Set<Peer> randomPeers = PeerList.getInstance().getRandomConnectablePeers();
 			for(Peer peer: randomPeers) {
-				/* if someone creates connection, wait until its done, so 
-				 * we do not have multiple connections to the same peer
-				 */
+				if(outgoingConnections.size() >= Main.MAX_PEER_CONNECTIONS) break;
 				connect(peer);
 			}
 		} finally {
 			connectLock.unlock();
 		}
-
-		Main.dprint("CONNECTION POOL initialized");
-	}
-
-	private void connect(Peer peer) {
-		try {
-			outgoingConnections.add(new PeerConnection(peer));
-		} catch(IOException ex) {
-			Main.dprint("Failed to Connect: " + peer.toString() + ". Removing from PeerList. Reason: " + ex.getMessage());
-			// throw it out
-			peer.disconnect();
-			peer.changePort();
-			if(peer.getPort() > 0) connect(peer);
-		}
-	}
-
-	public static ConnectionPool newInstance() {
-		//if (singleton == null) singleton = new ConnectionPool();
-		singleton.initialize();
-		return singleton;
 	}
 
 	public static synchronized ConnectionPool getInstance() {
@@ -104,16 +96,7 @@ public class ConnectionPool {
 
 		try {
 			if(outgoingConnections.remove(conn)) {
-				Set<Peer> newPeers = PeerList.getInstance().getRandomConnectablePeers(Main.MAX_PEER_CONNECTIONS - outgoingConnections.size());
-				for(Peer p: newPeers) {
-					try {
-						if(p.equals(conn.getPeer())) continue;
-
-						outgoingConnections.add(new PeerConnection(p));
-					} catch(IOException ex) {
-						PeerList.getInstance().removePeer(p);
-					}
-				}
+				refill();
 			} else {
 				if(incomingConnections.remove(conn)) {
 					releaseIncomingSlot();

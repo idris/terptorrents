@@ -46,6 +46,10 @@ public class BlockRange {
 		return true;
 	}
 
+	public String toString() {
+		return "BlockRange(" + pieceIndex + "," + begin + "," + length + ")";
+	}
+
 	public BlockRange(int begin, int length, int pieceIndex){
 		this.begin = begin;
 		this.length = length;

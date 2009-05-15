@@ -114,7 +114,11 @@ public class Peer {
 	}
 
 	public boolean isConnectable() {
-		return !isConnected() && badCount.get() <= 2;
+		return !isConnected() && getPort() > 0 && !isBad();
+	}
+
+	public boolean isBad() {
+		return badCount.get() > 2;
 	}
 
 	/**
@@ -127,6 +131,6 @@ public class Peer {
 	@Override
 	public String toString() {
 		//return new String(id) + "|" + address.toString();
-		return address.toString() + ":" + port;
+		return address.toString() + (port>0?":" + port:"");
 	}
 }

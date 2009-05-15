@@ -36,6 +36,7 @@ public class Main {
 	public static final int MAX_OUTSTANDING_REQUESTS = 10; // MUST BE > 2
 	public static final int NUM_PIECES_TO_INCLUDE_IN_RANDOM_LIST = MAX_OUTSTANDING_REQUESTS * 3;
 	public static final boolean SUPER_SEEDING_MODE=false;
+	public static final boolean SUPPORT_EXTENDED_MESSAGES = true;
 	/* ------------------------------------- */
 	public static boolean   USER_ASSIGNED_PORT = false; //set to true if port is assigned by user
 	public static int 		PORT;
@@ -60,7 +61,7 @@ public class Main {
 	public static void main(String[] args) {
 		dprint("Starting Terptorrent...");
 		//TODO remove comment. It is OFF for debugging purpose
-		torrentFile = "pictures.torrent";
+		torrentFile = "10_Qualities.torrent";
 		//parseCommand(args);
 
 		try {
@@ -88,24 +89,16 @@ public class Main {
 			}
 			dprint("Client is listening on port " + Main.PORT);
 
+			/*start connection pool*/
+			dprint("Instantiating ConnectionPool");
+			ConnectionPool.getInstance();
+
 			/* instantiate Tracker Communicator */
 			dprint("Launching Tracker Communicator");
 			Thread trackerComm = new Thread(new TrackerCommunicator());
 			//make thread a daemon, so it dies when Main exits
 			trackerComm.setDaemon(true);
 			trackerComm.start();
-
-			/*start connection pool*/
-			dprint("Instantiating ConnectionPool");
-			/* start it in a thread, because it can take time to launch it
-			 * if a lot of peers returned by tracker */
-			Thread connectionPool = new Thread(new Runnable(){
-				public void run() {
-					ConnectionPool.newInstance();
-				}				
-			});
-			connectionPool.setDaemon(true);
-			connectionPool.start();
 
 			/*start peer listener*/
 			dprint("Starting peer listener");
@@ -126,6 +119,13 @@ public class Main {
 			requestManager.setDaemon(true);
 			requestManager.start();
 
+
+			if(SUPPORT_EXTENDED_MESSAGES) {
+				dprint("Starting PeerExchange Manager");
+				Thread peerExchange = new Thread(new PeerExchange());
+				peerExchange.setDaemon(true);
+				peerExchange.start();
+			}
 
 
 			boolean seeding = false;

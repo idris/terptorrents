@@ -26,26 +26,28 @@ class PeerConnectionOut implements Runnable {
 	}
 
 	public void run() {
-		while(!connection.disconnect) {
-			if(connection.peerIsDead()) {
-				connection.close();
-				break;
-			}
-			try {
-				Message toSend = connection.outgoingMessages.poll(2, TimeUnit.MINUTES);
-				if(toSend == null) {
-					toSend = new KeepaliveMessage();
+		try {
+			while(!connection.disconnect) {
+				if(connection.peerIsDead()) {
+					connection.close();
+					break;
 				}
-				writeMessage(toSend);
-			} catch(InterruptedException ex) {
-				// keep on truckin'
-			} catch(IOException ex) {
-				Main.dprint("ConnectionOUT. Peer disconnected. " + connection.peer.toString());
-				connection.close();
+				try {
+					Message toSend = connection.outgoingMessages.poll(2, TimeUnit.MINUTES);
+					if(toSend == null) {
+						toSend = new KeepaliveMessage();
+					}
+					writeMessage(toSend);
+				} catch(InterruptedException ex) {
+					// keep on truckin'
+				} catch(IOException ex) {
+					Main.dprint("ConnectionOUT. Peer disconnected. " + connection.peer.toString());
+					connection.close();
+				}
 			}
+		} finally {
+			connection.teardown();
 		}
-
-		connection.teardown();
 	}
 
 	private synchronized void writeMessage(Message message) throws IOException {

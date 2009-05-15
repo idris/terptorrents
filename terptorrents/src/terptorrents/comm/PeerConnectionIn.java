@@ -9,6 +9,8 @@ import java.util.Date;
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.messages.*;
+import terptorrents.comm.messages.extended.ExtendedHandshakeMessage;
+import terptorrents.comm.messages.extended.UTPEXMessage;
 import terptorrents.exceptions.UnknownMessageException;
 
 
@@ -29,29 +31,31 @@ class PeerConnectionIn implements Runnable {
 	}
 
 	public void run() {
-		if(!connection.handshook) {
-			try {
-				// receive initial handshake
-				readHandshake();
-			} catch(IOException ex) {
-				connection.close();
+		try {
+			if(!connection.handshook) {
+				try {
+					// receive initial handshake
+					readHandshake();
+				} catch(IOException ex) {
+					connection.close();
+				}
 			}
-		}
 
-		connection.sendBitfield();
+			connection.sendBitfield();
 
-		while(!connection.disconnect) {
-			try {
-				readMessage();
-			} catch(IOException ex) {
-				Main.dprint("ConnectionIN. Peer disconnected. " + connection.peer.toString());
-				connection.close();
-			} catch(UnknownMessageException ex) {
-				Main.dprint("Unknown message received.");
+			while(!connection.disconnect) {
+				try {
+					readMessage();
+				} catch(IOException ex) {
+					Main.dprint("ConnectionIN. Peer disconnected. " + connection.peer.toString());
+					connection.close();
+				} catch(UnknownMessageException ex) {
+					Main.dprint("Unknown message received.");
+				}
 			}
+		} finally {
+			connection.teardown();
 		}
-
-		connection.teardown();
 	}
 
 	private HandshakeMessage readHandshake() throws IOException {
@@ -89,7 +93,7 @@ class PeerConnectionIn implements Runnable {
 
 		byte id = in.readByte();
 
-		Message m;
+		Message m = null;
 		switch(id) {
 		case 0:
 			m = new ChokeMessage();
@@ -121,11 +125,33 @@ class PeerConnectionIn implements Runnable {
 		case 9:
 			m = new PortMessage();
 			break;
-		default:
+		}
+
+		if(Main.SUPPORT_EXTENDED_MESSAGES && id == 20 && length >= 2) {
+			int extendedId = in.readByte();
+			Main.iprint("INCOMING EXTENDED MESSAGE: " + extendedId);
+			switch(extendedId) {
+			case ExtendedHandshakeMessage.ID:
+				m = new ExtendedHandshakeMessage(connection);
+				break;
+			case UTPEXMessage.ID:
+				m = new UTPEXMessage(connection);
+				break;
+			}
+
+			if(m == null){
+				length -= 1; // we will skip the rest, so make sure we account for that one byte.
+				Main.iprint("Unknown Extended Message ID: " + extendedId);
+			}
+		}
+
+		if(m == null) {
+			// unknown message. skip it.
 			length -= 1;
 			while(length > 0) {
 				length -= in.skip(length);
 			}
+			Main.iprint("Unknown Message ID: " + id);
 			throw new UnknownMessageException("Unknown Message Id: " + id);
 		}
 
