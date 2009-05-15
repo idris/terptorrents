@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import terptorrents.Main;
 import terptorrents.comm.PeerConnection;
 import terptorrents.models.BlockRange;
 
@@ -43,6 +44,7 @@ public class RequestMessage extends AbstractMessage {
 
 	@Override
 	public void onReceive(PeerConnection conn) {
+		if(!Main.INFO) Main.dprint("Peer " + conn.toString() + " Requesting (" + index + "," + begin + "," + length + ")");
 		conn.addPeerRequest(this);
 	}
 
@@ -79,6 +81,10 @@ public class RequestMessage extends AbstractMessage {
 
 	@Override
 	public String toString() {
-		return "RequestMessage: (" + index + "," + begin +"," + length + ")";
+		try {
+			return "RequestMessage: (" + index + "," + begin +"," + length + ")";
+		} catch(Exception ex) {
+			return super.toString();
+		}
 	}
 }

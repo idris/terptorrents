@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import sun.tools.tree.LengthExpression;
 import terptorrents.Main;
 import terptorrents.Stats;
 import terptorrents.comm.ConnectionPool;
@@ -103,5 +104,14 @@ public class PieceMessage extends AbstractMessage {
 		out.writeInt(index);
 		out.writeInt(begin);
 		out.write(block);
+	}
+
+	@Override
+	public String toString() {
+		try {
+			return "PieceMessage" + "(" + index + "," + begin + "," + block.length + ")";
+		} catch(Exception ex) {
+			return super.toString();
+		}
 	}
 }
