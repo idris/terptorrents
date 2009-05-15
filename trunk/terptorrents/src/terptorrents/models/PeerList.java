@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import terptorrents.comm.ConnectionPool;
+
 /**
  * @author idris
  *
@@ -29,13 +31,14 @@ public class PeerList {
 		return singleton;
 	}
 
-	public Set<Peer> getRandomConnectablePeers(int max) {
-		Set<Peer> set = new HashSet<Peer>(max);
-		for(Peer p: peers) {
-			if(p.isConnectable() && p.getPort() > 0) {
-				set.add(p);
+	public Set<Peer> getRandomConnectablePeers() {
+		Set<Peer> set = new HashSet<Peer>();
+		synchronized(peers) {
+			for(Peer p: peers) {
+				if(p.isConnectable()) {
+					set.add(p);
+				}
 			}
-			if(set.size() >= max) break;
 		}
 
 		return set;
@@ -43,9 +46,11 @@ public class PeerList {
 
 	public Set<Peer> getWellKnownPeers() {
 		Set<Peer> set = new HashSet<Peer>();
-		for(Peer p: peers) {
-			if(p.getPort() > 0) {
-				set.add(p);
+		synchronized(peers) {
+			for(Peer p: peers) {
+				if(p.getPort() > 0 && !p.isBad()) {
+					set.add(p);
+				}
 			}
 		}
 
@@ -56,36 +61,46 @@ public class PeerList {
 	 * @return true if peer added successfully
 	 */
 	public synchronized boolean addPeer(Peer p) {
-		int index = peers.indexOf(p);
-		if(index >= 0) {
-			Peer existing = peers.get(index);
-			existing.addPort(p.getPort());
-			existing.forgive();
-		} else {
-			peers.add(p);
-			peersByAddress.put(p.getAddress(), p);
-			return true;
-		}
+		synchronized(peers) {
+			int index = peers.indexOf(p);
+			if(index >= 0) {
+				Peer existing = peers.get(index);
+				existing.addPort(p.getPort());
+				existing.forgive();
+			} else {
+				peers.add(p);
+				peersByAddress.put(p.getAddress(), p);
+				return true;
+			}
 
-		return false;
+			return false;
+		}
 	}
 
 	public synchronized void addPeers(List<Peer> newPeers) {
-		for(Peer p: newPeers) {
-			addPeer(p);
+		synchronized(peers) {
+			for(Peer p: newPeers) {
+				addPeer(p);
+			}
 		}
+
+		ConnectionPool.getInstance().refill();
 	}
 
 	public synchronized void removePeer(Peer p) {
-		peers.remove(p);
-		peersByAddress.remove(p.getAddress());
+		synchronized(peers) {
+			peers.remove(p);
+			peersByAddress.remove(p.getAddress());
+		}
 	}
 
 	public synchronized Peer getPeer(InetAddress addr) {
 		return peersByAddress.get(addr);
 	}
-	
+
 	public Set<Peer> getPeerListSnapshot() {
-		return new HashSet<Peer>(this.peers);
+		synchronized(peers) {
+			return new HashSet<Peer>(this.peers);
+		}
 	}
 }

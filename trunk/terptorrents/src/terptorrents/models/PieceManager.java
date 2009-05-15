@@ -76,9 +76,10 @@ public class PieceManager {
 		}else{
 			Main.iprint("peerPieceList size: " + peerPieceList.size());
 			synchronized (peerPieceList) {
-				Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 				if(Main.ENABLE_FILE_PRIORITY_SELECTION)
 					Collections.sort(peerPieceList, new PeerPieceComparatorPriority());
+				else
+					Collections.sort(peerPieceList, new PeerPieceComparatorRarest());
 			}
 
 			while(!peerPieceList.isEmpty() && peerPieceList.get(0).getNumPeer() == 0) {
@@ -108,20 +109,20 @@ public class PieceManager {
 
 					while(requestedBytes < Main.MAX_REQUEST_BLOCK_SIZE *size 
 							&& j < blockRanges.length){
-						//Main.iprint("DOGPILE HAS " + dogpile.size());
 						if(!dogpile.contains(blockRanges[j])){
 							if(((PeerPiece)pieces[blockRanges[j].getPieceIndex()]).hasPeer(peer)){
 								res.add(blockRanges[j]);
 								requestedBytes += blockRanges[j].getLength();
 							}
 						} else {
+//							Main.iprint("Dogpile has " + blockRanges[j].toString());
 							same++;
 						}
 						j++;
 					}
 				}
 			} catch (ConcurrentModificationException ex) {
-				Main.dprint("ConcurrentModificationException is caught in " +
+				Main.iprint("ConcurrentModificationException is caught in " +
 				"PieceManager while iterating over piece List");
 			}
 		}

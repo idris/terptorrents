@@ -67,6 +67,7 @@ public class PieceMessage extends AbstractMessage {
 
 	@Override
 	public void onReceive(PeerConnection conn) {
+		Main.dprint("Recieved " + toString() + " from " + conn.getPeer().toString());
 		int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.decrementAndGet();
 		try {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
