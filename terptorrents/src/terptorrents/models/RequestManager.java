@@ -64,13 +64,11 @@ public class RequestManager implements Runnable {
 			if(dogpileList.isEmpty()) {
 				if (!IO.getInstance().isComplete()) {
 //					PieceManager.reinitialize();
-					/* if file is not complete and blockRanges with dogpilt
+					/* if file is not complete and blockRanges with dogpile
 					 * is empty, reinitialize PieceManager
 					 */
-					//Main.dprint("PIECE MANAGER RE-INITIALIZED");
 				} else return;
-				Main.dprint("=============== FATAL ERROR: nothing left to request! ============");
-				throw new TerptorrentsModelsCanNotRequstFromThisPeer("PIECE MANAGER RE-INITIALIZED");
+				throw new TerptorrentsModelsCanNotRequstFromThisPeer("Done requesting from this peer.");
 			}
 			dogpile.clear();
 			int toRequest = Main.MAX_OUTSTANDING_REQUESTS - conn.outstandingRequests.get();
