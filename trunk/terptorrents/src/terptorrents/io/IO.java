@@ -447,9 +447,10 @@ if (DEBUG) dprint("Successfully wrote piece #" + i + " Size: " + piece.length);
 	public long bytesRemaining() {
 		long remaining = 0;
 		int i;
-		for (i = 0; i < mask.length - 1; i++)
-			if (!mask[i]) remaining += pieceSize;
-		if (!mask[i]) remaining += this.irregPieceSize;
+		for (i = 0; i < mask.length - 1; i++) {
+			if (!mask[i] && !piecesWeDoNotWant.contains(i)) remaining += pieceSize;
+		}
+		if (!mask[i] && !piecesWeDoNotWant.contains(i)) remaining += this.irregPieceSize;
 		return remaining;
 	}
 	
