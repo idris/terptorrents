@@ -60,6 +60,8 @@ public class ChockingAlgorithm implements Runnable {
 				}else{
 					PeerConnection pc = ConnectionPool.getInstance().
 					getPlannedOptimisticUnchokedPeerConnection();
+					Main.iprint("For this round, Planned Optimistic Unchoked Peer is:"
+							+ pc);
 					if (pc != null) 
 						pc.sendMessage(new UnchokeMessage());
 				}
@@ -101,7 +103,8 @@ public class ChockingAlgorithm implements Runnable {
 							plannedOptimisticUnchokedPeer = 
 								ConnectionPool.getInstance()
 								.getPlannedOptimisticUnchokedPeerConnection();
-
+						Main.iprint("For this round, Planned Optimistic Unchoked Peer is:"
+								+ plannedOptimisticUnchokedPeer);
 						plannedOptimisticUnchokedPeer.
 						sendMessage(new UnchokeMessage());
 					}while(!ConnectionPool.getInstance().getInstersted().
