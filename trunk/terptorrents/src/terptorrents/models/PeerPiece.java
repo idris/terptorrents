@@ -88,7 +88,7 @@ public class PeerPiece extends Piece {
 			this.data = new byte[getSize()];
 		
 		Main.iprint("freeBlocks for piece " + pieceIndex + ": " + freeBlock.size());
-		Main.dprint("BlockReceived. PieceIndex: " + pieceIndex + 
+		Main.iprint("BlockReceived. PieceIndex: " + pieceIndex + 
 				" blockBegin: " + blockBegin + " blockLength: " + 
 				blockLength);
 		

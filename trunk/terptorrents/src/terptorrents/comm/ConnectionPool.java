@@ -56,7 +56,7 @@ public class ConnectionPool {
 			peer.setConnection(null);
 			peer.changePort();
 			if(peer.getPort() > 0) connect(peer);
-			else peer.disconnect();
+			else peer.fail();
 		}
 	}
 

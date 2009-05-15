@@ -101,6 +101,11 @@ public class Peer {
 		badCount.incrementAndGet();
 	}
 
+	public synchronized void fail() {
+		setConnection(null);
+		badCount.set(5);
+	}
+
 	public synchronized void setConnection(PeerConnection connection) {
 		this.connection = connection;
 	}
