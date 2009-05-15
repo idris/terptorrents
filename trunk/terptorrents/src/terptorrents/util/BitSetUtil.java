@@ -10,7 +10,7 @@ public final class BitSetUtil {
 		int length = IO.getInstance().getBitSet().totalNumOfPieces();
 
 		for (int i = 0; i < length; i++) {
-			if ((bytes[i / 8] & (0x01 << (8 - i%8))) > 0) {
+			if ((bytes[i / 8] & (0x01 << (7 - i%8))) > 0) {
 				bits.set(i);
 			}
 		}
@@ -23,7 +23,7 @@ public final class BitSetUtil {
 		byte[] bytes = new byte[numBytes];
 		for (int i=0; i<bits.length(); i++) {
 			if (bits.get(i)) {
-				bytes[i/8] |= 0x01 << (8 - i%8);
+				bytes[i/8] |= 0x01 << (7 - i%8);
 			}
 		}
 //		print(bits);
@@ -33,7 +33,7 @@ public final class BitSetUtil {
 
 	public static void print(byte[] bytes) {
 		for (int i = 0; i < bytes.length; i++) {
-			System.out.print(Integer.toHexString(bytes[i]));
+			System.out.print(Integer.toHexString(bytes[i]) + " ");
 		}
 		System.out.println();
 	}
