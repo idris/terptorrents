@@ -2,6 +2,9 @@ package terptorrents.models;
 
 import java.io.*;
 import java.net.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import terptorrents.comm.PeerConnection;
@@ -13,6 +16,7 @@ public class Peer {
 	 * port this peer is listening on. Incoming connections will be -1
 	 */
 	private int port = -1;
+	private Set<Integer> ports = Collections.synchronizedSet(new HashSet<Integer>());
 	private AtomicInteger badCount = new AtomicInteger();
 
 
@@ -49,6 +53,25 @@ public class Peer {
 
 	public void setPort(int port) {
 		this.port = port;
+		addPort(port);
+	}
+
+	public void addPort(int port) {
+		this.ports.add(port);
+		if(this.port < 0 && port > 0) this.port = port;
+	}
+
+	public void changePort() {
+		if(ports.isEmpty()) {
+			this.port = -1;
+			return;
+		}
+		ports.remove(this.port);
+		for(Integer p: ports) {
+			this.port = p;
+			break;
+		}
+		if(this.port < 0) changePort();
 	}
 
 	/**
@@ -66,7 +89,7 @@ public class Peer {
 		InetAddress addr = InetAddress.getByName(host);
 		this.address = addr;
 		//new InetSocketAddress(addr, port);
-		this.port = port;
+		addPort(port);
 	}
 
 	public byte[] getId() {

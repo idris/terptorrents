@@ -72,7 +72,7 @@ public class PieceMessage extends AbstractMessage {
 			PieceManager.getInstance().updateBlock(index, begin, block.length, block);
 			Stats.getInstance().downloaded.addAndGet(block.length);
 		} catch(Exception ex) {
-			Main.dprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+			Main.iprint("Exception in PieceMessage.onReceive() is caught: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
 			//ex.printStackTrace();
 		}
 

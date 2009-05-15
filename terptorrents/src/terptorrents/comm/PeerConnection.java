@@ -31,7 +31,7 @@ public class PeerConnection {
 	final Socket socket;
 
 	private static final long MAX_KEEPALIVE = 1000*60*2; // two minutes
-	private static final int CONNECT_TIMEOUT = 1000;
+	private static final int CONNECT_TIMEOUT = 300;
 
 	volatile Date lastReceived;
 	volatile Date lastPieceReceived = null;
@@ -128,6 +128,7 @@ public class PeerConnection {
 			setInterested(true);
 		} else if(message instanceof NotInterestedMessage) {
 			setInterested(false);
+			return;
 		} else if(message instanceof ChokeMessage) {
 			setChoking(true);
 		} else if(message instanceof UnchokeMessage) {
