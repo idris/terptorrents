@@ -58,7 +58,9 @@ public class PeerList {
 	public synchronized boolean addPeer(Peer p) {
 		int index = peers.indexOf(p);
 		if(index >= 0) {
-			peers.get(index).forgive();
+			Peer existing = peers.get(index);
+			existing.addPort(p.getPort());
+			existing.forgive();
 		} else {
 			peers.add(p);
 			peersByAddress.put(p.getAddress(), p);

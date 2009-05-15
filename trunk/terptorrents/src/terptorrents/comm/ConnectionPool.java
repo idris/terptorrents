@@ -55,20 +55,25 @@ public class ConnectionPool {
 				/* if someone creates connection, wait until its done, so 
 				 * we do not have multiple connections to the same peer
 				 */
-				try {
-					outgoingConnections.add(new PeerConnection(peer));
-				} catch(IOException ex) {
-					Main.dprint("Failed to Connect: " + peer.toString() + ". " + ex.getMessage());
-					// throw it out
-					peer.disconnect();
-					PeerList.getInstance().removePeer(peer);
-				}
+				connect(peer);
 			}
 		} finally {
 			connectLock.unlock();
 		}
 
 		Main.dprint("CONNECTION POOL initialized");
+	}
+
+	private void connect(Peer peer) {
+		try {
+			outgoingConnections.add(new PeerConnection(peer));
+		} catch(IOException ex) {
+			Main.dprint("Failed to Connect: " + peer.toString() + ". Removing from PeerList. Reason: " + ex.getMessage());
+			// throw it out
+			peer.disconnect();
+			peer.changePort();
+			if(peer.getPort() > 0) connect(peer);
+		}
 	}
 
 	public static ConnectionPool newInstance() {

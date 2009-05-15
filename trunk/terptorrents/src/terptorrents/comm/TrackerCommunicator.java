@@ -159,6 +159,7 @@ public class TrackerCommunicator implements Runnable {
 			if(peersBE!=null){
 				peerList=new ArrayList<Peer>();
 				byte[]peerBytes=peersBE.getBytes();
+				Main.dprint("Peers from Tracker Response:");
 				for(int i=0; i<peerBytes.length; i+=6){
 					byte[]ip=new byte[4];
 					for(int j=0; j<4; j++){
@@ -176,7 +177,15 @@ public class TrackerCommunicator implements Runnable {
 						continue;
 					}
 					String dottedIP = inetAddress.getHostAddress();
-					peerList.add(new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port));
+					Peer p = new Peer(new String(dottedIP+":"+port).getBytes(),dottedIP,port);
+//					try {
+//						new PeerConnection(p).close();
+//						peerList.add(p);
+//					} catch(Exception ex) {
+//						
+//					}
+					Main.dprint(p.toString());
+					peerList.add(p);
 				}
 				PeerList.getInstance().addPeers(peerList);
 			}

@@ -52,4 +52,8 @@ public class BitfieldMessage extends AbstractMessage {
 		super.write(out);
 		out.write(BitSetUtil.toByteArray(bitfield, getLength()-1));
 	}
+
+//	public String toString() {
+//		return "";
+//	}
 }
