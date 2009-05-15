@@ -13,7 +13,7 @@ public class PeerExchange implements Runnable {
 	public void run() {
 		while(go) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(PEER_EXCHANGE_INTERVAL);
 				Set<Peer> peers = PeerList.getInstance().getWellKnownPeers();
 				for(PeerConnection conn: ConnectionPool.getInstance().getConnections()) {
 					UTPEXMessage m = new UTPEXMessage(conn);
