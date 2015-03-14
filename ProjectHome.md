@@ -1,0 +1,1 @@
+The goal of this project is to develop a BitTorrent client according to BitTorrent Protocol.
